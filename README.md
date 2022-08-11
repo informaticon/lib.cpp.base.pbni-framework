@@ -8,8 +8,15 @@ PowerBuilder
 ## How to
 Either add this repository as a submodule in your own repository, or just add it as a subfolder somewhere in your cmake source folder. \
 You should already have a complete Cmake file which takes your source files and compiles them to a dll. \
-Inside your target cmake file add these lines:
 
+Before you create your target add these:
+```cmake
+set(CMAKE_CXX_STANDARD 20)
+# To be able to use __VA_OPT__
+add_compile_options("/Zc:preprocessor")
+```
+
+After your cmake target add these lines:
 ```cmake
 # For includes and linkages
 set(PBNI_DIR "C:/Program Files (x86)/Appeon/PowerBuilder 17.0/SDK/PBNI" CACHE PATH "PATH of PowerBuilder Native Interface SDK")

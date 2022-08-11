@@ -34,5 +34,15 @@ set(SUBFOLDER "lib.cpp.base.pbni-framework")
 include("${SUBFOLDER}/lib.cpp.base.pbni-framework.cmake")
 ```
 
+### Code
+If you want to create a PBNI class, include lib.cpp.base.pbni-framework/Framework.h. Then make a class and publicly extend Inf::PBNI_Class, you need to implement the method GetPBName like so:
+```cpp
+	inline std::wstring GetPBName() override { return L"u_pbni_ex; }
+```
+This will be the name of your class on powerbuilders side.\
+Then define all your functions. Inside a .cpp file include lib.cpp.base.pbni-framework/ClassDescription.h and use INF_REGISTER_CLASS, and INF_REGISTER_FUNC to register all your func, to see how to do it exactly look at the example.\
+\
+You don't need to add any DLL or PBNI related things. That is all handled by lib.cpp.base.pbni-framework/dllmain.cpp.
+
 ### Example
 Check out [this](https://github.com/informaticon/div.cpp.miw.pbni-framework-example) repository to see how it can be done.

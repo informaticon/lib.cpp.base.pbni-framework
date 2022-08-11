@@ -41,7 +41,7 @@ namespace Inf
 		}
 
 		// Unbounded arrays
-		inline void Set(pblong pos, const PBT t)
+		void Set(pblong pos, const PBT t)
 			requires (sizeof...(dims) == 0)
 		{
 			AssertInside(pos, false);
@@ -49,7 +49,7 @@ namespace Inf
 			SetImpl<PBT>(&pos, t);
 		}
 
-		inline void SetItemToNull(pblong pos)
+		void SetItemToNull(pblong pos)
 			requires (sizeof...(dims) == 0)
 		{
 			// No need to check upper bound
@@ -58,7 +58,7 @@ namespace Inf
 			m_Session->SetArrayItemToNull(m_Array, &pos);
 		}
 
-		inline PBT Get(pblong pos)
+		PBT Get(pblong pos)
 			requires (sizeof...(dims) == 0)
 		{
 			AssertInside(pos);
@@ -66,9 +66,18 @@ namespace Inf
 			return GetImpl<PBT>(&pos);
 		}
 
+		bool IsItemNull(pblong pos)
+			requires (sizeof...(dims) == 0)
+		{
+			// No need to check upper bound
+			AssertInside(pos, false);
+
+			return m_Session->IsArrayItemNull(&pos);
+		}
+
 
 		// Bounded arrays
-		inline void Set(std::array<pblong, sizeof...(dims)> pos, const PBT t)
+		void Set(std::array<pblong, sizeof...(dims)> pos, const PBT t)
 			requires (sizeof...(dims) != 0)
 		{
 			AssertInside(pos);
@@ -76,7 +85,7 @@ namespace Inf
 			SetImpl<PBT>(pos.data(), t);
 		}
 
-		inline void SetItemToNull(std::array<pblong, sizeof...(dims)> pos)
+		void SetItemToNull(std::array<pblong, sizeof...(dims)> pos)
 			requires (sizeof...(dims) != 0)
 		{
 			AssertInside(pos);
@@ -84,12 +93,20 @@ namespace Inf
 			m_Session->SetArrayItemToNull(m_Array, pos.data());
 		}
 
-		inline PBT Get(std::array<pblong, sizeof...(dims)> pos)
+		PBT Get(std::array<pblong, sizeof...(dims)> pos)
 			requires (sizeof...(dims) != 0)
 		{
 			AssertInside(pos);
 
 			return GetImpl<PBT>(pos.data());
+		}
+
+		bool IsItemNull(std::array<pblong, sizeof...(dims)> pos)
+			requires (sizeof...(dims) != 0)
+		{
+			AssertInside(pos);
+
+			return m_Session->IsArrayItemNull(pos);
 		}
 
 
@@ -227,7 +244,7 @@ namespace Inf
 		PBArray(IPB_Session* session)
 			: m_Session(session)
 		{
-			auto [group, cls] = PBObject<cls_name, group_type>::ExtractPBGroupClass(m_Session);
+			pbclass cls = PBObject<cls_name, group_type>::PBClass(session);
 
 			if constexpr (sizeof...(dims) == 0)
 			{
@@ -301,7 +318,9 @@ namespace Inf
 		{
 			AssertInside(pos);
 
-			return m_Session->GetObjectArrayItem(m_Array, pos.data());
+			pbboolean is_null;
+			pbobject obj = m_Session->GetObjectArrayItem(m_Array, pos.data(), is_null);
+			return { m_Session, is_null ? 0 : obj };
 		}
 
 		pblong Size() const

@@ -8,28 +8,16 @@ namespace Inf
 	template <Helper::FixedString cls_name, pbgroup_type group_type = pbgroup_userobject>
 	class PBObject
 	{
-	public:
-		inline static pbclass s_Class = 0;
-	
+	public:	
 		PBObject(IPB_Session* session)
 			: m_Session(session)
 		{
-			FindClass(m_Session);
-			m_Object = m_Session->NewObject(s_Class);
+			m_Object = m_Session->NewObject(PBClass(m_Session));
 		}
 
 		PBObject(IPB_Session* session, pbobject obj)
 			: m_Session(session), m_Object(obj)
-		{
-			if (m_Object != 0)
-			{
-				s_Class = m_Session->GetClass(m_Object);
-			}
-			else
-			{
-				FindClass(m_Session);
-			}
-		}
+		{ }
 
 		template <typename Ret = void, typename... Args>
 			requires (!std::is_pointer_v<Ret> && !std::is_reference_v<Ret> && (!std::is_pointer_v<Args> && ...))
@@ -40,13 +28,13 @@ namespace Inf
 
 			std::wstring pb_sig = std::wstring() + Inf::Type<Ret>::PBSignature + ((Inf::Type<Args>::PBSignature) + ...);
 
-			pbmethodID mid = m_Session->GetMethodID(s_Class, method_name.c_str(), pbrt, pb_sig.c_str());
+			pbmethodID mid = m_Session->GetMethodID(PBClass(m_Session), method_name.c_str(), pbrt, pb_sig.c_str());
 
 			if (mid == kUndefinedMethodID)
 				throw Inf::u_exf_pbni(std::wstring(L"Tried to invoke a method that doesnt exist (type: ") + cls_name.data + L", method: " + method_name + L", signature: " + pb_sig + L")");
 
 			PBCallInfo ci;
-			m_Session->InitCallInfo(s_Class, mid, &ci);
+			m_Session->InitCallInfo(PBClass(m_Session), mid, &ci);
 			pbint i = 0;
 			(Type<std::remove_reference_t<Args>>::SetValue(m_Session, ci.pArgs->GetAt(i++), args), ...);
 
@@ -177,8 +165,8 @@ namespace Inf
 			pbarray pb_array = m_Session->GetArrayField(m_Object, fid, is_null);
 			return { m_Session, is_null ? 0 : pb_array };
 		}
-		template <Helper::FixedString obj_cls_name>
-		inline PBObject<obj_cls_name> GetObjectField(const std::wstring& field_name) const
+		template <Helper::FixedString obj_cls_name, pbgroup_type group_type = pbgroup_userobject>
+		inline PBObject<obj_cls_name, group_type> GetObjectField(const std::wstring& field_name) const
 		{
 			pbfieldID fid = GetFieldId(field_name);
 			pbboolean is_null = false;
@@ -198,20 +186,7 @@ namespace Inf
 			m_Object = 0;
 		}
 
-		static void FindClass(IPB_Session* session)
-		{
-			if (s_Class)
-				return;
-
-			pbgroup group = session->FindGroup(GroupName().c_str(), group_type);
-			if (!group)
-				throw Inf::u_exf_pbni(std::wstring(L"Unbale to find group (") + GroupName() + L")");
-
-
-			s_Class = session->FindClass(group, ClassName().c_str());
-			if (!s_Class)
-				throw Inf::u_exf_pbni(std::wstring(L"Unbale to find class (") + ClassName() + L")");
-		}
+		
 
 
 		static const std::wstring& GroupName()
@@ -224,7 +199,11 @@ namespace Inf
 			static std::wstring s_ClassName = ExtractClassName();
 			return s_ClassName;
 		}
-;
+		static pbclass PBClass(IPB_Session* session)
+		{
+			static pbclass s_Class = PBClass(session);
+			return s_Class;
+		}
 
 		operator pbobject() const
 		{
@@ -249,7 +228,7 @@ namespace Inf
 			if (IsNull())
 				throw Inf::u_exf_pbni(std::wstring(L"Tried to access a field of an object that is Null (type ") + cls_name.data + L")");
 
-			pbfieldID fid = m_Session->GetFieldID(s_Class, field_name.c_str());
+			pbfieldID fid = m_Session->GetFieldID(PBClass(m_Session), field_name.c_str());
 
 			if (fid == kUndefinedFieldID)
 				throw Inf::u_exf_pbni(L"Field " + field_name + L" doesn't exist for class " + cls_name.data);
@@ -283,6 +262,20 @@ namespace Inf
 				return L"";
 	
 			return id.substr(i + 1);
+		}
+
+		static pbclass FindClass(IPB_Session* session)
+		{
+			pbgroup group = session->FindGroup(GroupName().c_str(), group_type);
+			if (!group)
+				throw Inf::u_exf_pbni(std::wstring(L"Unbale to find group (") + GroupName() + L")");
+
+
+			pbclass cls = session->FindClass(group, ClassName().c_str());
+			if (!cls)
+				throw Inf::u_exf_pbni(std::wstring(L"Unbale to find class (") + ClassName() + L")");
+
+			return cls;
 		}
 	};
 

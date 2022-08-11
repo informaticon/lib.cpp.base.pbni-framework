@@ -205,7 +205,6 @@ namespace Inf
 		}
 		static inline PBArray<T, dims...> FromArgument(IPB_Session* session, IPB_Value* argument) { return { session, argument->IsNull() ? 0 : argument->GetArray() }; }
 		static inline void SetValue(IPB_Session* session, IPB_Value* pb_value, const PBArray<T, dims...> value) { pb_value->SetArray(value.m_Array); }
-		static inline void Return(IPB_Session* session, PBCallInfo* ci, const PBArray<T, dims...> value) = delete;
 	};
 	template <typename T, pblong... dims>
 	std::wstring Type<PBArray<T, dims...>>::PBSignature = std::wstring(1, Type<T>::PBSignature) + L"[]";
@@ -256,7 +255,6 @@ namespace Inf
 		}
 		static inline PBArray<PBObject<cls_name, group_type>, dims...> FromArgument(IPB_Session* session, IPB_Value* argument) { return { session, argument->IsNull() ? 0 : argument->GetArray() }; }
 		static inline void SetValue(IPB_Session* session, IPB_Value* pb_value, const PBArray<PBObject<cls_name, group_type>, dims...> value) { pb_value->SetArray(value.m_Array); }
-		static inline void Return(IPB_Session* session, PBCallInfo* ci, const PBArray<PBObject<cls_name, group_type>, dims...> value) = delete;
 	};
 	template <Helper::FixedString cls_name, pbgroup_type group_type, pblong... dims>
 	std::wstring Type<PBArray<PBObject<cls_name, group_type>, dims...>>::PBSignature = Type<PBObject<cls_name, group_type>>::PBSignature + L"[]";
@@ -271,7 +269,7 @@ namespace Inf
 		static inline std::wstring GetPBName(std::wstring argument_name) { return std::wstring(cls_name.data) + argument_name; }
 		static inline PBObject<cls_name, group_type> FromArgument(IPB_Session* session, IPB_Value* argument) { return { session, argument->IsNull() ? 0 : argument->GetObject() }; }
 		static inline void SetValue(IPB_Session* session, IPB_Value* pb_value, const PBObject<cls_name, group_type> value) { pb_value->SetObject(value.m_Object); }
-		static inline void Return(IPB_Session* session, PBCallInfo* ci, const PBObject<cls_name, group_type> value) { ci->returnClass = value.m_Class; SetValue(session, ci->returnValue, value); }
+		static inline void Return(IPB_Session* session, PBCallInfo* ci, const PBObject<cls_name, group_type> value) { SetValue(session, ci->returnValue, value); }
 	};
 	template <Helper::FixedString cls_name, pbgroup_type group_type>
 	std::wstring Type<PBObject<cls_name, group_type>>::PBSignature = std::wstring(L"C") + PBObject<cls_name, group_type>::ClassName() + L".";

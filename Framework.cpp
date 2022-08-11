@@ -12,7 +12,7 @@ PBXRESULT Inf::PBNI_Class::Invoke(IPB_Session* session, pbobject obj, pbmethodID
 			m_Session = session;
 			return method->Invoke(this, session, ci);
 		}
-		//catch (const Inf::u_exf_pbni& err)
+		//catch (const Inf::u_exf_pbni& err) TODO
 		//{
 		//	Inf::PBObject<L"u_exf_pbni"> pb_err(session);
 		//	pb_err.Invoke(L"of_push", PBRT_FUNCTION, Inf::PBString(session, L"Error"), Inf::PBString(session, err.err_msg()));

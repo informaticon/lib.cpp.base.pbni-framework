@@ -6,15 +6,16 @@
 #include <pbext.h>
 
 
-namespace Inf {
-
+namespace Inf
+{
 	class IClassDescription;
 	class IMethodDescription;
+
 
 	class PBNI_Class : public IPBX_NonVisualObject
 	{
 	public:
-		PBNI_Class() {};
+		PBNI_Class() : m_Session(nullptr) {};
 		virtual ~PBNI_Class() {};
 		virtual inline std::wstring GetPBName() = 0;
 
@@ -33,7 +34,7 @@ namespace Inf {
 		void RegisterPBNI_Class(std::wstring pb_class_name, IClassDescription* class_desciption);
 		void RegisterPBMethod(std::wstring pb_class_name, IMethodDescription* method_description);
 
-		PBNI_Class* CreateClass(std::wstring pb_class_name);
+		PBNI_Class* CreateClass(std::wstring pb_class_name, IPB_Session* session);
 
 		const std::wstring& GetDescription();
 		IMethodDescription* GetClassMethod(std::wstring pb_class_name, unsigned int method_id);

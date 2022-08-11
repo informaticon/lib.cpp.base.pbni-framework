@@ -32,7 +32,7 @@ namespace Inf
 	};
 
 	template <typename Cls, typename Ret, typename... Args>
-		requires (std::is_base_of_v<PBNI_Class, Cls> && (!std::is_pointer_v<Args> && ...) && !std::is_pointer_v<Ret> && !std::is_reference_v<Ret>)
+		requires (std::is_base_of_v<PBNI_Class, Cls> && !std::is_pointer_v<Ret> && !std::is_reference_v<Ret> && (!std::is_pointer_v<Args> && ...))
 	class MethodDescription : public IMethodDescription
 	{
 	public:

@@ -1,7 +1,8 @@
 #include "PBString.h"
 
-#include "../Strings.h"
-#include "../Errors.h"
+#include <stringapiset.h>
+
+#include "Errors.h"
 
 
 Inf::PBString::PBString(IPB_Session* session, pbstring pb_string)
@@ -92,4 +93,53 @@ bool Inf::PBString::IsNull() const
 void Inf::PBString::SetToNull()
 {
 	m_String = 0;
+}
+
+// See Documentation at https://docs.microsoft.com/en-us/windows/win32/api/stringapiset/nf-stringapiset-widechartomultibyte and https://docs.microsoft.com/en-us/windows/win32/api/stringapiset/nf-stringapiset-multibytetowidechar
+
+template<> std::wstring Inf::ConvertString(const char* str, size_t size)
+{
+	if (size == 0)
+	{
+		return L"";
+	}
+	std::wstring wstr(size, 0);
+
+	MultiByteToWideChar(CP_ACP, 0, str, size, wstr.data(), size);
+	return wstr;
+}
+
+template<> std::wstring Inf::ConvertString(const char* str)
+{
+	size_t size = MultiByteToWideChar(CP_ACP, 0, str, -1, nullptr, 0);
+	return ConvertString<std::wstring>(str, size - 1);;
+}
+
+template<> std::wstring Inf::ConvertString(const std::string str)
+{
+	return ConvertString<std::wstring>(str.c_str(), str.size());
+}
+
+template<> std::string Inf::ConvertString(const wchar_t* wstr, size_t size)
+{
+	if (size == 0)
+	{
+		return "";
+	}
+
+	std::string str(size, 0);
+
+	WideCharToMultiByte(CP_ACP, 0, wstr, size, str.data(), size, 0, FALSE);
+	return str;
+}
+
+template<> std::string Inf::ConvertString(const wchar_t* wstr)
+{
+	size_t size = WideCharToMultiByte(CP_ACP, 0, wstr, -1, nullptr, 0, 0, FALSE);
+	return ConvertString<std::string>(wstr, size - 1);
+}
+
+template<> std::string Inf::ConvertString(const std::wstring wstr)
+{
+	return ConvertString<std::string>(wstr.c_str(), wstr.size());
 }

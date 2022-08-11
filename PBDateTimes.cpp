@@ -5,6 +5,12 @@ Inf::PBTime::PBTime(IPB_Session* session, pbtime time)
 	: m_Session(session), m_Time(time)
 { }
 
+Inf::PBTime::PBTime(IPB_Session* session, pbint hours, pbint minutes, pbdouble seconds)
+	: m_Session(session), m_Time(0)
+{
+	SetTime(hours, minutes, seconds);
+}
+
 std::tuple<pbint, pbint, pbdouble> Inf::PBTime::GetTime() const
 {
 	pbint hours, minutes;
@@ -38,6 +44,12 @@ Inf::PBDate::PBDate(IPB_Session* session, pbdate date)
 	: m_Session(session), m_Date(date)
 { }
 
+Inf::PBDate::PBDate(IPB_Session * session, pbint years, pbint months, pbint days)
+	: m_Session(session), m_Date(0)
+{
+	SetDate(years, months, days);
+}
+
 std::tuple<pbint, pbint, pbint> Inf::PBDate::GetDate() const
 {
 	pbint years, months, days;
@@ -47,12 +59,12 @@ std::tuple<pbint, pbint, pbint> Inf::PBDate::GetDate() const
 	return { years, months, days };
 }
 
-void Inf::PBDate::SetDate(pbint y, pbint m, pbint d)
+void Inf::PBDate::SetDate(pbint years, pbint months, pbint days)
 {
 	if (IsNull())
 		m_Date = m_Session->NewDate();
 
-	m_Session->SetDate(m_Date, y, m, d);
+	m_Session->SetDate(m_Date, years, months, days);
 }
 
 bool Inf::PBDate::IsNull() const
@@ -69,6 +81,13 @@ void Inf::PBDate::SetToNull()
 Inf::PBDateTime::PBDateTime(IPB_Session* session, pbdatetime datetime)
 	: m_Session(session), m_DateTime(datetime)
 { }
+
+
+Inf::PBDateTime::PBDateTime(IPB_Session* session, pbint years, pbint months, pbint days, pbint hours, pbint minutes, pbdouble seconds)
+	: m_Session(session), m_DateTime(0)
+{
+	SetDateTime(years, months, days, hours, minutes, seconds);
+}
 
 std::tuple<pbint, pbint, pbint, pbint, pbint, pbdouble> Inf::PBDateTime::GetDateTime() const
 {

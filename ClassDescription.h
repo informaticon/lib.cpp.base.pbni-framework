@@ -12,7 +12,7 @@ namespace Inf
 	class IClassDescription
 	{
 	public:
-		virtual PBNI_Class* Create() const = 0;
+		virtual PBNI_Class* Create(IPB_Session* session) const = 0;
 
 		IMethodDescription* GetMethod(pbmethodID method_id) const
 		{
@@ -55,7 +55,7 @@ namespace Inf
 			PBNI_Framework::GetInstance().RegisterPBNI_Class(pb_name, this);
 		};
 
-		PBNI_Class* Create() const override
+		PBNI_Class* Create(IPB_Session* session) const override
 		{
 			return static_cast<PBNI_Class*>(new Cls());
 		}

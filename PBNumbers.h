@@ -5,7 +5,7 @@
 
 #include <pbext.h>
 
-#include "../Errors.h"
+#include "Errors.h"
 
 // Taken from <boost/serialization/strong_typedef.hpp> and slightly adapted to be able to set to null
 #define INF_STRONG_TYPEDEF(T, D)                                                                                                                            \

@@ -1,10 +1,14 @@
 #include "PBBlob.h"
 
-#include "../Errors.h"
+#include "Errors.h"
 
 
 Inf::PBBlob::PBBlob(IPB_Session* session, pbblob blob)
 	: m_Session(session), m_Blob(blob)
+{ }
+
+Inf::PBBlob::PBBlob(IPB_Session * session, uint8_t * data, size_t size)
+	: m_Session(session), m_Blob(session->NewBlob(data, size))
 { }
 
 // Deep copy

@@ -3,7 +3,7 @@
 #include <exception>
 #include <boost/stacktrace.hpp>
 
-#include "Strings.h"
+#include "PBString.h"
 
 
 namespace Inf

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "../Strings.h"
 #include "PBNumbers.h"
 #include "PBDateTimes.h"
 #include "PBString.h"
@@ -27,16 +26,18 @@ namespace Inf
 			}
 			else
 			{
-				PBArrayInfo::ArrayBound bounds[] = { { 1, dims }... };
+				PBArrayInfo::ArrayBound bounds[] = { { dims, 1 }... };
 				m_Array = m_Session->NewBoundedSimpleArray(Type<PBT>::PBType, sizeof...(dims), bounds);
 			}
+
+			m_ArrayInfo = std::shared_ptr<PBArrayInfo>(m_Session->GetArrayInfo(m_Array), [=](PBArrayInfo* info) { m_Session->ReleaseArrayInfo(info); });
 		}
 
 		PBArray(IPB_Session* session, pbarray arr)
 			: m_Session(session), m_Array(arr)
 		{
 			if (!IsNull())
-				m_ArrayInfo = std::shared_ptr<PBArrayInfo>(m_Session->GetArrayInfo(arr), [=](PBArrayInfo* info) { m_Session->ReleaseArrayInfo(info); });
+				m_ArrayInfo = std::shared_ptr<PBArrayInfo>(m_Session->GetArrayInfo(m_Array), [=](PBArrayInfo* info) { m_Session->ReleaseArrayInfo(info); });
 		}
 
 		// Unbounded arrays
@@ -118,7 +119,7 @@ namespace Inf
 			m_Array = 0;
 		}
 	private:
-		friend class Type<PBArray>;
+		friend Type<PBArray>;
 
 		IPB_Session* m_Session;
 		pbarray m_Array;
@@ -218,6 +219,7 @@ namespace Inf
 		template<> inline PBBlob		GetImpl<PBBlob>		(pblong* dim) const	{ pbboolean is_null = false; pbblob pb_blob			= m_Session->GetBlobArrayItem(m_Array, dim, is_null);		return { m_Session, is_null ? 0 : pb_blob }; }
 };
 
+
 	template <Helper::FixedString cls_name, pbgroup_type group_type, pblong... dims>
 	class PBArray<PBObject<cls_name, group_type>, dims...>
 	{
@@ -233,16 +235,18 @@ namespace Inf
 			}
 			else
 			{
-				PBArrayInfo::ArrayBound bounds[] = { { 1, dims }... };
+				PBArrayInfo::ArrayBound bounds[] = { { dims, 1 }... };
 				m_Array = m_Session->NewBoundedObjectArray(cls, sizeof...(dims), bounds);
 			}
+		
+			m_ArrayInfo = std::shared_ptr<PBArrayInfo>(m_Session->GetArrayInfo(m_Array), [=](PBArrayInfo* info) { m_Session->ReleaseArrayInfo(info); });
 		}
 
 		PBArray(IPB_Session* session, pbarray arr)
 			: m_Session(session), m_Array(arr)
 		{
 			if (!IsNull())
-				m_ArrayInfo = std::shared_ptr<PBArrayInfo>(m_Session->GetArrayInfo(arr), [=](PBArrayInfo* info) { m_Session->ReleaseArrayInfo(info); });
+				m_ArrayInfo = std::shared_ptr<PBArrayInfo>(m_Session->GetArrayInfo(m_Array), [=](PBArrayInfo* info) { m_Session->ReleaseArrayInfo(info); });
 		}
 
 		// Unbounded arrays
@@ -300,12 +304,6 @@ namespace Inf
 			return m_Session->GetObjectArrayItem(m_Array, pos.data());
 		}
 
-
-		PBNI_Class GetClass() const
-		{
-			return m_Session->FindClass(m_ArrayInfo->itemGroup, cls_name.data);
-		}
-
 		pblong Size() const
 		{
 			return m_Session->GetArrayLength(m_Array);
@@ -332,7 +330,7 @@ namespace Inf
 			m_Array = 0;
 		}
 	private:
-		friend class Type<PBArray>;
+		friend Type<PBArray>;
 
 		IPB_Session* m_Session;
 		pbarray m_Array;

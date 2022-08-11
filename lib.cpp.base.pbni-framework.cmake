@@ -1,6 +1,20 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.0)
 
 
+# Check for 32 bit
+if(NOT CMAKE_SIZEOF_VOID_P EQUAL 4)
+    message(FATAL_ERROR "Powerbuilder runs on 32 bits, please choose a 32 bit plattform using '-A Win32'")
+endif()
+
+add_definitions(-DUNICODE)
+add_definitions(-D_UNICODE)
+add_definitions(-DWIN32_LEAN_AND_MEAN)
+
+set(CMAKE_CXX_STANDARD 20)
+# To be able to use __VA_OPT__
+add_compile_options("/Zc:preprocessor")
+
+
 ##################################################
 #                 PBNI Framework                 #
 ##################################################

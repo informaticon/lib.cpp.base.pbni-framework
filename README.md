@@ -1,6 +1,9 @@
 # lib.cpp.base.pbni-framework
 Framework for creating PowerBuilder Extensions using PBNI
 
+## TODO
+- Errors in powerbuilder
+
 ## Dependencies
 Boost *(For decimals, Strong typedef)*\
 PowerBuilder

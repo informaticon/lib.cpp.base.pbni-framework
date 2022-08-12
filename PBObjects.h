@@ -13,29 +13,80 @@ namespace Inf
 			: m_Session(session)
 		{
 			m_Object = m_Session->NewObject(PBClass(m_Session));
+			//session->AddLocalRef(m_Object);
 		}
 
 		PBObject(IPB_Session* session, pbobject obj)
 			: m_Session(session), m_Object(obj)
+		{
+			//if (!IsNull())
+			//	session->AddLocalRef(m_Object);
+		}
+
+		template <Helper::FixedString other_cls_name, pbgroup_type other_group_type>
+		PBObject(const PBObject<other_cls_name, other_group_type>& other)
+			: m_Session(other.m_Session), m_Object(other.m_Object)
 		{ }
+
+		~PBObject()
+		{
+			//MessageBoxW(nullptr, L"Deleted one", L"", MB_OK):
+			//if (!IsNull())
+			//	m_Session->RemoveLocalRef(m_Object);
+		}
 
 		template <typename Ret = void, typename... Args>
 			requires (!std::is_pointer_v<Ret> && !std::is_reference_v<Ret> && (!std::is_pointer_v<Args> && ...))
-		inline Ret Invoke(std::wstring method_name, PBRoutineType pbrt, Args... args)
+		inline Ret Invoke(const std::wstring& method_name, PBRoutineType pbrt, Args... args)
+		{
+			std::wstring pbsig = std::wstring() + Inf::Type<Ret>::PBSignature;
+			if constexpr (sizeof...(Args) > 0)
+			{
+				([&] {
+					if constexpr (std::is_reference_v<Args>)
+					{
+						pbsig += std::wstring(1, L'R') + Inf::Type<std::remove_reference_t<Args>>::PBSignature;
+					}
+					else
+					{
+						pbsig += Inf::Type<Args>::PBSignature;
+					}
+				}(), ...);
+			}
+
+			return InvokeSig<Ret, Args&...>(method_name, pbrt, pbsig, args...);
+		}
+
+		template <typename Ret = void, typename... Args>
+			requires (!std::is_pointer_v<Ret> && !std::is_reference_v<Ret> && (!std::is_pointer_v<Args> && ...))
+		inline Ret InvokeSig(const std::wstring& method_name, PBRoutineType pbrt, const std::wstring& pbsig, Args&&... args)
 		{
 			if (IsNull())
 				throw Inf::u_exf_pbni(std::wstring(L"Tried to invoke a method of an object that is Null (type ") + cls_name.data + L", method: " + method_name + L")");
 
-			std::wstring pb_sig = std::wstring() + Inf::Type<Ret>::PBSignature + ((Inf::Type<Args>::PBSignature) + ...);
-
-			pbmethodID mid = m_Session->GetMethodID(PBClass(m_Session), method_name.c_str(), pbrt, pb_sig.c_str());
+			pbmethodID mid = m_Session->GetMethodID(PBClass(m_Session), method_name.c_str(), pbrt, pbsig.c_str());
 
 			if (mid == kUndefinedMethodID)
-				throw Inf::u_exf_pbni(std::wstring(L"Tried to invoke a method that doesnt exist (type: ") + cls_name.data + L", method: " + method_name + L", signature: " + pb_sig + L")");
+				throw Inf::u_exf_pbni(std::wstring(L"Tried to invoke a method that doesnt exist (type: ") + cls_name.data + L", method: " + method_name + L", signature: " + pbsig + L")");
 
 			PBCallInfo ci;
 			m_Session->InitCallInfo(PBClass(m_Session), mid, &ci);
+			
+			// Argument Checking
+			if (ci.pArgs->GetCount() != sizeof...(Args))
+				throw Inf::u_exf_pbni(std::wstring(L"Tried to invoke a method with wrong number of arguments (type: ") + cls_name.data + L" method: " + method_name + L", signature: " + pbsig + L")");
+
 			pbint i = 0;
+			([&] {
+				IPB_Value* value = ci.pArgs->GetAt(i);
+				if (value->GetType() != pbvalue_any && !Type<std::remove_reference_t<Args>>::Assert(m_Session, value))
+					throw Inf::u_exf_pbni(std::wstring(L"Tried to invoke a method with wrong arguments (type: ") + cls_name.data + L", method: " + method_name + L", signature: " + pbsig + L")");
+				i++;
+			}(), ...);
+
+
+			// Argument Gathering
+			i = 0;
 			(Type<std::remove_reference_t<Args>>::SetValue(m_Session, ci.pArgs->GetAt(i++), args), ...);
 
 			m_Session->InvokeObjectFunction(m_Object, mid, &ci);
@@ -45,10 +96,11 @@ namespace Inf
 			([&] {
 				if constexpr (std::is_reference_v<Args>)
 				{
-					args = Type<std::remove_reference_t<Args>>::FromArgument(m_Session, ci.pArgs->GetAt(i));
+					if (ci.pArgs->GetAt(i)->IsByRef())
+						args = Type<std::remove_reference_t<Args>>::FromArgument(m_Session, ci.pArgs->GetAt(i));
 				}
 				i++;
-				}(), ...);
+			}(), ...);
 
 			if constexpr (std::is_void_v<Ret>)
 			{
@@ -56,6 +108,8 @@ namespace Inf
 			}
 			else
 			{
+				// TODO figure out how to take ownership and release again
+				// Check AcquireValue <-> ReleaseValue, AddLocalRef <-> RemoveLocalRef
 				Ret ret = Type<Ret>::FromArgument(m_Session, ci.returnValue);
 
 				m_Session->FreeCallInfo(&ci);
@@ -180,14 +234,7 @@ namespace Inf
 		{
 			return !m_Object;
 		}
-
-		void SetToNull()
-		{
-			m_Object = 0;
-		}
-
 		
-
 
 		static const std::wstring& GroupName()
 		{
@@ -201,7 +248,7 @@ namespace Inf
 		}
 		static pbclass PBClass(IPB_Session* session)
 		{
-			static pbclass s_Class = PBClass(session);
+			static pbclass s_Class = FindClass(session);
 			return s_Class;
 		}
 

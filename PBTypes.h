@@ -155,7 +155,7 @@ namespace Inf
 	template<> constexpr pbvalue_type Type<PBBlob>::PBType = pbvalue_blob;
 	template<> inline std::wstring Type<PBBlob>::GetPBName(std::wstring argument_name) { return L"blob" + argument_name; }
 	template<> inline PBBlob Type<PBBlob>::FromArgument(IPB_Session* session, IPB_Value* argument) { return { session, argument->IsNull() ? 0 : argument->GetBlob() }; }
-	template<> inline void Type<PBBlob>::SetValue(IPB_Session* session, IPB_Value* pb_value, const PBBlob value) { pb_value->SetBlob(value.m_Blob); }
+	template<> inline void Type<PBBlob>::SetValue(IPB_Session* session, IPB_Value* pb_value, const PBBlob value) { if (value.IsNull()) pb_value->SetToNull(); else pb_value->SetBlob(value.m_Blob); }
 
 
 	// Need to be classes because functions cant be partially specialized
@@ -204,7 +204,7 @@ namespace Inf
 			}
 		}
 		static inline PBArray<T, dims...> FromArgument(IPB_Session* session, IPB_Value* argument) { return { session, argument->IsNull() ? 0 : argument->GetArray() }; }
-		static inline void SetValue(IPB_Session* session, IPB_Value* pb_value, const PBArray<T, dims...> value) { pb_value->SetArray(value.m_Array); }
+		static inline void SetValue(IPB_Session* session, IPB_Value* pb_value, const PBArray<T, dims...> value) { if (value.IsNull()) pb_value->SetToNull(); else pb_value->SetArray(value.m_Array); }
 	};
 	template <typename T, pblong... dims>
 	std::wstring Type<PBArray<T, dims...>>::PBSignature = std::wstring(1, Type<T>::PBSignature) + L"[]";
@@ -254,7 +254,7 @@ namespace Inf
 			}
 		}
 		static inline PBArray<PBObject<cls_name, group_type>, dims...> FromArgument(IPB_Session* session, IPB_Value* argument) { return { session, argument->IsNull() ? 0 : argument->GetArray() }; }
-		static inline void SetValue(IPB_Session* session, IPB_Value* pb_value, const PBArray<PBObject<cls_name, group_type>, dims...> value) { pb_value->SetArray(value.m_Array); }
+		static inline void SetValue(IPB_Session* session, IPB_Value* pb_value, const PBArray<PBObject<cls_name, group_type>, dims...> value) { if (value.IsNull()) pb_value->SetToNull(); else pb_value->SetArray(value.m_Array); }
 	};
 	template <Helper::FixedString cls_name, pbgroup_type group_type, pblong... dims>
 	std::wstring Type<PBArray<PBObject<cls_name, group_type>, dims...>>::PBSignature = Type<PBObject<cls_name, group_type>>::PBSignature + L"[]";
@@ -268,7 +268,7 @@ namespace Inf
 		static inline bool Assert(IPB_Session* session, IPB_Value* pb_value) { return pb_value->IsObject(); }
 		static inline std::wstring GetPBName(std::wstring argument_name) { return std::wstring(cls_name.data) + argument_name; }
 		static inline PBObject<cls_name, group_type> FromArgument(IPB_Session* session, IPB_Value* argument) { return { session, argument->IsNull() ? 0 : argument->GetObject() }; }
-		static inline void SetValue(IPB_Session* session, IPB_Value* pb_value, const PBObject<cls_name, group_type> value) { pb_value->SetObject(value.m_Object); }
+		static inline void SetValue(IPB_Session* session, IPB_Value* pb_value, const PBObject<cls_name, group_type> value) { if (value.IsNull()) pb_value->SetToNull(); else pb_value->SetObject(value.m_Object); }
 		static inline void Return(IPB_Session* session, PBCallInfo* ci, const PBObject<cls_name, group_type> value) { SetValue(session, ci->returnValue, value); }
 	};
 	template <Helper::FixedString cls_name, pbgroup_type group_type>

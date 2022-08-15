@@ -7,7 +7,12 @@
 
 #include "Errors.h"
 
-// Taken from <boost/serialization/strong_typedef.hpp> and slightly adapted to be able to set to null
+/**
+ * Taken from <boost / serialization / strong_typedef.hpp>and slightly adapted to be able to set to null
+ * 
+ * \param T		Base Type
+ * \param D		Derived Type
+ */
 #define INF_STRONG_TYPEDEF(T, D)                                                                                                                            \
 struct D                                                                                                                                                    \
     : boost::totally_ordered1< D                                                                                                                            \
@@ -20,21 +25,25 @@ struct D                                                                        
     D(const D & t_) BOOST_NOEXCEPT_IF(boost::has_nothrow_copy_constructor<T>::value) : t(t_.t), m_IsNull(t_.m_IsNull) {}                                    \
     D& operator=(const D& rhs) BOOST_NOEXCEPT_IF(boost::has_nothrow_assign<T>::value) {t = rhs.t; m_IsNull = rhs.m_IsNull; return *this;}                   \
     D& operator=(const T& rhs) BOOST_NOEXCEPT_IF(boost::has_nothrow_assign<T>::value) {t = rhs; m_IsNull = false; return *this;}                            \
-    operator const T&() const { if (m_IsNull) { throw Inf::u_exf_pbni(L"Tried to use a null value of type "#T); } return t;}                                \
-    operator T&() { if (m_IsNull) { throw Inf::u_exf_pbni(L"Tried to use a null value of type "#T); } return t;}                                            \
-    bool operator==(const D& rhs) const { if (m_IsNull) { throw Inf::u_exf_pbni(L"Tried to use a null value of type "#T); } return t == rhs.t;}             \
-    bool operator<(const D& rhs) const { if (m_IsNull) { throw Inf::u_exf_pbni(L"Tried to use a null value of type "#T); } return t < rhs.t;}               \
+    operator const T&() const { if (m_IsNull) { throw m_NullException; } return t;}                                                                         \
+    operator T&() { if (m_IsNull) { throw m_NullException; } return t;}                                                                                     \
+    bool operator==(const D& rhs) const { if (m_IsNull) { throw m_NullException; } return t == rhs.t;}                                                      \
+    bool operator<(const D& rhs) const { if (m_IsNull) { throw m_NullException; } return t < rhs.t;}                                                        \
     bool IsNull() const { return m_IsNull; }                                                                                                                \
     bool SetToNull() { m_IsNull = true; }                                                                                                                   \
 private:                                                                                                                                                    \
+    static inline Inf::PBNI_Exception m_NullException{{{L"Error", L"Tried to use a null value of type "#T}, {L"Type", L""#T}}};                             \
     bool m_IsNull;                                                                                                                                          \
-}; 
+}
 
 namespace Inf
 {
-	// Needed to add NEW custom types, otherwise (pbuint <-> pbchar), (pbint <-> pbboolean) would conflict, because they are both base type unsigned short or short
-	// INF_STRONG_TYPEDEF needs to be used because it creates a struct, that is almost equal to base type
-	// Took the chance and added Nullability
+	/**
+	 * Needed to add NEW custom types, otherwise(pbuint <->pbchar), (pbint <->pbboolean) would conflict, because they are both base type unsigned short or short.
+	 * INF_STRONG_TYPEDEF needs to be used because it creates a struct, that is almost equal to base type.
+	 * This way we were also able to add Nullability.
+	 */
+
 
 	INF_STRONG_TYPEDEF(pbbyte, PBByte);
 	INF_STRONG_TYPEDEF(pbboolean, PBBoolean);
@@ -48,14 +57,19 @@ namespace Inf
 
 	INF_STRONG_TYPEDEF(pbreal, PBReal);
 	INF_STRONG_TYPEDEF(pbdouble, PBDouble);
+	using PBFloat = PBReal;
 
 	// Decimals aren't natively supported in C++/std, so we use boost
-	// Power builder decimals are max 30 digits long (excluding - and .) Boost decimals are weird 8 > 32 digits
+	// Power builder decimals are max 30 digits long (excluding - and .) Boost decimals are weird 8 -> 32 digits
 	namespace Helper
 	{
+		/**
+		 * Since decimals arent natively supported, we use boost.
+		 * PowerBuilder decimals are 30 Digits max (excluding - and .) cpp_dec_float<8> has a precission of 32 digits.
+		 * If the Number gets too big, it will set to 0.
+		 */
 		using PBDecimalImpl = boost::multiprecision::number<boost::multiprecision::cpp_dec_float<8>>;
 	};
 	INF_STRONG_TYPEDEF(Helper::PBDecimalImpl, PBDecimal);
 
-	using PBFloat = PBReal;
 }

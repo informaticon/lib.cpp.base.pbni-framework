@@ -10,16 +10,56 @@
 
 namespace Inf
 {
+	/**
+	 * Small Wrapper for pbblob.
+	 */
 	class PBBlob
 	{
 	public:
+		/**
+		 * Creates a Wrapper to an already existing pbblob.
+		 * Will be Null if blob is 0.
+		 *
+		 * \param session	Current session
+		 * \param blob		The exsiting pbblob or 0
+		 */
 		PBBlob(IPB_Session* session, pbblob blob);
+		/**
+		 * Creates a new pbblob.
+		 *
+		 * \param session	Current Session
+		 */
 		PBBlob(IPB_Session* session, uint8_t* data, size_t size);
-		// Deep copy
+		
+		/**
+		 * Copies the Data to PowerBuilder.
+		 * 
+		 * \param data	Pointer to the Data
+		 * \param size	Size of the Data
+		 */
 		void SetData(uint8_t* data, size_t size);
+		/**
+		 * Retrieves a Pointer to the Raw Data.
+		 * 
+		 * \return	Pointer to the PowerBuilder Data
+		 */
 		uint8_t* GetData() const;
+		/**
+		 * Gets the size from PowerBuilder.
+		 * 
+		 * \return	Size in Bytes
+		 */
 		size_t Size() const;
+
+		/**
+		 * Checks whether pbblob is Null.
+		 * \return 
+		 */
 		bool IsNull() const;
+		/**
+		 * Sets pbblob to Null.
+		 * 
+		 */
 		void SetToNull();
 
 	private:
@@ -28,11 +68,13 @@ namespace Inf
 		template <typename PBT, pblong... dims>
 			requires (sizeof...(dims) <= 3 && !std::is_reference_v<PBT> && !std::is_pointer_v<PBT>)
 		friend class PBArray;
-		template <Helper::FixedString cls_name, pbgroup_type group_type>
+		template <Helper::FixedString class_id, pbgroup_type group_type>
 		friend class PBObject;
-
 
 		pbblob m_Blob;
 		IPB_Session* m_Session;
+		std::shared_ptr<Helper::AcquiredValue> m_AcquiredValue;
+
+		PBBlob(IPB_Session* session, IPB_Value* value, bool acquire);
 	};
 }

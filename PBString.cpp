@@ -25,7 +25,7 @@ std::wstring Inf::PBString::GetWString() const
 {
 	if (IsNull())
 	{
-		throw Inf::u_exf_pbni(L"Tried to access a WString of value Null");
+		throw Inf::PBNI_Exception(L"Tried to access a WString of value Null");
 	}
 
 	// GetStringLength returns length without terminator, std::wstring doesnt need null terminator
@@ -42,7 +42,7 @@ std::string Inf::PBString::GetString() const
 {
 	if (IsNull())
 	{
-		throw Inf::u_exf_pbni(L"Tried to access a String of value Null");
+		throw Inf::PBNI_Exception(L"Tried to access a String of value Null");
 	}
 
 	// GetStringLength returns length without terminator, std::wstring doesnt need null terminator
@@ -95,7 +95,27 @@ void Inf::PBString::SetToNull()
 	m_String = 0;
 }
 
-// See Documentation at https://docs.microsoft.com/en-us/windows/win32/api/stringapiset/nf-stringapiset-widechartomultibyte and https://docs.microsoft.com/en-us/windows/win32/api/stringapiset/nf-stringapiset-multibytetowidechar
+Inf::PBString::PBString(IPB_Session* session, IPB_Value* value, bool acquire)
+	: m_Session(session)
+{
+	if (value->IsNull())
+	{
+		m_String = 0;
+	}
+	else
+	{
+		if (acquire)
+		{
+			m_AcquiredValue = std::make_shared<Helper::AcquiredValue>(session, value);
+			m_String = m_AcquiredValue->Value->GetString();
+		}
+		else
+		{
+			m_String = value->GetString();
+		}
+	}
+}
+
 
 template<> std::wstring Inf::ConvertString(const char* str, size_t size)
 {

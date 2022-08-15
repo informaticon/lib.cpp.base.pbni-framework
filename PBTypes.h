@@ -7,98 +7,153 @@
 
 namespace Inf
 {
+	/**
+	 * This is the Genereic Type struct, each PBType implements the Fields it needs.
+	 * You can Access any one of the Functions using e.g. Type<T>::PBSignature.
+	 */
 	template <typename T>
 	struct Type {
+		// This Field is used to build a Method Signature, if you want to invoke a PowerBuilder Function from C++.
 		static constexpr wchar_t PBSignature = L' ';
+		// This Field is used to check for correct IPB_Value Types.
 		static constexpr pbvalue_type PBType = pbvalue_notype;
+		
+		/**
+		 * This Function returns whether the IPB_Value can be used to retrieve the specified type.
+		 * 
+		 * \param session	Current Session
+		 * \param pb_value	The Value to check
+		 * \return			true if its okay to convert, false otherwise.
+		 */
 		static inline bool Assert(IPB_Session* session, IPB_Value* pb_value) { return pb_value->GetType() == PBType; };
+		
+		/**
+		 * This Function is used to generate the Description of a Method, it needs to take in the name of the argument so we can add [] at the end of arrays.
+		 * This wont add any spaces between the type and argument_name.
+		 *
+		 * \param argument_name		The name to put between type and []
+		 * \return					The combined string
+		 */
 		static inline std::wstring GetPBName(std::wstring argument_name) = delete;
-		static inline T FromArgument(IPB_Session* session, IPB_Value* argument) = delete;
+		
+		/**
+		 * This Function Retrieves the specified Type from an IPB_Value.
+		 * 
+		 * \param session	Current Session
+		 * \param pb_value	The value to get retrieve the Type from
+		 * \param acquire	Whether or not to take ownership of the type, only relevant for complex types. The Type will free itself
+		 * \return			The returned Type
+		 */
+		static inline T FromArgument(IPB_Session* session, IPB_Value* pb_value, bool acquire) = delete;
+
+		/**
+		 * This sets a value to a specified Type.
+		 * 
+		 * \param session	Current Session
+		 * \param pb_value	Value to set
+		 * \param t			Type to set Value to
+		 */
 		static inline void SetValue(IPB_Session* session, IPB_Value* pb_value, T t) = delete;
+		
+		/**
+		 * Basically the same as SetValue.
+		 * Currently only used so that PBArray can delete this function.
+		 * 
+		 * \param session	Current Session
+		 * \param ci		The Callback info to set the returnValue of
+		 * \param t			Type to set returnValue to
+		 */
 		static inline void Return(IPB_Session* session, PBCallInfo* ci, const T t) { SetValue(session, ci->returnValue, t); }
 	};
 
+	/**
+	 * We dont want to be used as Argument, so we only implement one Field.
+	 */
 	using PBVoid = void;
 	template <>
 	struct Type<PBVoid> {
 		static constexpr wchar_t PBSignature = L'Q';
 	};
 
-	// Bytelike
+	/**
+	 * These are the primitive Fields, they are easy to implement.
+	 */
+
+#pragma region Bytelike
 	template<> constexpr wchar_t Type<PBByte>::PBSignature = L'E';
 	template<> constexpr pbvalue_type Type<PBByte>::PBType = pbvalue_byte;
 	template<> inline std::wstring Type<PBByte>::GetPBName(std::wstring argument_name) { return L"byte" + argument_name; }
-	template<> inline PBByte Type<PBByte>::FromArgument(IPB_Session* session, IPB_Value* argument) { return argument->IsNull() ? PBByte() : PBByte(argument->GetByte()); }
+	template<> inline PBByte Type<PBByte>::FromArgument(IPB_Session* session, IPB_Value* pb_value, bool acquire) { return pb_value->IsNull() ? PBByte() : PBByte(pb_value->GetByte()); }
 	template<> inline void Type<PBByte>::SetValue(IPB_Session* session, IPB_Value* pb_value, const PBByte value) { if (value.IsNull()) pb_value->SetToNull(); else pb_value->SetByte(value); }
 
 	template<> constexpr wchar_t Type<PBBoolean>::PBSignature = L'B';
 	template<> constexpr pbvalue_type Type<PBBoolean>::PBType = pbvalue_boolean;
 	template<> inline std::wstring Type<PBBoolean>::GetPBName(std::wstring argument_name) { return L"boolean" + argument_name; }
-	template<> inline PBBoolean Type<PBBoolean>::FromArgument(IPB_Session* session, IPB_Value* argument) { return argument->IsNull() ? PBBoolean() : PBBoolean(argument->GetBool()); }
+	template<> inline PBBoolean Type<PBBoolean>::FromArgument(IPB_Session* session, IPB_Value* pb_value, bool acquire) { return pb_value->IsNull() ? PBBoolean() : PBBoolean(pb_value->GetBool()); }
 	template<> inline void Type<PBBoolean>::SetValue(IPB_Session* session, IPB_Value* pb_value, const PBBoolean value) { if (value.IsNull()) pb_value->SetToNull(); else pb_value->SetBool(value); }
 
 	template<> constexpr wchar_t Type<PBChar>::PBSignature = L'H';
 	template<> constexpr pbvalue_type Type<PBChar>::PBType = pbvalue_char;
 	template<> inline std::wstring Type<PBChar>::GetPBName(std::wstring argument_name) { return L"char" + argument_name; }
-	template<> inline PBChar Type<PBChar>::FromArgument(IPB_Session* session, IPB_Value* argument) { return argument->IsNull() ? PBChar() : PBChar(argument->GetChar()); }
+	template<> inline PBChar Type<PBChar>::FromArgument(IPB_Session* session, IPB_Value* pb_value, bool acquire) { return pb_value->IsNull() ? PBChar() : PBChar(pb_value->GetChar()); }
 	template<> inline void Type<PBChar>::SetValue(IPB_Session* session, IPB_Value* pb_value, const PBChar value) { if (value.IsNull()) pb_value->SetToNull(); else pb_value->SetChar(value); }
+#pragma endregion
 
-
-	// Integer numbers
+#pragma region Integer_Numbers
 	template<> constexpr wchar_t Type<PBInt>::PBSignature = L'I';
 	template<> constexpr pbvalue_type Type<PBInt>::PBType = pbvalue_int;
 	template<> inline std::wstring Type<PBInt>::GetPBName(std::wstring argument_name) { return L"int" + argument_name; }
-	template<> inline PBInt Type<PBInt>::FromArgument(IPB_Session* session, IPB_Value* argument) { return argument->IsNull() ? PBInt() : PBInt(argument->GetInt()); }
+	template<> inline PBInt Type<PBInt>::FromArgument(IPB_Session* session, IPB_Value* pb_value, bool acquire) { return pb_value->IsNull() ? PBInt() : PBInt(pb_value->GetInt()); }
 	template<> inline void Type<PBInt>::SetValue(IPB_Session* session, IPB_Value* pb_value, const PBInt value) { if (value.IsNull()) pb_value->SetToNull(); else pb_value->SetInt(value); }
 
 	template<> constexpr wchar_t Type<PBUint>::PBSignature = L'N';
 	template<> constexpr pbvalue_type Type<PBUint>::PBType = pbvalue_uint;
 	template<> inline std::wstring Type<PBUint>::GetPBName(std::wstring argument_name) { return L"uint" + argument_name; }
-	template<> inline PBUint Type<PBUint>::FromArgument(IPB_Session* session, IPB_Value* argument) { return argument->IsNull() ? PBUint() : PBUint(argument->GetUint()); }
+	template<> inline PBUint Type<PBUint>::FromArgument(IPB_Session* session, IPB_Value* pb_value, bool acquire) { return pb_value->IsNull() ? PBUint() : PBUint(pb_value->GetUint()); }
 	template<> inline void Type<PBUint>::SetValue(IPB_Session* session, IPB_Value* pb_value, const PBUint value) { if (value.IsNull()) pb_value->SetToNull(); else pb_value->SetUint(value); }
 
 	template<> constexpr wchar_t Type<PBLong>::PBSignature = L'L';
 	template<> constexpr pbvalue_type Type<PBLong>::PBType = pbvalue_long;
 	template<> inline std::wstring Type<PBLong>::GetPBName(std::wstring argument_name) { return L"long" + argument_name; }
-	template<> inline PBLong Type<PBLong>::FromArgument(IPB_Session* session, IPB_Value* argument) { return argument->IsNull() ? PBLong() : PBLong(argument->GetLong()); }
+	template<> inline PBLong Type<PBLong>::FromArgument(IPB_Session* session, IPB_Value* pb_value, bool acquire) { return pb_value->IsNull() ? PBLong() : PBLong(pb_value->GetLong()); }
 	template<> inline void Type<PBLong>::SetValue(IPB_Session* session, IPB_Value* pb_value, const PBLong value) { if (value.IsNull()) pb_value->SetToNull(); else pb_value->SetLong(value); }
 
 	template<> constexpr wchar_t Type<PBUlong>::PBSignature = L'U';
 	template<> constexpr pbvalue_type Type<PBUlong>::PBType = pbvalue_ulong;
 	template<> inline std::wstring Type<PBUlong>::GetPBName(std::wstring argument_name) { return L"ulong" + argument_name; }
-	template<> inline PBUlong Type<PBUlong>::FromArgument(IPB_Session* session, IPB_Value* argument) { return argument->IsNull() ? PBUlong() : PBUlong(argument->GetUlong()); }
+	template<> inline PBUlong Type<PBUlong>::FromArgument(IPB_Session* session, IPB_Value* pb_value, bool acquire) { return pb_value->IsNull() ? PBUlong() : PBUlong(pb_value->GetUlong()); }
 	template<> inline void Type<PBUlong>::SetValue(IPB_Session* session, IPB_Value* pb_value, const PBUlong value) { if (value.IsNull()) pb_value->SetToNull(); else pb_value->SetUlong(value); }
 
 	template<> constexpr wchar_t Type<PBLongLong>::PBSignature = L'K';
 	template<> constexpr pbvalue_type Type<PBLongLong>::PBType = pbvalue_longlong;
 	template<> inline std::wstring Type<PBLongLong>::GetPBName(std::wstring argument_name) { return L"longlong" + argument_name; }
-	template<> inline PBLongLong Type<PBLongLong>::FromArgument(IPB_Session* session, IPB_Value* argument) { return argument->IsNull() ? PBLongLong() : PBLongLong(argument->GetLongLong()); }
+	template<> inline PBLongLong Type<PBLongLong>::FromArgument(IPB_Session* session, IPB_Value* pb_value, bool acquire) { return pb_value->IsNull() ? PBLongLong() : PBLongLong(pb_value->GetLongLong()); }
 	template<> inline void Type<PBLongLong>::SetValue(IPB_Session* session, IPB_Value* pb_value, const PBLongLong value) { if (value.IsNull()) pb_value->SetToNull(); else pb_value->SetLongLong(value); }
+#pragma endregion
 
-
-	// Floating point numbers
+#pragma region Floating_Point_Numbers
 	template<> constexpr wchar_t Type<PBReal>::PBSignature = L'F';
 	template<> constexpr pbvalue_type Type<PBReal>::PBType = pbvalue_real;
 	template<> inline std::wstring Type<PBReal>::GetPBName(std::wstring argument_name) { return L"real" + argument_name; }
-	template<> inline PBReal Type<PBReal>::FromArgument(IPB_Session* session, IPB_Value* argument) { return argument->IsNull() ? PBReal() : PBReal(argument->GetReal()); }
+	template<> inline PBReal Type<PBReal>::FromArgument(IPB_Session* session, IPB_Value* pb_value, bool acquire) { return pb_value->IsNull() ? PBReal() : PBReal(pb_value->GetReal()); }
 	template<> inline void Type<PBReal>::SetValue(IPB_Session* session, IPB_Value* pb_value, const PBReal value) { if (value.IsNull()) pb_value->SetToNull(); else pb_value->SetReal(value); }
 
 	template<> constexpr wchar_t Type<PBDouble>::PBSignature = L'D';
 	template<> constexpr pbvalue_type Type<PBDouble>::PBType = pbvalue_double;
 	template<> inline std::wstring Type<PBDouble>::GetPBName(std::wstring argument_name) { return L"double" + argument_name; }
-	template<> inline PBDouble Type<PBDouble>::FromArgument(IPB_Session* session, IPB_Value* argument) { return argument->IsNull() ? PBDouble() : PBDouble(argument->GetDouble()); }
+	template<> inline PBDouble Type<PBDouble>::FromArgument(IPB_Session* session, IPB_Value* pb_value, bool acquire) { return pb_value->IsNull() ? PBDouble() : PBDouble(pb_value->GetDouble()); }
 	template<> inline void Type<PBDouble>::SetValue(IPB_Session* session, IPB_Value* pb_value, const PBDouble value) { if (value.IsNull()) pb_value->SetToNull(); else pb_value->SetDouble(value); }
 
 	// Complex types start here
 	template<> constexpr wchar_t Type<PBDecimal>::PBSignature = L'M';
 	template<> constexpr pbvalue_type Type<PBDecimal>::PBType = pbvalue_dec;
 	template<> inline std::wstring Type<PBDecimal>::GetPBName(std::wstring argument_name) { return L"dec" + argument_name; }
-	template<> inline PBDecimal Type<PBDecimal>::FromArgument(IPB_Session* session, IPB_Value* argument)
+	template<> inline PBDecimal Type<PBDecimal>::FromArgument(IPB_Session* session, IPB_Value* pb_value, bool acquire)
 	{
-		if (argument->IsNull())
+		if (pb_value->IsNull())
 			return {};
 
-		LPCTSTR dec_repr = session->GetDecimalString(argument->GetDecimal());
+		LPCTSTR dec_repr = session->GetDecimalString(pb_value->GetDecimal());
 
 		PBDecimal dec = Helper::PBDecimalImpl(ConvertString<std::string>(dec_repr));
 
@@ -122,47 +177,49 @@ namespace Inf
 			pb_value->SetDecimal(pb_dec);
 		}
 	}
+#pragma endregion
 
-
-	// Dates and Times
+#pragma region Date_Times
 	template<> constexpr wchar_t Type<PBTime>::PBSignature = L'T';
 	template<> constexpr pbvalue_type Type<PBTime>::PBType = pbvalue_time;
 	template<> inline std::wstring Type<PBTime>::GetPBName(std::wstring argument_name) { return L"time" + argument_name; }
-	template<> inline PBTime Type<PBTime>::FromArgument(IPB_Session* session, IPB_Value* argument) { return { session, argument->IsNull() ? 0 : argument->GetTime() }; }
+	template<> inline PBTime Type<PBTime>::FromArgument(IPB_Session* session, IPB_Value* pb_value, bool acquire) { return { session, pb_value, acquire }; }
 	template<> inline void Type<PBTime>::SetValue(IPB_Session* session, IPB_Value* pb_value, const PBTime value) { if (value.IsNull()) pb_value->SetToNull(); else pb_value->SetTime(value.m_Time); }
 
 	template<> constexpr wchar_t Type<PBDate>::PBSignature = L'Y';
 	template<> constexpr pbvalue_type Type<PBDate>::PBType = pbvalue_date;
 	template<> inline std::wstring Type<PBDate>::GetPBName(std::wstring argument_name) { return L"date" + argument_name; }
-	template<> inline PBDate Type<PBDate>::FromArgument(IPB_Session* session, IPB_Value* argument) { return { session, argument->IsNull() ? 0 : argument->GetDate() }; }
+	template<> inline PBDate Type<PBDate>::FromArgument(IPB_Session* session, IPB_Value* pb_value, bool acquire) { return { session, pb_value, acquire }; }
 	template<> inline void Type<PBDate>::SetValue(IPB_Session* session, IPB_Value* pb_value, const PBDate value) { if (value.IsNull()) pb_value->SetToNull(); else pb_value->SetDate(value.m_Date); }
 
 	template<> constexpr wchar_t Type<PBDateTime>::PBSignature = L'W';
 	template<> constexpr pbvalue_type Type<PBDateTime>::PBType = pbvalue_datetime;
 	template<> inline std::wstring Type<PBDateTime>::GetPBName(std::wstring argument_name) { return L"datetime" + argument_name; }
-	template<> inline PBDateTime Type<PBDateTime>::FromArgument(IPB_Session* session, IPB_Value* argument) { return { session, argument->IsNull() ? 0 : argument->GetDateTime() }; }
+	template<> inline PBDateTime Type<PBDateTime>::FromArgument(IPB_Session* session, IPB_Value* pb_value, bool acquire) { return { session, pb_value, acquire }; }
 	template<> inline void Type<PBDateTime>::SetValue(IPB_Session* session, IPB_Value* pb_value, const PBDateTime value) { if (value.IsNull()) pb_value->SetToNull(); else pb_value->SetDateTime(value.m_DateTime); }
+#pragma endregion
 
-
-	// Variable sized
+#pragma region Variable_Sized
 	template<> constexpr wchar_t Type<PBString>::PBSignature = L'S';
 	template<> constexpr pbvalue_type Type<PBString>::PBType = pbvalue_string;
 	template<> inline std::wstring Type<PBString>::GetPBName(std::wstring argument_name) { return L"string" + argument_name; }
-	template<> inline PBString Type<PBString>::FromArgument(IPB_Session* session, IPB_Value* argument) { return { session, argument->IsNull() ? 0 : argument->GetString() }; }
+	template<> inline PBString Type<PBString>::FromArgument(IPB_Session* session, IPB_Value* pb_value, bool acquire) { return { session, pb_value, acquire }; }
 	template<> inline void Type<PBString>::SetValue(IPB_Session* session, IPB_Value* pb_value, const PBString value) { if (value.IsNull()) pb_value->SetToNull(); else pb_value->SetPBString(value.m_String); }
 
 	template<> constexpr wchar_t Type<PBBlob>::PBSignature = L'O';
 	template<> constexpr pbvalue_type Type<PBBlob>::PBType = pbvalue_blob;
 	template<> inline std::wstring Type<PBBlob>::GetPBName(std::wstring argument_name) { return L"blob" + argument_name; }
-	template<> inline PBBlob Type<PBBlob>::FromArgument(IPB_Session* session, IPB_Value* argument) { return { session, argument->IsNull() ? 0 : argument->GetBlob() }; }
+	template<> inline PBBlob Type<PBBlob>::FromArgument(IPB_Session* session, IPB_Value* pb_value, bool acquire) { return { session, pb_value, acquire }; }
 	template<> inline void Type<PBBlob>::SetValue(IPB_Session* session, IPB_Value* pb_value, const PBBlob value) { if (value.IsNull()) pb_value->SetToNull(); else pb_value->SetBlob(value.m_Blob); }
 
-
-	// Need to be classes because functions cant be partially specialized
+	/**
+	 * For Types that have their own template types (PBObject<>, PBArray<>) we cant partially specialize the static Functions.
+	 * Instead we have to create our own Struct, which can be partially specialized
+	 */
 	template <typename T, pblong... dims>
-	struct Type<PBArray<T, dims...>>
+	struct Type<PBArray<T, dims...>> // <- Partial specialization
 	{
-		static std::wstring PBSignature;
+		static inline std::wstring PBSignature = std::wstring(1, Type<T>::PBSignature) + L"[]";
 		static inline bool Assert(IPB_Session* session, IPB_Value* pb_value)
 		{
 			if (!pb_value->IsArray())
@@ -203,16 +260,14 @@ namespace Inf
 				return Type<T>::GetPBName(argument_name) + L"[" + dimensions + L"]";
 			}
 		}
-		static inline PBArray<T, dims...> FromArgument(IPB_Session* session, IPB_Value* argument) { return { session, argument->IsNull() ? 0 : argument->GetArray() }; }
+		static inline PBArray<T, dims...> FromArgument(IPB_Session* session, IPB_Value* pb_value, bool acquire) { return { session, pb_value, acquire }; }
 		static inline void SetValue(IPB_Session* session, IPB_Value* pb_value, const PBArray<T, dims...> value) { if (value.IsNull()) pb_value->SetToNull(); else pb_value->SetArray(value.m_Array); }
 	};
-	template <typename T, pblong... dims>
-	std::wstring Type<PBArray<T, dims...>>::PBSignature = std::wstring(1, Type<T>::PBSignature) + L"[]";
 
-	template <Helper::FixedString cls_name, pbgroup_type group_type, pblong... dims>
-	struct Type<PBArray<PBObject<cls_name, group_type>, dims...>>
+	template <Helper::FixedString class_id, pbgroup_type group_type, pblong... dims>
+	struct Type<PBArray<PBObject<class_id, group_type>, dims...>>
 	{
-		static std::wstring PBSignature;
+		static inline std::wstring PBSignature = Type<PBObject<class_id, group_type>>::PBSignature + L"[]";
 		static inline bool Assert(IPB_Session* session, IPB_Value* pb_value)
 		{
 			if (!pb_value->IsArray())
@@ -244,33 +299,29 @@ namespace Inf
 		{
 			if constexpr (sizeof...(dims) == 0)
 			{
-				return Type<PBObject<cls_name, group_type>>::GetPBName(argument_name) + L"[]";
+				return Type<PBObject<class_id, group_type>>::GetPBName(argument_name) + L"[]";
 			}
 			else
 			{
 				std::wstring dimensions = ((std::to_wstring(dims) + L", ") + ...);
 				dimensions.resize(dimensions.size() - 2);
-				return Type<PBObject<cls_name, group_type>>::GetPBName(argument_name) + L"[" + dimensions + L"]";
+				return Type<PBObject<class_id, group_type>>::GetPBName(argument_name) + L"[" + dimensions + L"]";
 			}
 		}
-		static inline PBArray<PBObject<cls_name, group_type>, dims...> FromArgument(IPB_Session* session, IPB_Value* argument) { return { session, argument->IsNull() ? 0 : argument->GetArray() }; }
-		static inline void SetValue(IPB_Session* session, IPB_Value* pb_value, const PBArray<PBObject<cls_name, group_type>, dims...> value) { if (value.IsNull()) pb_value->SetToNull(); else pb_value->SetArray(value.m_Array); }
+		static inline PBArray<PBObject<class_id, group_type>, dims...> FromArgument(IPB_Session* session, IPB_Value* pb_value, bool acquire) { return { session, pb_value, acquire }; }
+		static inline void SetValue(IPB_Session* session, IPB_Value* pb_value, const PBArray<PBObject<class_id, group_type>, dims...> value) { if (value.IsNull()) pb_value->SetToNull(); else pb_value->SetArray(value.m_Array); }
 	};
-	template <Helper::FixedString cls_name, pbgroup_type group_type, pblong... dims>
-	std::wstring Type<PBArray<PBObject<cls_name, group_type>, dims...>>::PBSignature = Type<PBObject<cls_name, group_type>>::PBSignature + L"[]";
 
 
-	// User Object
-	template <Helper::FixedString cls_name, pbgroup_type group_type>
-	struct Type<PBObject<cls_name, group_type>>
+	template <Helper::FixedString class_id, pbgroup_type group_type>
+	struct Type<PBObject<class_id, group_type>>
 	{
-		static std::wstring PBSignature;
+		static inline std::wstring PBSignature = std::wstring(L"C") + PBObject<class_id, group_type>::ClassName() + L".";
 		static inline bool Assert(IPB_Session* session, IPB_Value* pb_value) { return pb_value->IsObject(); }
-		static inline std::wstring GetPBName(std::wstring argument_name) { return std::wstring(cls_name.data) + argument_name; }
-		static inline PBObject<cls_name, group_type> FromArgument(IPB_Session* session, IPB_Value* argument) { return { session, argument->IsNull() ? 0 : argument->GetObject() }; }
-		static inline void SetValue(IPB_Session* session, IPB_Value* pb_value, const PBObject<cls_name, group_type> value) { if (value.IsNull()) pb_value->SetToNull(); else pb_value->SetObject(value.m_Object); }
-		static inline void Return(IPB_Session* session, PBCallInfo* ci, const PBObject<cls_name, group_type> value) { SetValue(session, ci->returnValue, value); }
+		static inline std::wstring GetPBName(std::wstring argument_name) { return std::wstring(class_id.data) + argument_name; }
+		static inline PBObject<class_id, group_type> FromArgument(IPB_Session* session, IPB_Value* pb_value, bool acquire) { return { session, pb_value->IsNull() ? 0 : pb_value->GetObject() }; }
+		static inline void SetValue(IPB_Session* session, IPB_Value* pb_value, const PBObject<class_id, group_type> value) { if (value.IsNull()) pb_value->SetToNull(); else pb_value->SetObject(value.m_Object); }
+		static inline void Return(IPB_Session* session, PBCallInfo* ci, const PBObject<class_id, group_type> value) { SetValue(session, ci->returnValue, value); }
 	};
-	template <Helper::FixedString cls_name, pbgroup_type group_type>
-	std::wstring Type<PBObject<cls_name, group_type>>::PBSignature = std::wstring(L"C") + PBObject<cls_name, group_type>::ClassName() + L".";
+#pragma endregion
 }

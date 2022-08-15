@@ -12,17 +12,25 @@ PBXRESULT Inf::PBNI_Class::Invoke(IPB_Session* session, pbobject obj, pbmethodID
 			m_Session = session;
 			return method->Invoke(this, session, ci);
 		}
-		//catch (const Inf::u_exf_pbni& err) TODO
-		//{
-		//	Inf::PBObject<L"u_exf_pbni"> pb_err(session);
-		//	pb_err.Invoke(L"of_push", PBRT_FUNCTION, Inf::PBString(session, L"Error"), Inf::PBString(session, err.err_msg()));
-		//	pb_err.Invoke(L"of_push", PBRT_FUNCTION, Inf::PBString(session, L"Stacktrace"), Inf::PBString(session, err.stack_trace()));
-		//	// ...
+		catch (const Inf::PBNI_Exception& ex)
+		{
+			pbboolean is_null;
+			pbobject pb_obj = m_Session->GetObjectGlobalVar(m_Session->GetGlobalVarID(L"gu_e"), is_null);
+			Inf::PBObject<L"u_exf_error_manager"> gu_e(m_Session, is_null ? 0 : pb_obj);
 
-		//	session->ThrowException(pb_err);
+			auto pb_ex_builder= gu_e.Invoke<Inf::PBObject<L"u_exf_error_data">>(L"of_new_error", PBRT_FUNCTION);
 
-		//	return PBX_SUCCESS; // Need to return success otherwise it will throw system error
-		//}
+			for (auto [key, value] : ex.GetKeyValues())
+			{
+				pb_ex_builder.InvokeSig(L"of_push", PBRT_FUNCTION, L"Cu_exf_error_data.SA", Inf::PBString(m_Session, key), Inf::PBString(m_Session, value));
+			}
+
+			auto pb_ex = gu_e.GetObjectField<L"u_exf_error_manager.iu_as">(L"iu_as")
+				.Invoke<Inf::PBObject<L"u_exf_ex">>(L"of_ex", PBRT_FUNCTION, pb_ex_builder, Inf::PBString(m_Session, L"u_tse_ex"));
+			m_Session->ThrowException(pb_ex);
+
+			return PBX_SUCCESS; // Need to return success otherwise it will throw system error
+		}
 		catch (const std::exception& err)
 		{
 			Inf::PBObject<L"u_tse_ex"> pb_err(session);
@@ -37,16 +45,6 @@ PBXRESULT Inf::PBNI_Class::Invoke(IPB_Session* session, pbobject obj, pbmethodID
 };
 
 
-void Inf::PBNI_Framework::RegisterPBNI_Class(std::wstring pb_name, Inf::IClassDescription* class_desciption)
-{
-	m_Classes[pb_name] = class_desciption;
-}
-
-void Inf::PBNI_Framework::RegisterPBMethod(std::wstring pb_class_name, Inf::IMethodDescription* method)
-{
-	m_Classes[pb_class_name]->AddMethod(method);
-}
-
 Inf::PBNI_Class* Inf::PBNI_Framework::CreateClass(std::wstring pb_class_name, IPB_Session* session)
 {
 	if (m_Classes.find(pb_class_name) == m_Classes.end())
@@ -58,15 +56,9 @@ Inf::PBNI_Class* Inf::PBNI_Framework::CreateClass(std::wstring pb_class_name, IP
 
 const std::wstring& Inf::PBNI_Framework::GetDescription()
 {
-	if (m_Description.empty())
-	{
-		for (auto& [class_name, class_description] : m_Classes)
-		{
-			m_Description += class_description->GetDescription();
-		}
-	}
+	static std::wstring s_Description = GenerateDescription();
 
-	return m_Description;
+	return s_Description;
 }
 
 Inf::IMethodDescription* Inf::PBNI_Framework::GetClassMethod(std::wstring pb_class_name, unsigned int method_id)
@@ -76,4 +68,35 @@ Inf::IMethodDescription* Inf::PBNI_Framework::GetClassMethod(std::wstring pb_cla
 		return nullptr;
 	}
 	return m_Classes[pb_class_name]->GetMethod(method_id);
+}
+
+
+std::wstring Inf::PBNI_Framework::GenerateDescription()
+{
+	std::wstring description;
+
+	for (auto& [class_name, class_description] : m_Classes)
+	{
+		m_Description += class_description->GetDescription();
+	}
+
+	return m_Description;
+}
+
+void Inf::PBNI_Framework::RegisterPBClass(std::wstring pb_name, Inf::IClassDescription* class_desciption)
+{
+	m_Classes[pb_name] = class_desciption;
+}
+
+void Inf::PBNI_Framework::RegisterPBMethod(std::wstring pb_class_name, Inf::IMethodDescription* method)
+{
+	if (m_Classes.find(pb_class_name) == m_Classes.end())
+	{
+		std::wstring msg = L"Adding a MethodDescription to a Class that hasnt been Registered yet (" + pb_class_name + L"::" + method->GetDescription() + L")";
+		MessageBoxW(NULL, msg.c_str(), L"[PBNI Warning]", MB_OK);
+	}
+	else
+	{
+		m_Classes[pb_class_name]->AddMethod(method);
+	}
 }

@@ -39,6 +39,28 @@ void Inf::PBTime::SetToNull()
 	m_Time = 0;
 }
 
+Inf::PBTime::PBTime(IPB_Session* session, IPB_Value* value, bool acquire)
+	: m_Session(session)
+{
+	if (value->IsNull())
+	{
+		m_Time = 0;
+	}
+	else
+	{
+		if (acquire)
+		{
+			m_AcquiredValue = std::make_shared<Helper::AcquiredValue>(session, value);
+			m_Time = m_AcquiredValue->Value->GetTime();
+		}
+		else
+		{
+			m_Time = value->GetTime();
+		}
+
+	}
+}
+
 
 Inf::PBDate::PBDate(IPB_Session* session, pbdate date)
 	: m_Session(session), m_Date(date)
@@ -75,6 +97,27 @@ bool Inf::PBDate::IsNull() const
 void Inf::PBDate::SetToNull()
 {
 	m_Date = 0;
+}
+
+Inf::PBDate::PBDate(IPB_Session* session, IPB_Value* value, bool acquire)
+	: m_Session(session)
+{
+	if (value->IsNull())
+	{
+		m_Date = 0;
+	}
+	else
+	{
+		if (acquire)
+		{
+			m_AcquiredValue = std::make_shared<Helper::AcquiredValue>(session, value);
+			m_Date = m_AcquiredValue->Value->GetDate();
+		}
+		else
+		{
+			m_Date = value->GetDate();
+		}
+	}
 }
 
 
@@ -115,4 +158,25 @@ bool Inf::PBDateTime::IsNull() const
 void Inf::PBDateTime::SetToNull()
 {
 	m_DateTime = 0;
+}
+
+Inf::PBDateTime::PBDateTime(IPB_Session* session, IPB_Value* value, bool acquire)
+	: m_Session(session)
+{
+	if (value->IsNull())
+	{
+		m_DateTime = 0;
+	}
+	else
+	{
+		if (acquire)
+		{
+			m_AcquiredValue = std::make_shared<Helper::AcquiredValue>(session, value);
+			m_DateTime = m_AcquiredValue->Value->GetDateTime();
+		}
+		else
+		{
+			m_DateTime = value->GetDateTime();
+		}
+	}
 }

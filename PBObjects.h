@@ -5,36 +5,66 @@
 
 namespace Inf
 {
-	template <Helper::FixedString cls_name, pbgroup_type group_type = pbgroup_userobject>
+	/**
+	 * Wrapper for pbobject type. If the Group and Classnames are the same (most of the times), the ID of the Class is just the Class name.
+	 * If the Group and Class names are different, the ID is both combined with a dot (L"group.class"). This is only the case for nested Types.
+	 * 
+	 * \tparam class_id		ID of Group and Class
+	 * \tparam group_type	The Group Type used by PowerBuilder (struct, userobject, ...)
+	 */
+	template <Helper::FixedString class_id, pbgroup_type group_type = pbgroup_userobject>
 	class PBObject
 	{
-	public:	
+	public:
+		/**
+		 * Creates a new Wrapper for an already existing object.
+		 * Will be Null if obj is 0.
+		 * 
+		 * \param session	Current Session
+		 * \param obj		pbobject or 0
+		 */
+		PBObject(IPB_Session* session, pbobject obj)
+			: m_Session(session), m_Object(obj)
+		{
+			if (!IsNull())
+				session->AddLocalRef(m_Object);
+		}
+
+		/**
+		 * Will create a new object of the correct Class.
+		 * 
+		 * \param session	Current Session
+		 */
 		PBObject(IPB_Session* session)
 			: m_Session(session)
 		{
 			m_Object = m_Session->NewObject(PBClass(m_Session));
-			//session->AddLocalRef(m_Object);
+			session->AddLocalRef(m_Object);
 		}
 
-		PBObject(IPB_Session* session, pbobject obj)
-			: m_Session(session), m_Object(obj)
-		{
-			//if (!IsNull())
-			//	session->AddLocalRef(m_Object);
-		}
 
-		template <Helper::FixedString other_cls_name, pbgroup_type other_group_type>
-		PBObject(const PBObject<other_cls_name, other_group_type>& other)
+		/**
+		 * The ability to cast any Class to any other Class.
+		 * 
+		 * \param other		Object to cast
+		 */
+		template <Helper::FixedString other_class_id, pbgroup_type other_group_type>
+		PBObject(const PBObject<other_class_id, other_group_type>& other)
 			: m_Session(other.m_Session), m_Object(other.m_Object)
 		{ }
 
-		~PBObject()
-		{
-			//MessageBoxW(nullptr, L"Deleted one", L"", MB_OK):
-			//if (!IsNull())
-			//	m_Session->RemoveLocalRef(m_Object);
-		}
 
+		/**
+		 * Invoke a Function of the pbobject with an unknown Signature.
+		 * Generates a signature out of the provided Return and Argument Types.
+		 * 
+		 * \param method_name	The name of the Function to invoke
+		 * \param pbrt			The Type of the Function (Function or Event)
+		 * \param ...args		The Arguments to forward to the Function
+		 * \return				The acquired Value returned by the Function
+		 * 
+		 * \tparam Ret	The type to be returned
+		 */
 		template <typename Ret = void, typename... Args>
 			requires (!std::is_pointer_v<Ret> && !std::is_reference_v<Ret> && (!std::is_pointer_v<Args> && ...))
 		inline Ret Invoke(const std::wstring& method_name, PBRoutineType pbrt, Args... args)
@@ -57,30 +87,41 @@ namespace Inf
 			return InvokeSig<Ret, Args&...>(method_name, pbrt, pbsig, args...);
 		}
 
+		/**
+		 * Invokes a Function of a pbobject with a known Signature.
+		 * 
+		 * \param method_name	The name of the Function to invoke
+		 * \param pbrt			The Type of the Function (Function or Event)
+		 * \param pbsig			The Signature of the Function (pbsig170)
+		 * \param ...args		The Arguments to forward to the Function
+		 * \return				The acquired Value returned by the Function
+		 * 
+		 * \tparam Ret	The type to be returned
+		 */
 		template <typename Ret = void, typename... Args>
 			requires (!std::is_pointer_v<Ret> && !std::is_reference_v<Ret> && (!std::is_pointer_v<Args> && ...))
 		inline Ret InvokeSig(const std::wstring& method_name, PBRoutineType pbrt, const std::wstring& pbsig, Args&&... args)
 		{
 			if (IsNull())
-				throw Inf::u_exf_pbni(std::wstring(L"Tried to invoke a method of an object that is Null (type ") + cls_name.data + L", method: " + method_name + L")");
+				throw Inf::PBNI_Exception(std::wstring(L"Tried to invoke a method of an object that is Null (type ") + class_id.data + L", method: " + method_name + L")");
 
 			pbmethodID mid = m_Session->GetMethodID(PBClass(m_Session), method_name.c_str(), pbrt, pbsig.c_str());
 
 			if (mid == kUndefinedMethodID)
-				throw Inf::u_exf_pbni(std::wstring(L"Tried to invoke a method that doesnt exist (type: ") + cls_name.data + L", method: " + method_name + L", signature: " + pbsig + L")");
+				throw Inf::PBNI_Exception(std::wstring(L"Tried to invoke a method that doesnt exist (type: ") + class_id.data + L", method: " + method_name + L", signature: " + pbsig + L")");
 
 			PBCallInfo ci;
 			m_Session->InitCallInfo(PBClass(m_Session), mid, &ci);
 			
 			// Argument Checking
 			if (ci.pArgs->GetCount() != sizeof...(Args))
-				throw Inf::u_exf_pbni(std::wstring(L"Tried to invoke a method with wrong number of arguments (type: ") + cls_name.data + L" method: " + method_name + L", signature: " + pbsig + L")");
+				throw Inf::PBNI_Exception(std::wstring(L"Tried to invoke a method with wrong number of arguments (type: ") + class_id.data + L" method: " + method_name + L", signature: " + pbsig + L")");
 
 			pbint i = 0;
 			([&] {
 				IPB_Value* value = ci.pArgs->GetAt(i);
 				if (value->GetType() != pbvalue_any && !Type<std::remove_reference_t<Args>>::Assert(m_Session, value))
-					throw Inf::u_exf_pbni(std::wstring(L"Tried to invoke a method with wrong arguments (type: ") + cls_name.data + L", method: " + method_name + L", signature: " + pbsig + L")");
+					throw Inf::PBNI_Exception(std::wstring(L"Tried to invoke a method with wrong arguments (type: ") + class_id.data + L", method: " + method_name + L", signature: " + pbsig + L")");
 				i++;
 			}(), ...);
 
@@ -89,7 +130,20 @@ namespace Inf
 			i = 0;
 			(Type<std::remove_reference_t<Args>>::SetValue(m_Session, ci.pArgs->GetAt(i++), args), ...);
 
-			m_Session->InvokeObjectFunction(m_Object, mid, &ci);
+			PBXRESULT res = m_Session->InvokeObjectFunction(m_Object, mid, &ci);
+			
+			if (res != PBX_OK)
+			{
+				m_Session->FreeCallInfo(&ci);
+
+				throw Inf::PBNI_Exception({
+					{ L"Error", L"Failed to invoke a Method of a PB object"},
+					{ L"Class", class_id.data },
+					{ L"Method", method_name },
+					{ L"MethodSignature", pbsig },
+					{ L"Result", std::to_wstring(res)}
+				});
+			}
 
 			// Apply references
 			i = 0;
@@ -97,7 +151,7 @@ namespace Inf
 				if constexpr (std::is_reference_v<Args>)
 				{
 					if (ci.pArgs->GetAt(i)->IsByRef())
-						args = Type<std::remove_reference_t<Args>>::FromArgument(m_Session, ci.pArgs->GetAt(i));
+						args = Type<std::remove_reference_t<Args>>::FromArgument(m_Session, ci.pArgs->GetAt(i), true);
 				}
 				i++;
 			}(), ...);
@@ -108,53 +162,49 @@ namespace Inf
 			}
 			else
 			{
-				// TODO figure out how to take ownership and release again
-				// Check AcquireValue <-> ReleaseValue, AddLocalRef <-> RemoveLocalRef
-				Ret ret = Type<Ret>::FromArgument(m_Session, ci.returnValue);
+				Ret ret = Type<Ret>::FromArgument(m_Session, ci.returnValue, true);
 
 				m_Session->FreeCallInfo(&ci);
 				return ret;
 			}
 		}
 
-
+		/**
+		 * Sets a Field of the pbobjec to a Value.
+		 * 
+		 * \param field_name	The name of the PowerBuilder Field
+		 * \param t				The Value to set it to
+		 */
 		template <typename PBT>
-		inline void SetField(const std::wstring& field_name, const PBT t) = delete;
-
-		template<> inline void SetField(const std::wstring& field_name, const PBByte t)		{ pbfieldID fid = GetFieldId(field_name); if (t.IsNull()) m_Session->SetFieldToNull(m_Object, fid); else m_Session->SetByteField(m_Object, fid, t); }
-		template<> inline void SetField(const std::wstring& field_name, const PBBoolean t)	{ pbfieldID fid = GetFieldId(field_name); if (t.IsNull()) m_Session->SetFieldToNull(m_Object, fid); else m_Session->SetCharField(m_Object, fid, t); }
-		template<> inline void SetField(const std::wstring& field_name, const PBChar t)		{ pbfieldID fid = GetFieldId(field_name); if (t.IsNull()) m_Session->SetFieldToNull(m_Object, fid); else m_Session->SetCharField(m_Object, fid, t); }
-		template<> inline void SetField(const std::wstring& field_name, const PBInt t)		{ pbfieldID fid = GetFieldId(field_name); if (t.IsNull()) m_Session->SetFieldToNull(m_Object, fid); else m_Session->SetIntField(m_Object, fid, t); }
-		template<> inline void SetField(const std::wstring& field_name, const PBUint t)		{ pbfieldID fid = GetFieldId(field_name); if (t.IsNull()) m_Session->SetFieldToNull(m_Object, fid); else m_Session->SetUintField(m_Object, fid, t); }
-		template<> inline void SetField(const std::wstring& field_name, const PBLong t)		{ pbfieldID fid = GetFieldId(field_name); if (t.IsNull()) m_Session->SetFieldToNull(m_Object, fid); else m_Session->SetLongField(m_Object, fid, t); }
-		template<> inline void SetField(const std::wstring& field_name, const PBUlong t)	{ pbfieldID fid = GetFieldId(field_name); if (t.IsNull()) m_Session->SetFieldToNull(m_Object, fid); else m_Session->SetUlongField(m_Object, fid, t); }
-		template<> inline void SetField(const std::wstring& field_name, const PBLongLong t) { pbfieldID fid = GetFieldId(field_name); if (t.IsNull()) m_Session->SetFieldToNull(m_Object, fid); else m_Session->SetLongLongField(m_Object, fid, t); }
-		template<> inline void SetField(const std::wstring& field_name, const PBReal t)		{ pbfieldID fid = GetFieldId(field_name); if (t.IsNull()) m_Session->SetFieldToNull(m_Object, fid); else m_Session->SetRealField(m_Object, fid, t); }
-		template<> inline void SetField(const std::wstring& field_name, const PBDouble t)	{ pbfieldID fid = GetFieldId(field_name); if (t.IsNull()) m_Session->SetFieldToNull(m_Object, fid); else m_Session->SetDoubleField(m_Object, fid, t); }
-		template<> inline void SetField(const std::wstring& field_name, const PBDecimal t)
+		inline void SetField(const std::wstring& field_name, const PBT t)
 		{
 			pbfieldID fid = GetFieldId(field_name);
 			if (t.IsNull())
-			{
 				m_Session->SetFieldToNull(m_Object, fid);
-			}
+
 			else
 			{
-				std::wstring dec_repr = ConvertString<std::wstring>(t.t.str());
+				PBXRESULT res = SetFieldImpl<PBT>(fid, t);
 
-				pbdec pb_dec = m_Session->NewDecimal();
-				m_Session->SetDecimal(pb_dec, dec_repr.c_str());
-
-				m_Session->SetDecField(m_Object, fid, pb_dec);
+				if (res != PBX_OK)
+				{
+					throw Inf::PBNI_Exception({
+						{ L"Error", L"Failed to set field of a PB object"},
+						{ L"Class", class_id.data },
+						{ L"Field", field_name },
+						{ L"Result", std::to_wstring(res)},
+					});
+				}
 			}
 		}
-		template<> inline void SetField(const std::wstring& field_name, const PBTime t)		{ pbfieldID fid = GetFieldId(field_name); if (t.IsNull()) m_Session->SetFieldToNull(m_Object, fid); else m_Session->SetTimeField(m_Object, fid, t.m_Time); }
-		template<> inline void SetField(const std::wstring& field_name, const PBDate t)		{ pbfieldID fid = GetFieldId(field_name); if (t.IsNull()) m_Session->SetFieldToNull(m_Object, fid); else m_Session->SetDateField(m_Object, fid, t.m_Date); }
-		template<> inline void SetField(const std::wstring& field_name, const PBDateTime t) { pbfieldID fid = GetFieldId(field_name); if (t.IsNull()) m_Session->SetFieldToNull(m_Object, fid); else m_Session->SetDateTimeField(m_Object, fid, t.m_DateTime); }
-		template<> inline void SetField(const std::wstring& field_name, const PBString t)	{ pbfieldID fid = GetFieldId(field_name); if (t.IsNull()) m_Session->SetFieldToNull(m_Object, fid); else m_Session->SetPBStringField(m_Object, fid, t.m_String); }
-		template<> inline void SetField(const std::wstring& field_name, const PBBlob t)		{ pbfieldID fid = GetFieldId(field_name); if (t.IsNull()) m_Session->SetFieldToNull(m_Object, fid); else m_Session->SetBlobField(m_Object, fid, t.m_Blob); }
 
 		// There are no partial function specializations yet, so we have to make custom functions for these
+		/**
+		 * Sets an Array field of a pbobject.
+		 * 
+		 * \param field_name	The name of the PowerBuilder Field
+		 * \param arr			The Array to set the field to
+		 */
 		template <typename PBT>
 		inline void SetArrayField(const std::wstring& field_name, const PBArray<PBT> arr)
 		{
@@ -164,8 +214,14 @@ namespace Inf
 			else
 				m_Session->SetArrayField(m_Object, fid, arr.m_Object);
 		}
-		template <Helper::FixedString cls_name>
-		inline void SetObjectField(const std::wstring& field_name, const PBObject<cls_name, group_type> obj)
+		/**
+		 * Sets an Object field of a pbobject.
+		 * 
+		 * \param field_name	The name of the PowerBuilder Field
+		 * \param obj			The Object to set the field to
+		 */
+		template <Helper::FixedString class_id>
+		inline void SetObjectField(const std::wstring& field_name, const PBObject<class_id, group_type> obj)
 		{
 			pbfieldID fid = GetFieldId(field_name);
 			if (obj.IsNull())
@@ -175,41 +231,29 @@ namespace Inf
 		}
 
 
+		/**
+		 * Gets a Field of the pbobject.
+		 *
+		 * \param field_name	The name of the PowerBuilder Field
+		 * 
+		 * \tparam PBT	The Type to be returned, cannot be PBObject or PBArray
+		 */
 		template <typename PBT>
-		inline PBT GetField(const std::wstring& field_name) const = delete;
-
-		template<> inline PBByte 		GetField(const std::wstring& field_name) const { pbfieldID fid = GetFieldId(field_name); pbboolean is_null = false; pbbyte pb_byte			= m_Session->GetByteField(m_Object, fid, is_null);		return is_null ? PBByte() : PBByte(pb_byte); }
-		template<> inline PBBoolean 	GetField(const std::wstring& field_name) const { pbfieldID fid = GetFieldId(field_name); pbboolean is_null = false; pbboolean pb_boolean	= m_Session->GetCharField(m_Object, fid, is_null);		return is_null ? PBBoolean() : PBBoolean(pb_boolean); }
-		template<> inline PBChar 		GetField(const std::wstring& field_name) const { pbfieldID fid = GetFieldId(field_name); pbboolean is_null = false; pbchar pb_char			= m_Session->GetCharField(m_Object, fid, is_null);		return is_null ? PBChar() : PBChar(pb_char); }
-		template<> inline PBInt 		GetField(const std::wstring& field_name) const { pbfieldID fid = GetFieldId(field_name); pbboolean is_null = false; pbint pb_int			= m_Session->GetIntField(m_Object, fid, is_null);		return is_null ? PBInt() : PBInt(pb_int); }
-		template<> inline PBUint 		GetField(const std::wstring& field_name) const { pbfieldID fid = GetFieldId(field_name); pbboolean is_null = false; pbuint pb_uint			= m_Session->GetUintField(m_Object, fid, is_null);		return is_null ? PBUint() : PBUint(pb_uint); }
-		template<> inline PBLong 		GetField(const std::wstring& field_name) const { pbfieldID fid = GetFieldId(field_name); pbboolean is_null = false; pblong pb_long			= m_Session->GetLongField(m_Object, fid, is_null);		return is_null ? PBLong() : PBLong(pb_long); }
-		template<> inline PBUlong 		GetField(const std::wstring& field_name) const { pbfieldID fid = GetFieldId(field_name); pbboolean is_null = false; pbulong pb_ulong		= m_Session->GetUlongField(m_Object, fid, is_null);		return is_null ? PBUlong() : PBUlong(pb_ulong); }
-		template<> inline PBLongLong	GetField(const std::wstring& field_name) const { pbfieldID fid = GetFieldId(field_name); pbboolean is_null = false; pblonglong pb_longlong	= m_Session->GetLongLongField(m_Object, fid, is_null);	return is_null ? PBLongLong() : PBLongLong(pb_longlong); }
-		template<> inline PBReal 		GetField(const std::wstring& field_name) const { pbfieldID fid = GetFieldId(field_name); pbboolean is_null = false; pbreal pb_real			= m_Session->GetRealField(m_Object, fid, is_null);		return is_null ? PBReal() : PBReal(pb_real); }
-		template<> inline PBDouble 		GetField(const std::wstring& field_name) const { pbfieldID fid = GetFieldId(field_name); pbboolean is_null = false; pbdouble pb_double		= m_Session->GetDoubleField(m_Object, fid, is_null);	return is_null ? PBDouble() : PBDouble(pb_double); }
-		template<> inline PBDecimal 	GetField(const std::wstring& field_name) const
+		inline PBT GetField(const std::wstring& field_name) const
 		{
 			pbfieldID fid = GetFieldId(field_name);
-			pbboolean is_null = false;
 
-			LPCTSTR dec_repr = m_Session->GetDecimalString(m_Session->GetDecField(m_Object, fid, is_null));
-
-			PBDecimal dec;
-			if (!is_null)
-				dec = Helper::PBDecimalImpl(ConvertString<std::string>(dec_repr));
-
-			m_Session->ReleaseDecimalString(dec_repr);
-
-			return dec;
-		}
-		template<> inline PBTime 		GetField(const std::wstring& field_name) const { pbfieldID fid = GetFieldId(field_name); pbboolean is_null = false; pbtime pb_time			= m_Session->GetTimeField(m_Object, fid, is_null);		return { m_Session, is_null ? 0 : pb_time }; }
-		template<> inline PBDate 		GetField(const std::wstring& field_name) const { pbfieldID fid = GetFieldId(field_name); pbboolean is_null = false; pbdate pb_date			= m_Session->GetDateField(m_Object, fid, is_null);		return { m_Session, is_null ? 0 : pb_date }; }
-		template<> inline PBDateTime	GetField(const std::wstring& field_name) const { pbfieldID fid = GetFieldId(field_name); pbboolean is_null = false; pbdatetime pb_datetime	= m_Session->GetDateTimeField(m_Object, fid, is_null);	return { m_Session, is_null ? 0 : pb_datetime }; }
-		template<> inline PBString 		GetField(const std::wstring& field_name) const { pbfieldID fid = GetFieldId(field_name); pbboolean is_null = false; pbstring pb_string		= m_Session->GetStringField(m_Object, fid, is_null);	return { m_Session, is_null ? 0 : pb_string }; }
-		template<> inline PBBlob 		GetField(const std::wstring& field_name) const { pbfieldID fid = GetFieldId(field_name); pbboolean is_null = false; pbblob pb_blob			= m_Session->GetBlobField(m_Object, fid, is_null);		return { m_Session, is_null ? 0 : pb_blob }; }
+			return GetFieldImpl<PBT>(fid);
+		};
 
 		// There are no partial function specializations yet, so we have to make custom functions for these
+		/**
+		 * Gets an Array of the pbobject.
+		 *
+		 * \param field_name	The name of the PowerBuilder Field
+		 *
+		 * \tparam PBT	The Type of the Items of the Array to be returned
+		 */
 		template <typename PBT>
 		inline PBArray<PBT> GetArrayField(const std::wstring& field_name) const
 		{
@@ -219,8 +263,16 @@ namespace Inf
 			pbarray pb_array = m_Session->GetArrayField(m_Object, fid, is_null);
 			return { m_Session, is_null ? 0 : pb_array };
 		}
-		template <Helper::FixedString obj_cls_name, pbgroup_type group_type = pbgroup_userobject>
-		inline PBObject<obj_cls_name, group_type> GetObjectField(const std::wstring& field_name) const
+		/**
+		 * Gets an Object of the pbobject.
+		 *
+		 * \param field_name	The name of the PowerBuilder Field
+		 *
+		 * \tparam ret_class_id		The Class ID to be returned
+		 * \tparam group_type		The type of the Class Group to be returned
+		 */
+		template <Helper::FixedString ret_class_id, pbgroup_type group_type = pbgroup_userobject>
+		inline PBObject<ret_class_id, group_type> GetObjectField(const std::wstring& field_name) const
 		{
 			pbfieldID fid = GetFieldId(field_name);
 			pbboolean is_null = false;
@@ -230,22 +282,42 @@ namespace Inf
 		}
 
 
+		/**
+		 * Wheteher the pbobject is Null.
+		 * 
+		 * \return Is Null
+		 */
 		bool IsNull() const
 		{
 			return !m_Object;
 		}
 		
 
+		/**
+		 * Get the Group name extracted from the class_id.
+		 * 
+		 * \return	Group name
+		 */
 		static const std::wstring& GroupName()
 		{
 			static std::wstring s_GroupName = ExtractGroupName();
 			return s_GroupName;
 		}
+		/**
+		 * Get the Class name extracted from the class_id.
+		 *
+		 * \return	Class name
+		 */
 		static const std::wstring& ClassName()
 		{
 			static std::wstring s_ClassName = ExtractClassName();
 			return s_ClassName;
 		}
+		/**
+		 * Get the pbclass extracted from the class_id.
+		 *
+		 * \return	pbclass
+		 */
 		static pbclass PBClass(IPB_Session* session)
 		{
 			static pbclass s_Class = FindClass(session);
@@ -262,30 +334,40 @@ namespace Inf
 		template <typename PBT, pblong... dims>
 			requires (sizeof...(dims) <= 3 && !std::is_reference_v<PBT> && !std::is_pointer_v<PBT>)
 		friend class PBArray;
-		template <Helper::FixedString cls_name, pbgroup_type group_type>
+		template <Helper::FixedString class_id, pbgroup_type group_type>
 		friend class PBObject;
 
 
 		IPB_Session* m_Session;
 		pbobject m_Object;
 
-		// Takes 0.02 milliseconds on average, no need to cache
+		/**
+		 * Returns the ID of a Field.
+		 * 
+		 * \param field_name	Name of the Field
+		 * \return				Field ID
+		 */
 		pbfieldID GetFieldId(const std::wstring& field_name) const
 		{
 			if (IsNull())
-				throw Inf::u_exf_pbni(std::wstring(L"Tried to access a field of an object that is Null (type ") + cls_name.data + L")");
+				throw Inf::PBNI_Exception(std::wstring(L"Tried to access a field of an object that is Null (type ") + class_id.data + L")");
 
 			pbfieldID fid = m_Session->GetFieldID(PBClass(m_Session), field_name.c_str());
 
 			if (fid == kUndefinedFieldID)
-				throw Inf::u_exf_pbni(L"Field " + field_name + L" doesn't exist for class " + cls_name.data);
+				throw Inf::PBNI_Exception(L"Field " + field_name + L" doesn't exist for class " + class_id.data);
 
 			return fid;
 		}
 
+		/**
+		 * Only used in Inf::PBObject<>::GroupName() to initialize a static variable.
+		 * 
+		 * \return	The Group Name extracted from class_id
+		 */
 		static std::wstring ExtractGroupName()
 		{
-			std::wstring id(cls_name.data);
+			std::wstring id(class_id.data);
 			size_t i = id.find_first_of(L'.');
 
 			if (i == 0 || i == std::wstring::npos)
@@ -297,9 +379,14 @@ namespace Inf
 			return id.substr(0, i);
 		}
 
+		/**
+		 * Only used in Inf::PBObject<>::ClassName() to initialize a static variable.
+		 * 
+		 * \return	The Class Name extracted from class_id
+		 */
 		static std::wstring ExtractClassName()
 		{
-			std::wstring id(cls_name.data);
+			std::wstring id(class_id.data);
 			size_t i = id.find_first_of(L'.');
 
 			if (i == std::wstring::npos)
@@ -311,23 +398,105 @@ namespace Inf
 			return id.substr(i + 1);
 		}
 
+		/**
+		 * Only used in Inf::PBObject<>::PBClass() to initialize a static variable.
+		 *
+		 * \return	The pbclass found using Group and Class Name
+		 */
 		static pbclass FindClass(IPB_Session* session)
 		{
 			pbgroup group = session->FindGroup(GroupName().c_str(), group_type);
 			if (!group)
-				throw Inf::u_exf_pbni(std::wstring(L"Unbale to find group (") + GroupName() + L")");
-
+			{
+				throw Inf::PBNI_Exception({
+					{ L"Error", L"Unable to find group" },
+					{ L"Group", GroupName() },
+					{ L"ID", class_id.data },
+				});
+			}
 
 			pbclass cls = session->FindClass(group, ClassName().c_str());
 			if (!cls)
-				throw Inf::u_exf_pbni(std::wstring(L"Unbale to find class (") + ClassName() + L")");
+			{
+				throw Inf::PBNI_Exception({
+					{ L"Error", L"Unable to find group" },
+					{ L"Group", GroupName() },
+					{ L"Class", ClassName() },
+					{ L"ID", class_id.data },
+				});
+			}
 
 			return cls;
 		}
+
+		
+
+		template <typename PBT>
+		inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBT t) = delete;
+
+		template<> inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBByte t)		{ return m_Session->SetByteField(m_Object, fid, t); }
+		template<> inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBBoolean t)	{ return m_Session->SetCharField(m_Object, fid, t); }
+		template<> inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBChar t)		{ return m_Session->SetCharField(m_Object, fid, t); }
+		template<> inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBInt t)		{ return m_Session->SetIntField(m_Object, fid, t); }
+		template<> inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBUint t)		{ return m_Session->SetUintField(m_Object, fid, t); }
+		template<> inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBLong t)		{ return m_Session->SetLongField(m_Object, fid, t); }
+		template<> inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBUlong t)	{ return m_Session->SetUlongField(m_Object, fid, t); }
+		template<> inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBLongLong t)	{ return m_Session->SetLongLongField(m_Object, fid, t); }
+		template<> inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBReal t)		{ return m_Session->SetRealField(m_Object, fid, t); }
+		template<> inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBDouble t)	{ return m_Session->SetDoubleField(m_Object, fid, t); }
+		template<> inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBDecimal t)
+		{
+			std::wstring dec_repr = ConvertString<std::wstring>(t.t.str());
+
+			pbdec pb_dec = m_Session->NewDecimal();
+			m_Session->SetDecimal(pb_dec, dec_repr.c_str());
+
+			m_Session->SetDecField(m_Object, fid, pb_dec);
+		}
+		template<> inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBTime t)		{ return m_Session->SetTimeField(m_Object, fid, t.m_Time); }
+		template<> inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBDate t)		{ return m_Session->SetDateField(m_Object, fid, t.m_Date); }
+		template<> inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBDateTime t)	{ return m_Session->SetDateTimeField(m_Object, fid, t.m_DateTime); }
+		template<> inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBString t)	{ return m_Session->SetPBStringField(m_Object, fid, t.m_String); }
+		template<> inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBBlob t)		{ return m_Session->SetBlobField(m_Object, fid, t.m_Blob); }
+
+		
+		template <typename PBT>
+		inline PBT GetFieldImpl(pbfieldID fid) const = delete;
+
+		template<> inline PBByte 		GetFieldImpl(pbfieldID fid) const { pbboolean is_null = false; pbbyte pb_byte			= m_Session->GetByteField(m_Object, fid, is_null);		return is_null ? PBByte()		: PBByte(pb_byte); }
+		template<> inline PBBoolean 	GetFieldImpl(pbfieldID fid) const { pbboolean is_null = false; pbboolean pb_boolean		= m_Session->GetCharField(m_Object, fid, is_null);		return is_null ? PBBoolean()	: PBBoolean(pb_boolean); }
+		template<> inline PBChar 		GetFieldImpl(pbfieldID fid) const { pbboolean is_null = false; pbchar pb_char			= m_Session->GetCharField(m_Object, fid, is_null);		return is_null ? PBChar()		: PBChar(pb_char); }
+		template<> inline PBInt 		GetFieldImpl(pbfieldID fid) const { pbboolean is_null = false; pbint pb_int				= m_Session->GetIntField(m_Object, fid, is_null);		return is_null ? PBInt()		: PBInt(pb_int); }
+		template<> inline PBUint 		GetFieldImpl(pbfieldID fid) const { pbboolean is_null = false; pbuint pb_uint			= m_Session->GetUintField(m_Object, fid, is_null);		return is_null ? PBUint()		: PBUint(pb_uint); }
+		template<> inline PBLong 		GetFieldImpl(pbfieldID fid) const { pbboolean is_null = false; pblong pb_long			= m_Session->GetLongField(m_Object, fid, is_null);		return is_null ? PBLong()		: PBLong(pb_long); }
+		template<> inline PBUlong 		GetFieldImpl(pbfieldID fid) const { pbboolean is_null = false; pbulong pb_ulong			= m_Session->GetUlongField(m_Object, fid, is_null);		return is_null ? PBUlong()		: PBUlong(pb_ulong); }
+		template<> inline PBLongLong	GetFieldImpl(pbfieldID fid) const { pbboolean is_null = false; pblonglong pb_longlong	= m_Session->GetLongLongField(m_Object, fid, is_null);	return is_null ? PBLongLong()	: PBLongLong(pb_longlong); }
+		template<> inline PBReal 		GetFieldImpl(pbfieldID fid) const { pbboolean is_null = false; pbreal pb_real			= m_Session->GetRealField(m_Object, fid, is_null);		return is_null ? PBReal()		: PBReal(pb_real); }
+		template<> inline PBDouble 		GetFieldImpl(pbfieldID fid) const { pbboolean is_null = false; pbdouble pb_double		= m_Session->GetDoubleField(m_Object, fid, is_null);	return is_null ? PBDouble()		: PBDouble(pb_double); }
+		template<> inline PBDecimal 	GetFieldImpl(pbfieldID fid) const
+		{
+			pbboolean is_null = false;
+
+			LPCTSTR dec_repr = m_Session->GetDecimalString(m_Session->GetDecField(m_Object, fid, is_null));
+
+			PBDecimal dec;
+			if (!is_null)
+				dec = Helper::PBDecimalImpl(ConvertString<std::string>(dec_repr));
+
+			m_Session->ReleaseDecimalString(dec_repr);
+
+			return dec;
+		}
+		template<> inline PBTime 		GetFieldImpl(pbfieldID fid) const { pbboolean is_null = false; pbtime pb_time			= m_Session->GetTimeField(m_Object, fid, is_null);		return { m_Session, is_null ? 0 : pb_time }; }
+		template<> inline PBDate 		GetFieldImpl(pbfieldID fid) const { pbboolean is_null = false; pbdate pb_date			= m_Session->GetDateField(m_Object, fid, is_null);		return { m_Session, is_null ? 0 : pb_date }; }
+		template<> inline PBDateTime	GetFieldImpl(pbfieldID fid) const { pbboolean is_null = false; pbdatetime pb_datetime	= m_Session->GetDateTimeField(m_Object, fid, is_null);	return { m_Session, is_null ? 0 : pb_datetime }; }
+		template<> inline PBString 		GetFieldImpl(pbfieldID fid) const { pbboolean is_null = false; pbstring pb_string		= m_Session->GetStringField(m_Object, fid, is_null);	return { m_Session, is_null ? 0 : pb_string }; }
+		template<> inline PBBlob 		GetFieldImpl(pbfieldID fid) const { pbboolean is_null = false; pbblob pb_blob			= m_Session->GetBlobField(m_Object, fid, is_null);		return { m_Session, is_null ? 0 : pb_blob }; }
+
 	};
 
-	template <Helper::FixedString cls_name>
-	using PBStruct = PBObject<cls_name, pbgroup_structure>;
-	template <Helper::FixedString cls_name>
-	using PBWindow = PBObject<cls_name, pbgroup_window>;
+	template <Helper::FixedString class_id>
+	using PBStruct = PBObject<class_id, pbgroup_structure>;
+	template <Helper::FixedString class_id>
+	using PBWindow = PBObject<class_id, pbgroup_window>;
 }

@@ -36,6 +36,7 @@ target_sources( ${PBNI_TARGET} PUBLIC
     "${SUBFOLDER}/Framework.h"
     "${SUBFOLDER}/Errors.h"
     "${SUBFOLDER}/dllmain.cpp"
+    "${SUBFOLDER}/AcquiredValue.h"
 
     "${SUBFOLDER}/MethodDescription.h"
     "${SUBFOLDER}/ClassDescription.h"
@@ -57,6 +58,7 @@ source_group( "Framework" FILES
     "${SUBFOLDER}\\Framework.h"
     "${SUBFOLDER}\\Errors.h"
 	"${SUBFOLDER}\\dllmain.cpp"
+    "${SUBFOLDER}\\AcquiredValue.h"
 )
 
 source_group( "Framework\\Descriptions" FILES

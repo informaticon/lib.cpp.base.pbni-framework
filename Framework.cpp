@@ -47,11 +47,13 @@ PBXRESULT Inf::PBNI_Class::Invoke(IPB_Session* session, pbobject obj, pbmethodID
 
 Inf::PBNI_Class* Inf::PBNI_Framework::CreateClass(std::wstring pb_class_name, IPB_Session* session)
 {
-	if (m_Classes.find(pb_class_name) == m_Classes.end())
+	auto cls = m_Classes.find(pb_class_name);
+
+	if ( cls == m_Classes.end())
 	{
 		return nullptr;
 	}
-	return m_Classes[pb_class_name]->Create(session);
+	return cls->second->Create(session);
 }
 
 const std::wstring& Inf::PBNI_Framework::GetDescription()
@@ -63,11 +65,13 @@ const std::wstring& Inf::PBNI_Framework::GetDescription()
 
 Inf::IMethodDescription* Inf::PBNI_Framework::GetClassMethod(std::wstring pb_class_name, unsigned int method_id)
 {
-	if (m_Classes.find(pb_class_name) == m_Classes.end())
+	auto cls = m_Classes.find(pb_class_name);
+
+	if (cls == m_Classes.end())
 	{
 		return nullptr;
 	}
-	return m_Classes[pb_class_name]->GetMethod(method_id);
+	return cls->second->GetMethod(method_id);
 }
 
 
@@ -90,13 +94,15 @@ void Inf::PBNI_Framework::RegisterPBClass(std::wstring pb_name, Inf::IClassDescr
 
 void Inf::PBNI_Framework::RegisterPBMethod(std::wstring pb_class_name, Inf::IMethodDescription* method)
 {
-	if (m_Classes.find(pb_class_name) == m_Classes.end())
+	auto cls = m_Classes.find(pb_class_name);
+
+	if (cls == m_Classes.end())
 	{
 		std::wstring msg = L"Adding a MethodDescription to a Class that hasnt been Registered yet (" + pb_class_name + L"::" + method->GetDescription() + L")";
 		MessageBoxW(NULL, msg.c_str(), L"[PBNI Warning]", MB_OK);
 	}
 	else
 	{
-		m_Classes[pb_class_name]->AddMethod(method);
+		cls->second->AddMethod(method);
 	}
 }

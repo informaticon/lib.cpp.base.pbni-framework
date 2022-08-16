@@ -1,5 +1,7 @@
 #include "PBDateTimes.h"
 
+#include "Errors.h"
+
 
 Inf::PBTime::PBTime(IPB_Session* session, pbtime time)
 	: m_Session(session), m_Time(time)
@@ -13,10 +15,15 @@ Inf::PBTime::PBTime(IPB_Session* session, pbint hours, pbint minutes, pbdouble s
 
 std::tuple<pbint, pbint, pbdouble> Inf::PBTime::GetTime() const
 {
+	if (IsNull())
+		throw Inf::PBNI_NullPointerException(L"PBTime");
+
 	pbint hours, minutes;
 	pbdouble seconds;
 
-	m_Session->SplitTime(m_Time, &hours, &minutes, &seconds);
+	PBXRESULT res = m_Session->SplitTime(m_Time, &hours, &minutes, &seconds);
+	if (res != PBX_SUCCESS)
+		throw Inf::PBNI_PowerBuilderException(L"IPB_Session::SplitTime", res);
 
 	return { hours, minutes, seconds };
 }
@@ -26,7 +33,9 @@ void Inf::PBTime::SetTime(pbint hours, pbint minutes, pbdouble seconds)
 	if (IsNull())
 		m_Time = m_Session->NewTime();
 
-	m_Session->SetTime(m_Time, hours, minutes, seconds);
+	PBXRESULT res = m_Session->SetTime(m_Time, hours, minutes, seconds);
+	if (res != PBX_SUCCESS)
+		throw Inf::PBNI_PowerBuilderException(L"IPB_Session::SetTime", res);
 }
 
 bool Inf::PBTime::IsNull() const
@@ -74,9 +83,14 @@ Inf::PBDate::PBDate(IPB_Session * session, pbint years, pbint months, pbint days
 
 std::tuple<pbint, pbint, pbint> Inf::PBDate::GetDate() const
 {
+	if (IsNull())
+		throw Inf::PBNI_NullPointerException(L"PBDate");
+
 	pbint years, months, days;
 
-	m_Session->SplitDate(m_Date, &years, &months, &days);
+	PBXRESULT res = m_Session->SplitDate(m_Date, &years, &months, &days);
+	if (res != PBX_SUCCESS)
+		throw Inf::PBNI_PowerBuilderException(L"IPB_Session::SplitDate", res);
 
 	return { years, months, days };
 }
@@ -86,7 +100,9 @@ void Inf::PBDate::SetDate(pbint years, pbint months, pbint days)
 	if (IsNull())
 		m_Date = m_Session->NewDate();
 
-	m_Session->SetDate(m_Date, years, months, days);
+	PBXRESULT res = m_Session->SetDate(m_Date, years, months, days);
+	if (res != PBX_SUCCESS)
+		throw Inf::PBNI_PowerBuilderException(L"IPB_Session::SetDate", res);
 }
 
 bool Inf::PBDate::IsNull() const
@@ -134,10 +150,15 @@ Inf::PBDateTime::PBDateTime(IPB_Session* session, pbint years, pbint months, pbi
 
 std::tuple<pbint, pbint, pbint, pbint, pbint, pbdouble> Inf::PBDateTime::GetDateTime() const
 {
+	if (IsNull())
+		throw Inf::PBNI_NullPointerException(L"PBDateTime");
+
 	pbint years, months, days, hours, minutes;
 	pbdouble seconds;
 
-	m_Session->SplitDateTime(m_DateTime, &years, &months, &days, &hours, &minutes, &seconds);
+	PBXRESULT res = m_Session->SplitDateTime(m_DateTime, &years, &months, &days, &hours, &minutes, &seconds);
+	if (res != PBX_SUCCESS)
+		throw Inf::PBNI_PowerBuilderException(L"IPB_Session::SplitDateTime", res);
 
 	return { years, months, days, hours, minutes, seconds };
 }
@@ -147,7 +168,9 @@ void Inf::PBDateTime::SetDateTime(pbint years, pbint months, pbint days, pbint h
 	if (IsNull())
 		m_DateTime = m_Session->NewDateTime();
 
-	m_Session->SetDateTime(m_DateTime, years, months, days, hours, minutes, seconds);
+	PBXRESULT res =  m_Session->SetDateTime(m_DateTime, years, months, days, hours, minutes, seconds);
+	if (res != PBX_SUCCESS)
+		throw Inf::PBNI_PowerBuilderException(L"IPB_Session::SetDateTime", res);
 }
 
 bool Inf::PBDateTime::IsNull() const

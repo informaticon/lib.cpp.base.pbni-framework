@@ -3,6 +3,7 @@
 #include <exception>
 #include <boost/stacktrace.hpp>
 #include <map>
+#include <array>
 
 #include "PBString.h"
 
@@ -63,4 +64,93 @@ namespace Inf
 		std::map<std::wstring, std::wstring> m_KeyValueStore;
 	};
 
+	class PBNI_IndexOutOfBounds : public PBNI_Exception
+	{
+	public:
+		PBNI_IndexOutOfBounds(pblong pos, pblong size)
+			: PBNI_Exception({
+					{ L"Error", L"Accesssing an index out of bounds in an Unounded PBArray" },
+					{ L"Position", std::to_wstring(pos) },
+					{ L"Bounds", L"1 to " + std::to_wstring(size) }
+				})
+		{ }
+
+		template <int N>
+		PBNI_IndexOutOfBounds(std::array<pblong, N> pos, std::array<std::pair<pblong, pblong>, N> bounds, pbbyte dim)
+			: PBNI_Exception({
+					{ L"Error", L"Accesssing an index out of bounds in a Bounded PBArray" },
+					{ L"Dimension", std::to_wstring(dim) }
+				})
+		{
+			std::wstring pos_str;
+			for (pblong i : pos)
+			{
+				pos_str += std::to_wstring(i) + L", ";
+			}
+			pos_str.resize(pos_str.size() - 2);
+			Push(L"Positions", pos_str);
+
+			std::wstring bounds_str;
+			for (auto [upper, lower] : bounds)
+			{
+				bounds_str += std::to_wstring(lower) + L" to " + std::to_wstring(upper) + L", ";
+			}
+			bounds_str.resize(bounds_str.size() - 2);
+			Push(L"Bounds", bounds_str);
+		}
+	};
+
+	class PBNI_NullPointerException : public PBNI_Exception
+	{
+	public:
+		PBNI_NullPointerException(std::wstring type)
+			: PBNI_Exception({
+					{ L"Error", L"Tried to access a PowerBuilder value that is Null" },
+					{ L"Type", type }
+				})
+		{ }
+	};
+
+	class PBNI_InvalidFieldException : public PBNI_Exception
+	{
+	public:
+		PBNI_InvalidFieldException(std::wstring type, std::wstring field, std::wstring field_type)
+			: PBNI_Exception({
+					{ L"Error", L"Tried to acces an Invalid Field" },
+					{ L"Type", type },
+					{ L"Field", field },
+					{ L"Field Type", field_type }
+				})
+		{ }
+	};
+
+	class PBNI_IncorrectArgumentsException : public PBNI_Exception
+	{
+	public:
+		PBNI_IncorrectArgumentsException(std::wstring class_name, std::wstring method_name)
+			: PBNI_Exception({
+					{ L"Error", L"Tried to call a PowerBuilder Method with wrong Arguments" },
+					{ L"Class", class_name },
+					{ L"Method", method_name }
+				})
+		{ }
+
+		PBNI_IncorrectArgumentsException(std::wstring class_name, std::wstring method_name, pbint argument_number)
+			: PBNI_IncorrectArgumentsException(class_name, method_name)
+		{
+			Push(L"Argument Number", std::to_wstring(argument_number));
+		}
+	};
+
+	class PBNI_PowerBuilderException : public PBNI_Exception
+	{
+	public:
+		PBNI_PowerBuilderException(std::wstring method_name, PBXRESULT res)
+			: PBNI_Exception({
+					{ L"Error", L"Failed to call PowerBuilder Method" },
+					{ L"Method", method_name },
+					{ L"Result", std::to_wstring(res) }
+				})
+		{ }
+	};
 }

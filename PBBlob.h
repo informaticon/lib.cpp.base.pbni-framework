@@ -32,7 +32,7 @@ namespace Inf
 		PBBlob(IPB_Session* session, uint8_t* data, size_t size);
 		
 		/**
-		 * Copies the Data to PowerBuilder.
+		 * Copies the Data to PowerBuilder. Creates a new Blob if Null.
 		 * 
 		 * \param data	Pointer to the Data
 		 * \param size	Size of the Data
@@ -42,23 +42,27 @@ namespace Inf
 		 * Retrieves a Pointer to the Raw Data.
 		 * 
 		 * \return	Pointer to the PowerBuilder Data
+		 * 
+		 * \throw Inf::PBNI_NullPointerException if Null
 		 */
 		uint8_t* GetData() const;
 		/**
 		 * Gets the size from PowerBuilder.
 		 * 
 		 * \return	Size in Bytes
+		 * 
+		 * \throw Inf::PBNI_NullPointerException if Null
 		 */
 		size_t Size() const;
 
 		/**
 		 * Checks whether pbblob is Null.
-		 * \return 
+		 * 
+		 * \return Is Null
 		 */
 		bool IsNull() const;
 		/**
 		 * Sets pbblob to Null.
-		 * 
 		 */
 		void SetToNull();
 

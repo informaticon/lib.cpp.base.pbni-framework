@@ -61,25 +61,29 @@ namespace Inf
 		PBString(IPB_Session* session, const std::wstring& wstr);
 
 		/**
-		 * Reads the String and converts it to an Ansi String. Errors if Null.
+		 * Reads the String and converts it to an Ansi String.
 		 * 
 		 * \return	Ansi String
+		 * 
+		 * \throw PBNI_NullPointerException		If String is Null
 		 */
 		std::string GetString() const;
 		/**
-		 * Gets the String from Poerbuilder. Errors if Null.
+		 * Gets the String from Poerbuilder.
 		 * 
 		 * \return	Unicode String
+		 * 
+		 * \throw PBNI_NullPointerException		If String is Null
 		 */
 		std::wstring GetWString() const;
 		/**
-		 * Converts and copies the String to PowerBuilder. Errors if Null.
+		 * Converts and copies the String to PowerBuilder.
 		 * 
 		 * \param	The String to copy
 		 */
 		void SetString(const std::string& str);
 		/**
-		 * Copies the WString to PowerBuilder. Errors if Null.
+		 * Copies the WString to PowerBuilder.
 		 *
 		 * \param	The WString to copy
 		 */
@@ -88,7 +92,9 @@ namespace Inf
 		/**
 		 * Gets the Size from PowerBuilder.
 		 * 
-		 * \return	The size in bytes without Terminator. Errors if Null.
+		 * \return	The size in bytes without Terminator.
+		 * 
+		 * \throw PBNI_NullPointerException		If String is Null
 		 */
 		pblong Size() const;
 

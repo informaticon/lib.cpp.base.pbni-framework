@@ -25,14 +25,13 @@ struct D                                                                        
     D(const D & t_) BOOST_NOEXCEPT_IF(boost::has_nothrow_copy_constructor<T>::value) : t(t_.t), m_IsNull(t_.m_IsNull) {}                                    \
     D& operator=(const D& rhs) BOOST_NOEXCEPT_IF(boost::has_nothrow_assign<T>::value) {t = rhs.t; m_IsNull = rhs.m_IsNull; return *this;}                   \
     D& operator=(const T& rhs) BOOST_NOEXCEPT_IF(boost::has_nothrow_assign<T>::value) {t = rhs; m_IsNull = false; return *this;}                            \
-    operator const T&() const { if (m_IsNull) { throw m_NullException; } return t;}                                                                         \
-    operator T&() { if (m_IsNull) { throw m_NullException; } return t;}                                                                                     \
-    bool operator==(const D& rhs) const { if (m_IsNull) { throw m_NullException; } return t == rhs.t;}                                                      \
-    bool operator<(const D& rhs) const { if (m_IsNull) { throw m_NullException; } return t < rhs.t;}                                                        \
+    operator const T&() const { if (m_IsNull) { throw Inf::PBNI_NullPointerException(L""#D); } return t;}                                                   \
+    operator T&() { if (m_IsNull) { throw Inf::PBNI_NullPointerException(L""#D); } return t;}                                                               \
+    bool operator==(const D& rhs) const { if (m_IsNull) { throw Inf::PBNI_NullPointerException(L""#D); } return t == rhs.t;}                                \
+    bool operator<(const D& rhs) const { if (m_IsNull) { throw Inf::PBNI_NullPointerException(L""#D); } return t < rhs.t;}                                  \
     bool IsNull() const { return m_IsNull; }                                                                                                                \
     bool SetToNull() { m_IsNull = true; }                                                                                                                   \
 private:                                                                                                                                                    \
-    static inline Inf::PBNI_Exception m_NullException{{{L"Error", L"Tried to use a null value of type "#T}, {L"Type", L""#T}}};                             \
     bool m_IsNull;                                                                                                                                          \
 }
 

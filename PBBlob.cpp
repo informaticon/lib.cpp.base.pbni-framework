@@ -32,7 +32,7 @@ void Inf::PBBlob::SetData(uint8_t* data, size_t size)
 uint8_t* Inf::PBBlob::GetData() const
 {
 	if (IsNull())
-		throw Inf::PBNI_Exception(L"Tried to access the data of a Null Blob");
+		throw Inf::PBNI_NullPointerException(L"PBBlob");
 
 	return (uint8_t*)m_Session->GetBlob(m_Blob);
 }
@@ -40,7 +40,7 @@ uint8_t* Inf::PBBlob::GetData() const
 size_t Inf::PBBlob::Size() const
 {
 	if (IsNull())
-		throw Inf::PBNI_Exception(L"Tried to get the length of a Null Blob");
+		throw Inf::PBNI_NullPointerException(L"PBBlob");
 
 	return m_Session->GetBlobLength(m_Blob);
 }

@@ -27,13 +27,16 @@ namespace Inf
 	class IMethodDescription {
 	public:
 		/**
-		 * Calls the Class Method.
+		 * This is the method called by PBNI_Class::Invoke. Calls the Class Method.
 		 * This will check whether the Argument Types are correct, gather the Arguments, call the Method, set References and ReturnValue
 		 * 
 		 * \param object	Will be used as this
 		 * \param session	Current session
 		 * \param ci		Arguments for Method and returned Value
 		 * \return			PBX_SUCCESS, always
+		 * 
+		 * \throw Inf::PBNI_IncorrectArgumentsException		If the wrong Arguments were provided
+		 * \throw Inf::PBNI_PowerBuilderException			If a PowerBuilder function didnt return PBX_SUCCESS
 		 */
 		virtual PBXRESULT Invoke(PBNI_Class* object, IPB_Session* session, PBCallInfo* ci) = 0;
 
@@ -49,10 +52,12 @@ namespace Inf
 		std::wstring m_Description;
 
 		template <typename Arg>
-		inline static void FreeArgument(IPB_Session* session, IPB_Value* value, const Arg arg) {
+		inline static void SetReference(IPB_Session* session, IPB_Value* value, const Arg arg) {
 			if constexpr (std::is_reference_v<Arg>)
 			{
-				Inf::Type<std::remove_reference_t<Arg>>::SetValue(session, value, arg);
+				PBXRESULT res = Type<std::remove_reference_t<Arg>>::SetValue(session, value, arg);
+				if (res != PBX_SUCCESS)
+					throw PBNI_PowerBuilderException(L"IPB_Value::Set<Type> for " + Type<std::remove_reference_t<Arg>>::GetPBName(L""), res);
 			}
 		}
 	};
@@ -85,7 +90,7 @@ namespace Inf
 			}
 			else
 			{
-				m_Description = std::wstring(L"function ") + Inf::Type<Ret>::GetPBName(L"") + L" " + pb_method_name + L"(";
+				m_Description = std::wstring(L"function ") + Type<Ret>::GetPBName(L"") + L" " + pb_method_name + L"(";
 			}
 
 			if constexpr (sizeof...(Args) > 0)
@@ -94,11 +99,11 @@ namespace Inf
 				([&] {
 					if constexpr (std::is_reference_v<Args>)
 					{
-						m_Description += L"ref " + Inf::Type<std::remove_reference_t<Args>>::GetPBName(std::wstring(L" ") + arg_names) + L", ";
+						m_Description += L"ref " + Type<std::remove_reference_t<Args>>::GetPBName(std::wstring(L" ") + arg_names) + L", ";
 					}
 					else
 					{
-						m_Description += Inf::Type<Args>::GetPBName(std::wstring(L" ") + arg_names) + L", ";
+						m_Description += Type<Args>::GetPBName(std::wstring(L" ") + arg_names) + L", ";
 					}
 				}(), ...);
 
@@ -110,35 +115,36 @@ namespace Inf
 			PBNI_Framework::GetInstance().RegisterPBMethod(pc_class_name, this);
 		}
 
+		/**
+		 * This is the method called by PBNI_Class::Invoke. Calls the Class Method.
+		 * This will check whether the Argument Types are correct, gather the Arguments, call the Method, set References and ReturnValue
+		 *
+		 * \param object	Will be used as this
+		 * \param session	Current session
+		 * \param ci		Arguments for Method and returned Value
+		 * \return			PBX_SUCCESS, always
+		 *
+		 * \throw Inf::PBNI_IncorrectArgumentsException		If the wrong Arguments were provided
+		 * \throw Inf::PBNI_PowerBuilderException			If a PowerBuilder function didnt return PBX_SUCCESS
+		 */
 		PBXRESULT Invoke(PBNI_Class* object, IPB_Session* session, PBCallInfo* ci) override
 		{
 			// Argument Checking
 			if (ci->pArgs->GetCount() != sizeof...(Args))
-				throw Inf::PBNI_Exception({
-					{ L"Error", L"Malformed PBNI description, Method invoked with wrong number of arguments" },
-					{ L"Method", m_Description },
-					{ L"Class", object->GetPBName() },
-					{ L"Count", std::to_wstring(ci->pArgs->GetCount()) + L" (expected " + std::to_wstring(sizeof...(Args)) + L")" },
-				});
+				throw PBNI_IncorrectArgumentsException(object->GetPBName(), m_Description);
 
 			pbint i = 0;
 			([&] {
 				IPB_Value* value = ci->pArgs->GetAt(i);
 				if (!Type<std::remove_reference_t<Args>>::Assert(session, value) || std::is_reference_v<Args> != (value->IsByRef() != 0))
-				{
-					throw Inf::PBNI_Exception({
-						{ L"Error", L"Malformed PBNI description, Method invoked with wrong argument type" },
-						{ L"Method", m_Description },
-						{ L"Class", object->GetPBName() },
-						{ L"Argument Number", std::to_wstring(i)},
-					});
-				}
+					throw PBNI_IncorrectArgumentsException(object->GetPBName(), m_Description, i);
+			
 				i++;
 				}(), ...);
 
 			// Gathering arguments
 			i = 0;
-			std::tuple<Cls*, std::remove_reference_t<Args>...> args{ static_cast<Cls*>(object), Inf::Type<std::remove_reference_t<Args>>::FromArgument(session, ci->pArgs->GetAt(i++), false)... };
+			std::tuple<Cls*, std::remove_reference_t<Args>...> args{ static_cast<Cls*>(object), Type<std::remove_reference_t<Args>>::FromArgument(session, ci->pArgs->GetAt(i++), false)... };
 
 			if constexpr (std::is_void_v<Ret>)
 			{
@@ -146,7 +152,10 @@ namespace Inf
 			}
 			else
 			{
-				Inf::Type<Ret>::Return(session, ci, std::apply(m_Method, args));
+				PBXRESULT res = Type<Ret>::Return(session, ci, std::apply(m_Method, args));
+
+				if (res != PBX_SUCCESS)
+					throw PBNI_PowerBuilderException(L"IPB_Value::Set<Type> for " + Type<Ret>::GetPBName(L""), res);
 			}
 
 			// Applying references, ignore first argument (Cls* object);
@@ -154,7 +163,7 @@ namespace Inf
 				{
 					pbint i = 0;
 					// For some reason this doesnt work with IIFEs, so we use function instead
-					(IMethodDescription::FreeArgument<Args>(session, ci->pArgs->GetAt(i++), values), ...);
+					(IMethodDescription::SetReference<Args>(session, ci->pArgs->GetAt(i++), values), ...);
 				}, args);
 
 			return PBX_SUCCESS;

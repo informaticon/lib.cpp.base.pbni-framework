@@ -34,10 +34,19 @@ namespace Inf
 		 * Gets the Time from PowerBuilder.
 		 * 
 		 * \return	hours, minutes, seconds
+		 * 
+		 * \throw Inf::PBNI_NullPointerException	If Null
+		 * \throw Inf::PBNI_PowerBuilderException	If PowerBuilder function doesnt return PBX_SUCESS
 		 */
 		std::tuple<pbint, pbint, pbdouble> GetTime() const;
 		/**
-		 * Sets the Time in PowerBuilder.
+		 * Sets the Time in PowerBuilder. Creates a new Time if is Null.
+		 *
+		 * \param hours		Hours to set
+		 * \param minutes	Minutes to set
+		 * \param seconds	Seconds to set
+		 *
+		 * \throw Inf::PBNI_PowerBuilderException	If PowerBuilder function doesnt return PBX_SUCESS
 		 */
 		void SetTime(pbint hours, pbint minutes, pbdouble seconds);
 
@@ -91,10 +100,19 @@ namespace Inf
 		 * Gets the Date from PowerBuilder.
 		 *
 		 * \return	years, months, days
+		 *
+		 * \throw Inf::PBNI_NullPointerException	If Null
+		 * \throw Inf::PBNI_PowerBuilderException	If PowerBuilder function doesnt return PBX_SUCESS
 		 */
 		std::tuple<pbint, pbint, pbint> GetDate() const;
 		/**
-		 * Sets the Date in PowerBuilder.
+		 * Sets the Date in PowerBuilder. Creates a new Date if is Null.
+		 *
+		 * \param years		Years to set
+		 * \param months	Months to set
+		 * \param days		Days to set
+		 *
+		 * \throw Inf::PBNI_PowerBuilderException	If PowerBuilder function doesnt return PBX_SUCESS
 		 */
 		void SetDate(pbint years, pbint months, pbint days);
 
@@ -148,10 +166,22 @@ namespace Inf
 		 * Gets the DateTime from PowerBuilder.
 		 *
 		 * \return	years, months, days, hours, minutes, seconds
+		 *
+		 * \throw Inf::PBNI_NullPointerException	If Null
+		 * \throw Inf::PBNI_PowerBuilderException	If PowerBuilder function doesnt return PBX_SUCESS
 		 */
 		std::tuple<pbint, pbint, pbint, pbint, pbint, pbdouble> GetDateTime() const;
 		/**
-		 * Sets the DateTime in PowerBuilder.
+		 * Sets the DateTime in PowerBuilder. Creates a new DateTime if is Null.
+		 *
+		 * \param years		Years to set
+		 * \param months	Months to set
+		 * \param days		Days to set
+		 * \param hours		Hours to set
+		 * \param minutes	Minutes to set
+		 * \param seconds	Seconds to set
+		 *
+		 * \throw Inf::PBNI_PowerBuilderException	If PowerBuilder function doesnt return PBX_SUCESS
 		 */
 		void SetDateTime(pbint years, pbint months, pbint days, pbint hours, pbint minutes, pbdouble seconds);
 

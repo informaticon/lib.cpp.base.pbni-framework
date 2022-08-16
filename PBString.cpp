@@ -24,11 +24,8 @@ Inf::PBString::PBString(IPB_Session* session, const std::wstring& str)
 std::wstring Inf::PBString::GetWString() const
 {
 	if (IsNull())
-	{
-		throw Inf::PBNI_Exception(L"Tried to access a WString of value Null");
-	}
+		throw Inf::PBNI_NullPointerException(L"PBString");
 
-	// GetStringLength returns length without terminator, std::wstring doesnt need null terminator
 	LPCTSTR c_str = m_Session->GetString(m_String);
 	pblong size = m_Session->GetStringLength(m_String);
 
@@ -41,11 +38,8 @@ std::wstring Inf::PBString::GetWString() const
 std::string Inf::PBString::GetString() const
 {
 	if (IsNull())
-	{
-		throw Inf::PBNI_Exception(L"Tried to access a String of value Null");
-	}
+		throw Inf::PBNI_NullPointerException(L"PBString");
 
-	// GetStringLength returns length without terminator, std::wstring doesnt need null terminator
 	LPCTSTR c_str = m_Session->GetString(m_String);
 	pblong size = m_Session->GetStringLength(m_String);
 
@@ -82,6 +76,9 @@ void Inf::PBString::SetString(const std::string& str)
 
 pblong Inf::PBString::Size() const
 {
+	if (IsNull())
+		throw Inf::PBNI_NullPointerException(L"PBString");
+
 	return m_Session->GetStringLength(m_String);
 }
 

@@ -34,6 +34,8 @@ namespace Inf
 		 * Will create a new object of the correct Class.
 		 * 
 		 * \param session	Current Session
+		 * 
+		 * \throw Inf::PBNI_Exception	If the Group or Class cannot be found
 		 */
 		PBObject(IPB_Session* session)
 			: m_Session(session)
@@ -41,7 +43,6 @@ namespace Inf
 			m_Object = m_Session->NewObject(PBClass(m_Session));
 			session->AddLocalRef(m_Object);
 		}
-
 
 		/**
 		 * The ability to cast any Class to any other Class.
@@ -64,22 +65,28 @@ namespace Inf
 		 * \return				The acquired Value returned by the Function
 		 * 
 		 * \tparam Ret	The type to be returned
+		 * 
+		 * \throw Inf::PBNI_InvalidFieldException			If no matching functions were found
+		 * \throw Inf::PBNI_IncorrectArgumentsException		If the argument types dont match up
+		 * \throw Inf::PBNI_NullPointerException			If pbobject is Null
+		 * \throw Inf::PBNI_PowerBuilderException			If the function doesnt return PBX_SUCCESS
+		 * \throw Inf::PBNI_Exception						If the Group or Class cannot be found
 		 */
 		template <typename Ret = void, typename... Args>
 			requires (!std::is_pointer_v<Ret> && !std::is_reference_v<Ret> && (!std::is_pointer_v<Args> && ...))
 		inline Ret Invoke(const std::wstring& method_name, PBRoutineType pbrt, Args... args)
 		{
-			std::wstring pbsig = std::wstring() + Inf::Type<Ret>::PBSignature;
+			std::wstring pbsig = std::wstring() + Type<Ret>::PBSignature;
 			if constexpr (sizeof...(Args) > 0)
 			{
 				([&] {
 					if constexpr (std::is_reference_v<Args>)
 					{
-						pbsig += std::wstring(1, L'R') + Inf::Type<std::remove_reference_t<Args>>::PBSignature;
+						pbsig += std::wstring(L"R") + Type<std::remove_reference_t<Args>>::PBSignature;
 					}
 					else
 					{
-						pbsig += Inf::Type<Args>::PBSignature;
+						pbsig += Type<Args>::PBSignature;
 					}
 				}(), ...);
 			}
@@ -92,36 +99,42 @@ namespace Inf
 		 * 
 		 * \param method_name	The name of the Function to invoke
 		 * \param pbrt			The Type of the Function (Function or Event)
-		 * \param pbsig			The Signature of the Function (pbsig170)
+		 * \param pbsig			The Signature of the Function (pbsig170), L"" to pick first found
 		 * \param ...args		The Arguments to forward to the Function
 		 * \return				The acquired Value returned by the Function
 		 * 
 		 * \tparam Ret	The type to be returned
+		 * 
+		 * \throw Inf::PBNI_InvalidFieldException			If no matching functions were found
+		 * \throw Inf::PBNI_IncorrectArgumentsException		If the argument types dont match up
+		 * \throw Inf::PBNI_NullPointerException			If pbobject is Null
+		 * \throw Inf::PBNI_PowerBuilderException			If the function doesnt return PBX_SUCCESS
+		 * \throw Inf::PBNI_Exception						If the Group or Class cannot be found
 		 */
 		template <typename Ret = void, typename... Args>
 			requires (!std::is_pointer_v<Ret> && !std::is_reference_v<Ret> && (!std::is_pointer_v<Args> && ...))
 		inline Ret InvokeSig(const std::wstring& method_name, PBRoutineType pbrt, const std::wstring& pbsig, Args&&... args)
 		{
 			if (IsNull())
-				throw Inf::PBNI_Exception(std::wstring(L"Tried to invoke a method of an object that is Null (type ") + class_id.data + L", method: " + method_name + L")");
+				throw PBNI_NullPointerException(class_id.data);
 
 			pbmethodID mid = m_Session->GetMethodID(PBClass(m_Session), method_name.c_str(), pbrt, pbsig.c_str());
 
 			if (mid == kUndefinedMethodID)
-				throw Inf::PBNI_Exception(std::wstring(L"Tried to invoke a method that doesnt exist (type: ") + class_id.data + L", method: " + method_name + L", signature: " + pbsig + L")");
+				throw PBNI_InvalidFieldException(class_id.data, method_name + L"(" + pbsig + L")", L"Method");
 
 			PBCallInfo ci;
 			m_Session->InitCallInfo(PBClass(m_Session), mid, &ci);
-			
+
 			// Argument Checking
 			if (ci.pArgs->GetCount() != sizeof...(Args))
-				throw Inf::PBNI_Exception(std::wstring(L"Tried to invoke a method with wrong number of arguments (type: ") + class_id.data + L" method: " + method_name + L", signature: " + pbsig + L")");
+				throw PBNI_IncorrectArgumentsException(class_id.data, method_name + L"(" + pbsig + L")");
 
 			pbint i = 0;
 			([&] {
 				IPB_Value* value = ci.pArgs->GetAt(i);
 				if (value->GetType() != pbvalue_any && !Type<std::remove_reference_t<Args>>::Assert(m_Session, value))
-					throw Inf::PBNI_Exception(std::wstring(L"Tried to invoke a method with wrong arguments (type: ") + class_id.data + L", method: " + method_name + L", signature: " + pbsig + L")");
+					throw PBNI_IncorrectArgumentsException(class_id.data, method_name + L"(" + pbsig + L")", i);
 				i++;
 			}(), ...);
 
@@ -136,13 +149,7 @@ namespace Inf
 			{
 				m_Session->FreeCallInfo(&ci);
 
-				throw Inf::PBNI_Exception({
-					{ L"Error", L"Failed to invoke a Method of a PB object"},
-					{ L"Class", class_id.data },
-					{ L"Method", method_name },
-					{ L"MethodSignature", pbsig },
-					{ L"Result", std::to_wstring(res)}
-				});
+				throw PBNI_PowerBuilderException(L"IPB_Session::InvokeObjectFunction", res);
 			}
 
 			// Apply references
@@ -174,27 +181,32 @@ namespace Inf
 		 * 
 		 * \param field_name	The name of the PowerBuilder Field
 		 * \param t				The Value to set it to
+		 * 
+		 * \throw Inf::PBNI_InvalidFieldException			If no matching field was found
+		 * \throw Inf::PBNI_IncorrectArgumentsException		If the argument types dont match up
+		 * \throw Inf::PBNI_NullPointerException			If pbobject is Null
+		 * \throw Inf::PBNI_PowerBuilderException			If SetField doesn't return PBX_SUCCESS
+		 * \throw Inf::PBNI_Exception						If the Group or Class cannot be found
 		 */
 		template <typename PBT>
 		inline void SetField(const std::wstring& field_name, const PBT t)
 		{
 			pbfieldID fid = GetFieldId(field_name);
-			if (t.IsNull())
-				m_Session->SetFieldToNull(m_Object, fid);
 
+			pbuint field_type = m_Session->GetFieldType(PBClass(m_Session), fid);
+			if (field_type != Type<PBT>::PBType && field_type != pbvalue_any)
+				throw PBNI_IncorrectArgumentsException(class_id.data, field_name);
+
+			if (t.IsNull())
+			{
+				m_Session->SetFieldToNull(m_Object, fid);
+			}
 			else
 			{
 				PBXRESULT res = SetFieldImpl<PBT>(fid, t);
 
-				if (res != PBX_OK)
-				{
-					throw Inf::PBNI_Exception({
-						{ L"Error", L"Failed to set field of a PB object"},
-						{ L"Class", class_id.data },
-						{ L"Field", field_name },
-						{ L"Result", std::to_wstring(res)},
-					});
-				}
+				if (res != PBX_SUCCESS)
+					throw PBNI_PowerBuilderException(L"IPB_Session::Set<Type>Field for " + Type<PBT>::GetPBName(L""), res);
 			}
 		}
 
@@ -204,30 +216,64 @@ namespace Inf
 		 * 
 		 * \param field_name	The name of the PowerBuilder Field
 		 * \param arr			The Array to set the field to
+		 * 
+		 * \throw Inf::PBNI_InvalidFieldException			If no matching field was found
+		 * \throw Inf::PBNI_IncorrectArgumentsException		If the argument types dont match up
+		 * \throw Inf::PBNI_NullPointerException			If pbobject is Null
+		 * \throw Inf::PBNI_PowerBuilderException			If SetField doesn't return PBX_SUCCESS
+		 * \throw Inf::PBNI_Exception						If the Group or Class cannot be found
 		 */
 		template <typename PBT>
 		inline void SetArrayField(const std::wstring& field_name, const PBArray<PBT> arr)
 		{
 			pbfieldID fid = GetFieldId(field_name);
+			
+			if (!m_Session->IsFieldArray(PBClass(m_Session), fid))
+				throw PBNI_IncorrectArgumentsException(class_id.data, field_name);
+
 			if (arr.IsNull())
+			{
 				m_Session->SetFieldToNull(m_Object, fid);
+			}
 			else
-				m_Session->SetArrayField(m_Object, fid, arr.m_Object);
+			{
+				PBXRESULT res = m_Session->SetArrayField(m_Object, fid, arr.m_Array);
+
+				if (res != PBX_SUCCESS)
+					throw PBNI_PowerBuilderException(L"IPB_Session::SetArrayField", res);
+			}
 		}
 		/**
 		 * Sets an Object field of a pbobject.
 		 * 
 		 * \param field_name	The name of the PowerBuilder Field
 		 * \param obj			The Object to set the field to
+		 * 
+		 * \throw Inf::PBNI_InvalidFieldException			If no matching field was found
+		 * \throw Inf::PBNI_IncorrectArgumentsException		If the argument types dont match up
+		 * \throw Inf::PBNI_NullPointerException			If pbobject is Null
+		 * \throw Inf::PBNI_PowerBuilderException			If SetField doesn't return PBX_SUCCESS
+		 * \throw Inf::PBNI_Exception						If the Group or Class cannot be found
 		 */
 		template <Helper::FixedString class_id>
 		inline void SetObjectField(const std::wstring& field_name, const PBObject<class_id, group_type> obj)
 		{
 			pbfieldID fid = GetFieldId(field_name);
+
+			if (!m_Session->IsFieldObject(PBClass(m_Session), fid))
+				throw PBNI_IncorrectArgumentsException(class_id.data, field_name);
+
 			if (obj.IsNull())
+			{
 				m_Session->SetFieldToNull(m_Object, fid);
+			}
 			else
-				m_Session->SetObjectField(m_Object, fid, obj.m_Object);
+			{
+				PBXRESULT res = m_Session->SetObjectField(m_Object, fid, obj.m_Object);
+
+				if (res != PBX_SUCCESS)
+					throw PBNI_PowerBuilderException(L"IPB_Session::SetObjectField", res);
+			}
 		}
 
 
@@ -237,11 +283,20 @@ namespace Inf
 		 * \param field_name	The name of the PowerBuilder Field
 		 * 
 		 * \tparam PBT	The Type to be returned, cannot be PBObject or PBArray
+		 * 
+		 * \throw Inf::PBNI_InvalidFieldException			If no matching field was found
+		 * \throw Inf::PBNI_IncorrectArgumentsException		If the argument types dont match up
+		 * \throw Inf::PBNI_NullPointerException			If pbobject is Null
+		 * \throw Inf::PBNI_Exception						If the Group or Class cannot be found
 		 */
 		template <typename PBT>
 		inline PBT GetField(const std::wstring& field_name) const
 		{
 			pbfieldID fid = GetFieldId(field_name);
+
+			pbuint field_type = m_Session->GetFieldType(PBClass(m_Session), fid);
+			if (field_type != Type<PBT>::PBType && field_type != pbvalue_any)
+				throw PBNI_IncorrectArgumentsException(class_id.data, field_name);
 
 			return GetFieldImpl<PBT>(fid);
 		};
@@ -253,16 +308,26 @@ namespace Inf
 		 * \param field_name	The name of the PowerBuilder Field
 		 *
 		 * \tparam PBT	The Type of the Items of the Array to be returned
+		 * 
+		 * \throw Inf::PBNI_InvalidFieldException			If no matching field was found
+		 * \throw Inf::PBNI_IncorrectArgumentsException		If the argument types dont match up
+		 * \throw Inf::PBNI_NullPointerException			If pbobject is Null
+		 * \throw Inf::PBNI_Exception						If the Group or Class cannot be found
 		 */
 		template <typename PBT>
 		inline PBArray<PBT> GetArrayField(const std::wstring& field_name) const
 		{
 			pbfieldID fid = GetFieldId(field_name);
+
+			if (!m_Session->IsFieldArray(PBClass(m_Session), fid))
+				throw PBNI_IncorrectArgumentsException(class_id.data, field_name);
+
 			pbboolean is_null = false;
 
 			pbarray pb_array = m_Session->GetArrayField(m_Object, fid, is_null);
 			return { m_Session, is_null ? 0 : pb_array };
 		}
+
 		/**
 		 * Gets an Object of the pbobject.
 		 *
@@ -270,11 +335,20 @@ namespace Inf
 		 *
 		 * \tparam ret_class_id		The Class ID to be returned
 		 * \tparam group_type		The type of the Class Group to be returned
+		 * 
+		 * \throw Inf::PBNI_InvalidFieldException			If no matching field was found
+		 * \throw Inf::PBNI_IncorrectArgumentsException		If the argument types dont match up
+		 * \throw Inf::PBNI_NullPointerException			If pbobject is Null
+		 * \throw Inf::PBNI_Exception						If the Group or Class cannot be found
 		 */
 		template <Helper::FixedString ret_class_id, pbgroup_type group_type = pbgroup_userobject>
 		inline PBObject<ret_class_id, group_type> GetObjectField(const std::wstring& field_name) const
 		{
 			pbfieldID fid = GetFieldId(field_name);
+
+			if (!m_Session->IsFieldObject(PBClass(m_Session), fid))
+				throw PBNI_IncorrectArgumentsException(class_id.data, field_name);
+
 			pbboolean is_null = false;
 
 			pbobject pb_object = m_Session->GetObjectField(m_Object, fid, is_null);
@@ -292,7 +366,6 @@ namespace Inf
 			return !m_Object;
 		}
 		
-
 		/**
 		 * Get the Group name extracted from the class_id.
 		 * 
@@ -303,6 +376,7 @@ namespace Inf
 			static std::wstring s_GroupName = ExtractGroupName();
 			return s_GroupName;
 		}
+
 		/**
 		 * Get the Class name extracted from the class_id.
 		 *
@@ -313,10 +387,13 @@ namespace Inf
 			static std::wstring s_ClassName = ExtractClassName();
 			return s_ClassName;
 		}
+
 		/**
 		 * Get the pbclass extracted from the class_id.
 		 *
 		 * \return	pbclass
+		 * 
+		 * \throw Inf::PBNI_Exception	If the Group or Class cannot be found
 		 */
 		static pbclass PBClass(IPB_Session* session)
 		{
@@ -346,16 +423,19 @@ namespace Inf
 		 * 
 		 * \param field_name	Name of the Field
 		 * \return				Field ID
+		 * 
+		 * \throw Inf::PBNI_InvalidFieldException	If no matching field was found
+		 * \throw Inf::PBNI_NullPointerException	If pbobject is Null
 		 */
 		pbfieldID GetFieldId(const std::wstring& field_name) const
 		{
 			if (IsNull())
-				throw Inf::PBNI_Exception(std::wstring(L"Tried to access a field of an object that is Null (type ") + class_id.data + L")");
+				throw PBNI_NullPointerException(class_id.data);
 
 			pbfieldID fid = m_Session->GetFieldID(PBClass(m_Session), field_name.c_str());
 
 			if (fid == kUndefinedFieldID)
-				throw Inf::PBNI_Exception(L"Field " + field_name + L" doesn't exist for class " + class_id.data);
+				throw PBNI_InvalidFieldException(class_id.data, field_name, L"Member variable");
 
 			return fid;
 		}
@@ -399,16 +479,18 @@ namespace Inf
 		}
 
 		/**
-		 * Only used in Inf::PBObject<>::PBClass() to initialize a static variable.
+		 * Only used in Inf::PBObject<>::PBClass(m_Session) to initialize a static variable.
 		 *
 		 * \return	The pbclass found using Group and Class Name
+		 * 
+		 * \throw Inf::PBNI_Exception	If the Group or Class cannot be found
 		 */
 		static pbclass FindClass(IPB_Session* session)
 		{
 			pbgroup group = session->FindGroup(GroupName().c_str(), group_type);
 			if (!group)
 			{
-				throw Inf::PBNI_Exception({
+				throw PBNI_Exception({
 					{ L"Error", L"Unable to find group" },
 					{ L"Group", GroupName() },
 					{ L"ID", class_id.data },
@@ -418,7 +500,7 @@ namespace Inf
 			pbclass cls = session->FindClass(group, ClassName().c_str());
 			if (!cls)
 			{
-				throw Inf::PBNI_Exception({
+				throw PBNI_Exception({
 					{ L"Error", L"Unable to find group" },
 					{ L"Group", GroupName() },
 					{ L"Class", ClassName() },

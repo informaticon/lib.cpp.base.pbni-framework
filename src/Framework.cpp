@@ -14,28 +14,29 @@ PBXRESULT Inf::PBNI_Class::Invoke(IPB_Session* session, pbobject obj, pbmethodID
 		}
 		catch (const Inf::PBNI_Exception& ex)
 		{
-			pbboolean is_null;
-			pbobject pb_obj = m_Session->GetObjectGlobalVar(m_Session->GetGlobalVarID(L"gu_e"), is_null);
-			Inf::PBObject<L"u_exf_error_manager"> gu_e(m_Session, is_null ? 0 : pb_obj);
+			auto& key_value_store = ex.GetKeyValues();
 
-			auto pb_ex_builder= gu_e.Invoke<Inf::PBObject<L"u_exf_error_data">>(L"of_new_error", PBRT_FUNCTION);
-
-			for (auto [key, value] : ex.GetKeyValues())
+			Inf::PBObject<L"u_exf_ex_pbni"> pbni_exception(m_Session);
+			auto pbni_error_data = pbni_exception.Invoke<Inf::PBObject<L"u_exf_error_data">>(L"of_init", PBRT_FUNCTION, Inf::PBString(m_Session, key_value_store.at(L"Error")));
+			
+			for (auto& [key, value] : key_value_store)
 			{
-				pb_ex_builder.InvokeSig(L"of_push", PBRT_FUNCTION, L"Cu_exf_error_data.SA", Inf::PBString(m_Session, key), Inf::PBString(m_Session, value));
+				pbni_error_data.InvokeSig(L"of_push", PBRT_FUNCTION, L"Cu_exf_error_data.SA", Inf::PBString(m_Session, key), Inf::PBString(m_Session, value));
 			}
 
-			auto pb_ex = gu_e.GetObjectField<L"u_exf_error_manager.iu_as">(L"iu_as")
-				.Invoke<Inf::PBObject<L"u_exf_ex">>(L"of_ex", PBRT_FUNCTION, pb_ex_builder, Inf::PBString(m_Session, L"u_tse_ex"));
-			m_Session->ThrowException(pb_ex);
+			m_Session->ThrowException(pbni_exception);
 
 			return PBX_SUCCESS; // Need to return success otherwise it will throw system error
 		}
 		catch (const std::exception& err)
 		{
-			Inf::PBObject<L"u_tse_ex"> pb_err(session);
-			pb_err.Invoke(L"setmessage", PBRT_FUNCTION, Inf::PBString(session, err.what()));
-			session->ThrowException(pb_err);
+			Inf::PBObject<L"u_exf_ex_pbni"> pbni_exception(session);
+			
+			const char* err_msg = err.what();
+			auto pbni_error_data = pbni_exception.Invoke<Inf::PBObject<L"u_exf_error_data">>(L"of_init", PBRT_FUNCTION, Inf::PBString(session, err_msg));
+			pbni_error_data.InvokeSig(L"of_push", PBRT_FUNCTION, L"Cu_exf_error_data.SA", Inf::PBString(m_Session, L"Error"), Inf::PBString(m_Session, err_msg));
+
+			session->ThrowException(pbni_exception);
 
 			return PBX_SUCCESS; // Need to return success otherwise it will throw system error
 		}

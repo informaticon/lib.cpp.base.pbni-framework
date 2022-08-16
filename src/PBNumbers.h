@@ -8,7 +8,7 @@
 #include "Errors.h"
 
 /**
- * Taken from <boost / serialization / strong_typedef.hpp>and slightly adapted to be able to set to null
+ * Taken from <boost/serialization/strong_typedef.hpp>and slightly adapted to be able to set to null
  * 
  * \param T		Base Type
  * \param D		Derived Type

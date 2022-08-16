@@ -29,23 +29,23 @@ namespace Inf
 		 *
 		 * \param session	Current Session
 		 */
-		PBBlob(IPB_Session* session, uint8_t* data, size_t size);
-		
+		PBBlob(IPB_Session* session, pbbyte* data, pblong size);
+
 		/**
 		 * Copies the Data to PowerBuilder. Creates a new Blob if Null.
-		 * 
+		 *
 		 * \param data	Pointer to the Data
 		 * \param size	Size of the Data
 		 */
-		void SetData(uint8_t* data, size_t size);
+		void SetData(pbbyte* data, pblong size);
 		/**
 		 * Retrieves a Pointer to the Raw Data.
-		 * 
+		 *
 		 * \return	Pointer to the PowerBuilder Data
-		 * 
+		 *
 		 * \throw Inf::PBNI_NullPointerException if Null
 		 */
-		uint8_t* GetData() const;
+		pbbyte* GetData() const;
 		/**
 		 * Gets the size from PowerBuilder.
 		 * 
@@ -53,7 +53,7 @@ namespace Inf
 		 * 
 		 * \throw Inf::PBNI_NullPointerException if Null
 		 */
-		size_t Size() const;
+		pblong Size() const;
 
 		/**
 		 * Checks whether pbblob is Null.

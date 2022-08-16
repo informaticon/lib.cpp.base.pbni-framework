@@ -15,7 +15,7 @@
  * Don't use this inside a header File.
  *
  * \param func					Just the plain name of the function (of_func)
- * \param ...argument_names		A WString containing the Name to be used by PowerBuilder (Must be the same as GetPBName)
+ * \param ...argument_names		WStrings containing the Argument names to be used by PowerBuilder
  */
 #define INF_REGISTER_FUNC(func, ...) static Inf::MethodDescription func##_desc(s_PBNI_ClassName, L""#func, &Inf_PBNI_Class::func  __VA_OPT__(,) __VA_ARGS__)
 
@@ -109,7 +109,7 @@ namespace Inf
 
 				m_Description.resize(m_Description.size() - 2);
 			}
-			m_Description += L")";
+			m_Description += L") throws u_exf_ex";
 
 			// Register
 			PBNI_Framework::GetInstance().RegisterPBMethod(pc_class_name, this);

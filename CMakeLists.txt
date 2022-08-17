@@ -29,6 +29,7 @@ add_library(libPBNIFramework STATIC
 	src/PBDateTimes.cpp
 	src/PBDateTimes.h
 	src/PBNumbers.h
+	src/PBNumbers.cpp
 	src/PBObjects.h
 	src/PBString.cpp
 	src/PBString.h
@@ -58,6 +59,7 @@ FILES
 	src/PBDateTimes.cpp
 	src/PBDateTimes.h
 	src/PBNumbers.h
+	src/PBNumbers.cpp
 	src/PBObjects.h
 	src/PBString.cpp
 	src/PBString.h

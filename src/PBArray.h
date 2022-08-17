@@ -408,15 +408,7 @@ namespace Inf
 		template<> inline PBXRESULT SetImpl<PBLongLong>	(pblong* dim, const PBLongLong t)	{ return this->m_Session->SetLongLongArrayItem(this->m_Array, dim, t); }
 		template<> inline PBXRESULT SetImpl<PBReal>		(pblong* dim, const PBReal t)		{ return this->m_Session->SetRealArrayItem(this->m_Array, dim, t); }
 		template<> inline PBXRESULT SetImpl<PBDouble>	(pblong* dim, const PBDouble t)		{ return this->m_Session->SetDoubleArrayItem(this->m_Array, dim, t); }
-		template<> inline PBXRESULT SetImpl<PBDecimal>	(pblong* dim, const PBDecimal t)
-		{
-			std::wstring dec_repr = ConvertString<std::wstring>(t.t.str());
-
-			pbdec pb_dec = this->m_Session->NewDecimal();
-			this->m_Session->SetDecimal(pb_dec, dec_repr.c_str());
-
-			return this->m_Session->SetDecArrayItem(this->m_Array, dim, pb_dec);
-		}
+		template<> inline PBXRESULT SetImpl<PBDecimal>	(pblong* dim, const PBDecimal t)	{ return this->m_Session->SetDecArrayItem(this->m_Array, dim, t.m_Decimal); }
 		template<> inline PBXRESULT SetImpl<PBTime>		(pblong* dim, const PBTime t)		{ return this->m_Session->SetTimeArrayItem(this->m_Array, dim, t.m_Time); }
 		template<> inline PBXRESULT SetImpl<PBDate>		(pblong* dim, const PBDate t)		{ return this->m_Session->SetDateArrayItem(this->m_Array, dim, t.m_Date); }
 		template<> inline PBXRESULT SetImpl<PBDateTime>	(pblong* dim, const PBDateTime t)	{ return this->m_Session->SetDateTimeArrayItem(this->m_Array, dim, t.m_DateTime); }
@@ -433,20 +425,7 @@ namespace Inf
 		template<> inline PBLongLong	GetImpl<PBLongLong>	(pblong* dim) const	{ pbboolean is_null = false; pblonglong pb_longlong	= this->m_Session->GetLongLongArrayItem(this->m_Array, dim, is_null);	return is_null ? PBLongLong()	: PBLongLong(pb_longlong); }
 		template<> inline PBReal		GetImpl<PBReal>		(pblong* dim) const	{ pbboolean is_null = false; pbreal pb_real			= this->m_Session->GetRealArrayItem(this->m_Array, dim, is_null);		return is_null ? PBReal()		: PBReal(pb_real); }
 		template<> inline PBDouble		GetImpl<PBDouble>	(pblong* dim) const	{ pbboolean is_null = false; pbdouble pb_double		= this->m_Session->GetDoubleArrayItem(this->m_Array, dim, is_null);		return is_null ? PBDouble()		: PBDouble(pb_double); }
-		template<> inline PBDecimal		GetImpl<PBDecimal>	(pblong* dim) const
-		{
-			pbboolean is_null = false;
-
-			LPCTSTR dec_repr = this->m_Session->GetDecimalString(this->m_Session->GetDecArrayItem(this->m_Array, dim, is_null));
-
-			PBDecimal dec;
-			if (!is_null)
-				dec = Helper::PBDecimalImpl(ConvertString<std::string>(dec_repr));
-
-			this->m_Session->ReleaseDecimalString(dec_repr);
-
-			return dec;
-		}
+		template<> inline PBDecimal		GetImpl<PBDecimal>	(pblong* dim) const { pbboolean is_null = false; pbdec pb_dec			= this->m_Session->GetDecArrayItem(this->m_Array, dim, is_null);		return { this->m_Session, is_null ? 0 : pb_dec }; }
 		template<> inline PBTime		GetImpl<PBTime>		(pblong* dim) const	{ pbboolean is_null = false; pbtime pb_time			= this->m_Session->GetTimeArrayItem(this->m_Array, dim, is_null);		return { this->m_Session, is_null ? 0 : pb_time }; }
 		template<> inline PBDate		GetImpl<PBDate>		(pblong* dim) const	{ pbboolean is_null = false; pbdate pb_date			= this->m_Session->GetDateArrayItem(this->m_Array, dim, is_null);		return { this->m_Session, is_null ? 0 : pb_date }; }
 		template<> inline PBDateTime	GetImpl<PBDateTime>	(pblong* dim) const	{ pbboolean is_null = false; pbdatetime pb_datetime	= this->m_Session->GetDateTimeArrayItem(this->m_Array, dim, is_null);	return { this->m_Session, is_null ? 0 : pb_datetime }; }

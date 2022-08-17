@@ -1,7 +1,11 @@
 #pragma once
 
 #include <boost/multiprecision/cpp_dec_float.hpp>
-#include <boost/serialization/strong_typedef.hpp>
+#include <boost/config.hpp>
+#include <boost/operators.hpp>
+#include <boost/type_traits/has_nothrow_assign.hpp>
+#include <boost/type_traits/has_nothrow_constructor.hpp>
+#include <boost/type_traits/has_nothrow_copy.hpp>
 
 #include <pbext.h>
 
@@ -69,6 +73,69 @@ namespace Inf
 		 */
 		using PBDecimalImpl = boost::multiprecision::number<boost::multiprecision::cpp_dec_float<8>>;
 	};
-	INF_STRONG_TYPEDEF(Helper::PBDecimalImpl, PBDecimal);
 
+
+	/**
+	 * Small Wrapper for pbdec.
+	 */
+	class PBDecimal
+	{
+	public:
+		/**
+		 * Creates a Wrapper to an already existing pbdec.
+		 * Will be Null if dec is 0.
+		 *
+		 * \param session	Current session
+		 * \param dec		The exsiting pbdec or 0
+		 */
+		PBDecimal(IPB_Session* session, pbdec dec);
+		/**
+		 * Creates a new pbdec.
+		 *
+		 * \param session	Current Session
+		 */
+		PBDecimal(IPB_Session* session, const Helper::PBDecimalImpl& value);
+
+		/**
+		 * Copies the Data to PowerBuilder. Creates a new Blob if Null.
+		 *
+		 * \param data	Pointer to the Data
+		 * \param size	Size of the Data
+		 */
+		void SetDecimal(const Helper::PBDecimalImpl& value);
+		/**
+		 * Retrieves a Pointer to the Raw Data.
+		 *
+		 * \return	Pointer to the PowerBuilder Data
+		 *
+		 * \throw Inf::PBNI_NullPointerException if Null
+		 */
+		Helper::PBDecimalImpl GetDecimal() const;
+
+		/**
+		 * Checks whether pbdec is Null.
+		 *
+		 * \return Is Null
+		 */
+		bool IsNull() const;
+		/**
+		 * Sets pbdec to Null.
+		 */
+		void SetToNull();
+
+	private:
+		template <typename T>
+		friend struct Type;
+		template <typename PBT, pblong... dims>
+			requires (sizeof...(dims) <= 3 && !std::is_reference_v<PBT> && !std::is_pointer_v<PBT>)
+		friend class PBArray;
+		template <Helper::FixedString class_id, pbgroup_type group_type>
+		friend class PBObject;
+
+		pbdec m_Decimal;
+		IPB_Session* m_Session;
+		std::shared_ptr<Helper::AcquiredValue> m_AcquiredValue;
+
+		PBDecimal(IPB_Session* session, IPB_Value* value, bool acquire);
+	};
 }

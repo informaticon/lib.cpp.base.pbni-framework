@@ -526,15 +526,7 @@ namespace Inf
 		template<> inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBLongLong t)	{ return m_Session->SetLongLongField(m_Object, fid, t); }
 		template<> inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBReal t)		{ return m_Session->SetRealField(m_Object, fid, t); }
 		template<> inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBDouble t)	{ return m_Session->SetDoubleField(m_Object, fid, t); }
-		template<> inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBDecimal t)
-		{
-			std::wstring dec_repr = ConvertString<std::wstring>(t.t.str());
-
-			pbdec pb_dec = m_Session->NewDecimal();
-			m_Session->SetDecimal(pb_dec, dec_repr.c_str());
-
-			m_Session->SetDecField(m_Object, fid, pb_dec);
-		}
+		template<> inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBDecimal t)	{ return m_Session->SetDecField(m_Object, fid, t.m_Decimal); }
 		template<> inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBTime t)		{ return m_Session->SetTimeField(m_Object, fid, t.m_Time); }
 		template<> inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBDate t)		{ return m_Session->SetDateField(m_Object, fid, t.m_Date); }
 		template<> inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBDateTime t)	{ return m_Session->SetDateTimeField(m_Object, fid, t.m_DateTime); }
@@ -555,20 +547,7 @@ namespace Inf
 		template<> inline PBLongLong	GetFieldImpl(pbfieldID fid) const { pbboolean is_null = false; pblonglong pb_longlong	= m_Session->GetLongLongField(m_Object, fid, is_null);	return is_null ? PBLongLong()	: PBLongLong(pb_longlong); }
 		template<> inline PBReal 		GetFieldImpl(pbfieldID fid) const { pbboolean is_null = false; pbreal pb_real			= m_Session->GetRealField(m_Object, fid, is_null);		return is_null ? PBReal()		: PBReal(pb_real); }
 		template<> inline PBDouble 		GetFieldImpl(pbfieldID fid) const { pbboolean is_null = false; pbdouble pb_double		= m_Session->GetDoubleField(m_Object, fid, is_null);	return is_null ? PBDouble()		: PBDouble(pb_double); }
-		template<> inline PBDecimal 	GetFieldImpl(pbfieldID fid) const
-		{
-			pbboolean is_null = false;
-
-			LPCTSTR dec_repr = m_Session->GetDecimalString(m_Session->GetDecField(m_Object, fid, is_null));
-
-			PBDecimal dec;
-			if (!is_null)
-				dec = Helper::PBDecimalImpl(ConvertString<std::string>(dec_repr));
-
-			m_Session->ReleaseDecimalString(dec_repr);
-
-			return dec;
-		}
+		template<> inline PBDecimal 	GetFieldImpl(pbfieldID fid) const { pbboolean is_null = false; pbdec pb_dec				= m_Session->GetDecField(m_Object, fid, is_null);		return { m_Session, is_null ? 0 : pb_dec }; }
 		template<> inline PBTime 		GetFieldImpl(pbfieldID fid) const { pbboolean is_null = false; pbtime pb_time			= m_Session->GetTimeField(m_Object, fid, is_null);		return { m_Session, is_null ? 0 : pb_time }; }
 		template<> inline PBDate 		GetFieldImpl(pbfieldID fid) const { pbboolean is_null = false; pbdate pb_date			= m_Session->GetDateField(m_Object, fid, is_null);		return { m_Session, is_null ? 0 : pb_date }; }
 		template<> inline PBDateTime	GetFieldImpl(pbfieldID fid) const { pbboolean is_null = false; pbdatetime pb_datetime	= m_Session->GetDateTimeField(m_Object, fid, is_null);	return { m_Session, is_null ? 0 : pb_datetime }; }

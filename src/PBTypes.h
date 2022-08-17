@@ -146,38 +146,8 @@ namespace Inf
 	template<> constexpr wchar_t Type<PBDecimal>::PBSignature = L'M';
 	template<> constexpr pbvalue_type Type<PBDecimal>::PBType = pbvalue_dec;
 	template<> inline std::wstring Type<PBDecimal>::GetPBName(std::wstring argument_name) { return L"dec" + argument_name; }
-	template<> inline PBDecimal Type<PBDecimal>::FromArgument(IPB_Session* session, IPB_Value* pb_value, bool acquire)
-	{
-		if (pb_value->IsNull())
-			return {};
-
-		LPCTSTR dec_repr = session->GetDecimalString(pb_value->GetDecimal());
-
-		PBDecimal dec = Helper::PBDecimalImpl(ConvertString<std::string>(dec_repr));
-
-		session->ReleaseDecimalString(dec_repr);
-
-		return dec;
-	}
-	template<> inline PBXRESULT Type<PBDecimal>::SetValue(IPB_Session* session, IPB_Value* pb_value, const PBDecimal value)
-	{
-		if (value.IsNull())
-		{
-			return pb_value->SetToNull();
-		}
-		else
-		{
-			std::wstring dec_repr = ConvertString<std::wstring>(value.t.str());
-
-			pbdec pb_dec = session->NewDecimal();
-			PBXRESULT res = session->SetDecimal(pb_dec, dec_repr.c_str());
-
-			if (res == PBX_SUCCESS)
-				res = pb_value->SetDecimal(pb_dec);
-
-			return res;
-		}
-	}
+	template<> inline PBDecimal Type<PBDecimal>::FromArgument(IPB_Session* session, IPB_Value* pb_value, bool acquire) { return { session, pb_value, acquire }; }
+	template<> inline PBXRESULT Type<PBDecimal>::SetValue(IPB_Session* session, IPB_Value* pb_value, const PBDecimal value) { return value.IsNull() ? pb_value->SetToNull() : pb_value->SetDecimal(value.m_Decimal); }
 #pragma endregion
 
 #pragma region Date_Times

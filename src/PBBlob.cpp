@@ -19,13 +19,10 @@ void Inf::PBBlob::SetData(pbbyte* data, pblong size)
 	}
 	else
 	{
-		switch (m_Session->SetBlob(m_Blob, data, size))
-		{
-		case PBX_E_INVALID_ARGUMENT:
-			throw Inf::PBNI_Exception(L"Errored while trying to copy Blob");
-		case PBX_E_OUTOF_MEMORY:
-			throw Inf::PBNI_Exception(L"Ran out of memory while trying to copy Blob");
-		}
+		PBXRESULT res = m_Session->SetBlob(m_Blob, data, size);
+
+		if (res != PBX_SUCCESS)
+			throw Inf::PBNI_PowerBuilderException(L"IPB_Session::SetDecimal", res);
 	}
 }
 

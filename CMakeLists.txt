@@ -2,6 +2,15 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.18)
 
 
 ##################################################
+#                    Options                     #
+##################################################
+
+set(PBNI_DIR "C:/Program Files (x86)/Appeon/PowerBuilder 17.0/SDK/PBNI" CACHE PATH "PATH of PowerBuilder Native Interface SDK")
+set(PBNI_INCLUDE_DIR "${PBNI_DIR}/include" CACHE PATH "PowerBuilder Native Interface header files location")
+set(PBNI_LIBRARY "${PBNI_DIR}/lib/pbni.lib" CACHE FILEPATH "PowerBuilder Native Interface library for release target")
+
+
+##################################################
 #                 PBNI Framework                 #
 ##################################################
 

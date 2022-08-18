@@ -21,82 +21,59 @@ endif()
 
 project(lib.cpp.base.pbni-framework VERSION 1.0.0 LANGUAGES CXX)
 
+set(src
+	src/Framework.cpp
+	src/Framework.h
+	src/Errors.h
+	src/AcquiredValue.h
+	src/PBEntry.cpp
+)
+
+set(descriptions
+	src/MethodDescription.h
+	src/ClassDescription.h
+)
+
+set(types
+	src/PBTypes.h
+	src/PBArray.h
+	src/PBBlob.cpp
+	src/PBBlob.h
+	src/PBDateTimes.cpp
+	src/PBDateTimes.h
+	src/PBNumbers.h
+	src/PBNumbers.cpp
+	src/PBObjects.h
+	src/PBString.cpp
+	src/PBString.h
+)
+
+set(headers ${src})
+list(APPEND headers ${descriptions})
+list(APPEND headers ${types})
+list(FILTER headers INCLUDE REGEX "\.h$")
+
 add_library(libPBNIFramework STATIC
-	src/Framework.cpp
-	src/Framework.h
-	src/Errors.h
-	src/AcquiredValue.h
-	src/PBEntry.cpp
-
-	src/MethodDescription.h
-	src/ClassDescription.h
-
-	src/PBTypes.h
-	src/PBArray.h
-	src/PBBlob.cpp
-	src/PBBlob.h
-	src/PBDateTimes.cpp
-	src/PBDateTimes.h
-	src/PBNumbers.h
-	src/PBNumbers.cpp
-	src/PBObjects.h
-	src/PBString.cpp
-	src/PBString.h
+	${src}
+	${descriptions}
+	${types}
 )
+source_group("Source Files" FILES ${src})
+source_group("Source Files/Descriptions" FILES ${descriptions})
+source_group("Source Files/Types" FILES ${types})
 
-target_precompile_headers(libPBNIFramework
-PUBLIC
-	src/Framework.h
-	src/Errors.h
-	src/AcquiredValue.h
-
-	src/MethodDescription.h
-	src/ClassDescription.h
-
-	src/PBTypes.h
-	src/PBArray.h
-	src/PBBlob.h
-	src/PBDateTimes.h
-	src/PBNumbers.h
-	src/PBObjects.h
-	src/PBString.h
-)
-
-source_group(src
-FILES
-	src/Framework.cpp
-	src/Framework.h
-	src/Errors.h
-	src/AcquiredValue.h
-	src/PBEntry.cpp
-)
-
-source_group(src/Descriptions
-FILES
-	src/MethodDescription.h
-	src/ClassDescription.h
-)
-
-source_group(src/Types
-FILES
-	src/PBTypes.h
-	src/PBArray.h
-	src/PBBlob.cpp
-	src/PBBlob.h
-	src/PBDateTimes.cpp
-	src/PBDateTimes.h
-	src/PBNumbers.h
-	src/PBNumbers.cpp
-	src/PBObjects.h
-	src/PBString.cpp
-	src/PBString.h
-)
+target_precompile_headers(libPBNIFramework PUBLIC ${headers})
 
 
 target_compile_features(libPBNIFramework PUBLIC cxx_std_20)
 
-# To be able to use __VA_OPT__
-target_compile_options(libPBNIFramework PUBLIC /Zc:preprocessor)
+target_compile_options(libPBNIFramework
+PUBLIC
+	# To be able to use __VA_OPT__
+	/Zc:preprocessor	
+PRIVATE
+	/W4
+)
 
 target_compile_definitions(libPBNIFramework
 PUBLIC

@@ -52,8 +52,17 @@ namespace Inf
 	protected:
 		std::wstring m_Description;
 
+		/**
+		 * This Function is there so parameter unpacking can be done with a tuple, it just calls SetValue if Arg is a reference.
+		 * 
+		 * \param session	Current Session
+		 * \param value		The Value to set the reference of
+		 * \param arg		The [reference] argument
+		 * 
+		 * \tparam	The type of the [ref] argument
+		 */
 		template <typename Arg>
-		inline static void SetReference(IPB_Session* session, IPB_Value* value, const Arg arg) {
+		inline static void SetReference(IPB_Session* session, IPB_Value* value, const Arg& arg) {
 			if constexpr (std::is_reference_v<Arg>)
 			{
 				PBXRESULT res = Type<std::remove_reference_t<Arg>>::SetValue(session, value, arg);
@@ -132,13 +141,13 @@ namespace Inf
 		{
 			// Argument Checking
 			if (ci->pArgs->GetCount() != sizeof...(Args))
-				throw PBNI_IncorrectArgumentsException(object->GetPBName(), m_Description);
+				throw PBNI_IncorrectArgumentsException(object->PB_NAME, m_Description);
 
 			pbint i = 0;
 			([&] {
 				IPB_Value* value = ci->pArgs->GetAt(i);
 				if (!Type<std::remove_reference_t<Args>>::Assert(session, value) || std::is_reference_v<Args> != (value->IsByRef() != 0))
-					throw PBNI_IncorrectArgumentsException(object->GetPBName(), m_Description, i);
+					throw PBNI_IncorrectArgumentsException(object->PB_NAME, m_Description, i);
 			
 				i++;
 				}(), ...);

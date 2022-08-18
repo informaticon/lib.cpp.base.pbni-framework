@@ -93,20 +93,20 @@ namespace Inf
 		 * Creates a new pbdec.
 		 *
 		 * \param session	Current Session
+		 * \param value		The Decimal to copy
 		 */
 		PBDecimal(IPB_Session* session, const Helper::PBDecimalImpl& value);
 
 		/**
-		 * Copies the Data to PowerBuilder. Creates a new Blob if Null.
+		 * Copies the Decimal string to PowerBuilder, crates a new Decimal if Null.
 		 *
-		 * \param data	Pointer to the Data
-		 * \param size	Size of the Data
+		 * \param value		The Decimal to copy
 		 */
 		void SetDecimal(const Helper::PBDecimalImpl& value);
 		/**
-		 * Retrieves a Pointer to the Raw Data.
+		 * Copies the Decimal from PowerBuilder.
 		 *
-		 * \return	Pointer to the PowerBuilder Data
+		 * \return	Boost Decimal
 		 *
 		 * \throw Inf::PBNI_NullPointerException if Null
 		 */

@@ -18,6 +18,12 @@ namespace Inf
 	class IPBArray
 	{
 	public:
+		/**
+		 * Simple Constructor that gets the ArrayInfo if arr is not Null.
+		 * 
+		 * \param session	Current Session
+		 * \param arr		The pbarray to be
+		 */
 		IPBArray(IPB_Session* session, pbarray arr = 0)
 			: m_Session(session), m_Array(arr)
 		{

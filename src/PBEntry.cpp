@@ -11,9 +11,9 @@
  * \param obj			The returned Object
  * \return				PBX_SUCESS if Object created, otherwise PBX_E_NO_SUCH_CLASS
  */
-extern "C" PBXEXPORT PBXRESULT PBXCALL PBX_CreateNonVisualObject(IPB_Session* pbSession, pbobject pbobj, LPCTSTR xtraName, IPBX_NonVisualObject** obj)
+extern "C" PBXEXPORT PBXRESULT PBXCALL PBX_CreateNonVisualObject(IPB_Session* pbsession, pbobject pbobj, LPCTSTR xtraName, IPBX_NonVisualObject** obj)
 {
-	*obj = Inf::PBNI_Framework::GetInstance().CreateClass(xtraName, pbSession);
+	*obj = Inf::PBNI_Framework::GetInstance().CreateClass(xtraName, pbsession, pbobj);
 
 	return *obj ? PBX_SUCCESS : PBX_E_NO_SUCH_CLASS;
 };

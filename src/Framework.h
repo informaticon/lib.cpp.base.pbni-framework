@@ -18,15 +18,17 @@ namespace Inf
 	class PBNI_Class : public IPBX_NonVisualObject
 	{
 	public:
-		PBNI_Class() : m_Session(nullptr) {};
-		virtual ~PBNI_Class() {};
+		const std::wstring PB_NAME;
 
 		/**
-		 * This is the Method used to identify a polymorphic PBNI_Class. Implement it in your Derrived Class.
-		 * 
-		 * \return	The Class Name that will be used in PowerBuilder
-		 */
-		virtual inline std::wstring GetPBName() = 0;
+		* 
+		* 
+		* \param session		Current Session
+		* \param pbobj			The PowerBuilder object representing this
+		* \param pb_class_name	The name of the class in powerbuilder
+		*/
+		PBNI_Class(IPB_Session* session, pbobject pbobj, std::wstring pb_class_name);
+		virtual ~PBNI_Class() {};
 
 		/**
 		 * This Method will be called by PowerBuilder once it no longer needs this Object, don't use it.
@@ -47,6 +49,7 @@ namespace Inf
 	
 	protected:
 		IPB_Session* m_Session;
+		pbobject m_PBObject;
 	};
 
 	/**
@@ -61,9 +64,10 @@ namespace Inf
 		 * 
 		 * \param pb_class_name		Name of the Class in PowerBuilder
 		 * \param session			Current session
+		 * \param pbobj				The PowerBuilder reference to the to be created Object
 		 * \return					The Created Class or nullptr, if no class was found
 		 */
-		PBNI_Class* CreateClass(std::wstring pb_class_name, IPB_Session* session);
+		PBNI_Class* CreateClass(std::wstring pb_class_name, IPB_Session* session, pbobject pbobj);
 
 		/**
 		 * This method is just there to be called from dllmain.cpp::PBX_GetDescription.
@@ -80,7 +84,7 @@ namespace Inf
 		 * \param method_id			The ID of the Method, in order of registration
 		 * \return					A pointer to the Method's Description
 		 */
-		IMethodDescription* GetClassMethod(std::wstring pb_class_name, unsigned int method_id);
+		IMethodDescription* GetClassMethod(std::wstring pb_class_name, pbmethodID method_id);
 
 		/**
 		 * Static function to get the singleton instance of PBNI_Framework.

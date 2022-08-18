@@ -79,15 +79,15 @@ namespace Inf
 		/**
 		 * Converts and copies the String to PowerBuilder.
 		 * 
-		 * \param	The String to copy
+		 * \param str	The String to copy
 		 */
 		void SetString(const std::string& str);
 		/**
 		 * Copies the WString to PowerBuilder.
 		 *
-		 * \param	The WString to copy
+		 * \param wstr	The WString to copy
 		 */
-		void SetWString(const std::wstring& str);
+		void SetWString(const std::wstring& wstr);
 
 		/**
 		 * Gets the Size from PowerBuilder.

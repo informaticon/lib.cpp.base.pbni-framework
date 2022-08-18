@@ -25,9 +25,11 @@ namespace Inf
 		 */
 		PBBlob(IPB_Session* session, pbblob blob);
 		/**
-		 * Creates a new pbblob.
+		 * Creates a new pbblob by copying the provided data.
 		 *
 		 * \param session	Current Session
+		 * \param data		The data to copy
+		 * \param size		The size of the data in bytes
 		 */
 		PBBlob(IPB_Session* session, pbbyte* data, pblong size);
 

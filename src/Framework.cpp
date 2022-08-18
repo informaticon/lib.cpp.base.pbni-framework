@@ -3,9 +3,16 @@
 #include "ClassDescription.h"
 
 
+Inf::PBNI_Class::PBNI_Class(IPB_Session* session, pbobject pbobj, std::wstring pb_class_name)
+	: m_Session(session), m_PBObject(pbobj), PB_NAME(pb_class_name)
+{ }
+
 PBXRESULT Inf::PBNI_Class::Invoke(IPB_Session* session, pbobject obj, pbmethodID mid, PBCallInfo* ci)
 {
-	if (Inf::IMethodDescription* method = PBNI_Framework::GetInstance().GetClassMethod(GetPBName(), mid))
+	if (m_PBObject != obj)
+		throw Inf::PBNI_Exception(L"PowerBuilder called a function on an object that doesnt have the same pbobject as provided");
+
+	if (Inf::IMethodDescription* method = PBNI_Framework::GetInstance().GetClassMethod(PB_NAME, mid))
 	{
 		try
 		{
@@ -46,7 +53,7 @@ PBXRESULT Inf::PBNI_Class::Invoke(IPB_Session* session, pbobject obj, pbmethodID
 };
 
 
-Inf::PBNI_Class* Inf::PBNI_Framework::CreateClass(std::wstring pb_class_name, IPB_Session* session)
+Inf::PBNI_Class* Inf::PBNI_Framework::CreateClass(std::wstring pb_class_name, IPB_Session* session, pbobject pbobj)
 {
 	auto cls = m_Classes.find(pb_class_name);
 
@@ -54,7 +61,7 @@ Inf::PBNI_Class* Inf::PBNI_Framework::CreateClass(std::wstring pb_class_name, IP
 	{
 		return nullptr;
 	}
-	return cls->second->Create(session);
+	return cls->second->Create(session, pbobj, pb_class_name);
 }
 
 const std::wstring& Inf::PBNI_Framework::GetDescription()
@@ -64,7 +71,7 @@ const std::wstring& Inf::PBNI_Framework::GetDescription()
 	return s_Description;
 }
 
-Inf::IMethodDescription* Inf::PBNI_Framework::GetClassMethod(std::wstring pb_class_name, unsigned int method_id)
+Inf::IMethodDescription* Inf::PBNI_Framework::GetClassMethod(std::wstring pb_class_name, pbmethodID method_id)
 {
 	auto cls = m_Classes.find(pb_class_name);
 

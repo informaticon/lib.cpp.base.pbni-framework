@@ -27,6 +27,9 @@ namespace Inf
 		 * Creates a new pbtime.
 		 * 
 		 * \param session	Current Session
+		 * \param hours		The hour to set
+		 * \param minutes	The minute to set
+		 * \param seconds	The second to set
 		 */
 		PBTime(IPB_Session* session, pbint hours, pbint minutes, pbdouble seconds);
 
@@ -93,6 +96,9 @@ namespace Inf
 		 * Creates a new pbdate.
 		 *
 		 * \param session	Current Session
+		 * \param years		The years to set
+		 * \param months	The months to set
+		 * \param days		The days to set
 		 */
 		PBDate(IPB_Session* session, pbint years, pbint months, pbint days);
 
@@ -159,6 +165,12 @@ namespace Inf
 		 * Creates a new pbdatetime.
 		 *
 		 * \param session	Current Session
+		 * \param years		The years to set
+		 * \param months	The months to set
+		 * \param days		The days to set
+		 * \param hours		The hour to set
+		 * \param minutes	The minute to set
+		 * \param seconds	The second to set
 		 */
 		PBDateTime(IPB_Session* session, pbint years, pbint months, pbint days, pbint hours, pbint minutes, pbdouble seconds);
 

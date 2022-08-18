@@ -67,13 +67,8 @@ target_precompile_headers(libPBNIFramework PUBLIC ${headers})
 
 target_compile_features(libPBNIFramework PUBLIC cxx_std_20)
 
-target_compile_options(libPBNIFramework
-PUBLIC
-	# To be able to use __VA_OPT__
-	/Zc:preprocessor	
-PRIVATE
-	/W4
-)
+# To be able to use __VA_OPT__
+target_compile_options(libPBNIFramework PUBLIC /Zc:preprocessor)
 
 target_compile_definitions(libPBNIFramework
 PUBLIC

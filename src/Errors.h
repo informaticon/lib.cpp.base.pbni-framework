@@ -64,10 +64,13 @@ namespace Inf
 		std::map<std::wstring, std::wstring> m_KeyValueStore;
 	};
 
-	class PBNI_IndexOutOfBounds : public PBNI_Exception
+	/**
+	 * This Exception is thrown by PBArray when someone tried to access a value outside of the arrays bounds.
+	 */
+	class PBNI_IndexOutOfBoundsException : public PBNI_Exception
 	{
 	public:
-		PBNI_IndexOutOfBounds(pblong pos, pblong size)
+		PBNI_IndexOutOfBoundsException(pblong pos, pblong size)
 			: PBNI_Exception({
 					{ L"Error", L"Accesssing an index out of bounds in an Unounded PBArray" },
 					{ L"Position", std::to_wstring(pos) },
@@ -76,7 +79,7 @@ namespace Inf
 		{ }
 
 		template <int N>
-		PBNI_IndexOutOfBounds(std::array<pblong, N> pos, std::array<std::pair<pblong, pblong>, N> bounds, pbbyte dim)
+		PBNI_IndexOutOfBoundsException(std::array<pblong, N> pos, std::array<std::pair<pblong, pblong>, N> bounds, pbbyte dim)
 			: PBNI_Exception({
 					{ L"Error", L"Accesssing an index out of bounds in a Bounded PBArray" },
 					{ L"Dimension", std::to_wstring(dim) }
@@ -100,6 +103,9 @@ namespace Inf
 		}
 	};
 
+	/**
+	 * This Exception can be thrown anywhere, because all PowerBuilder types can be null, always check using IsNull.
+	 */
 	class PBNI_NullPointerException : public PBNI_Exception
 	{
 	public:
@@ -111,6 +117,9 @@ namespace Inf
 		{ }
 	};
 
+	/**
+	 * This Exception gets thrown if you try to access a field of an Object, that doesn't exist.
+	 */
 	class PBNI_InvalidFieldException : public PBNI_Exception
 	{
 	public:
@@ -124,6 +133,11 @@ namespace Inf
 		{ }
 	};
 
+	/**
+	 * This exception gets thrown, when PowerBuilder invokes a function inside the Framework,
+	 * but it doesnt give the right Arguments. Or when you try to Invoke a PowerBuilder function
+	 * and dont give the right Arguments.
+	 */
 	class PBNI_IncorrectArgumentsException : public PBNI_Exception
 	{
 	public:
@@ -142,6 +156,9 @@ namespace Inf
 		}
 	};
 
+	/**
+	 * This exception gets thrown if any PBNI Function that gets called doesn't return PBX_SUCCESS.
+	 */
 	class PBNI_PowerBuilderException : public PBNI_Exception
 	{
 	public:

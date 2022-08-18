@@ -12,49 +12,49 @@ You should already have a complete Cmake file which takes your source files and 
 After your cmake target add these lines:
 ```cmake
 add_subdirectory(path/to/this/repo)
-target_link_libraries(your_target PRIVATE libPBNIFramework)
+target_link_libraries(my_target PRIVATE libPBNIFramework)
 ```
 
 ### Code
 To create a PBNI class, publicly extend Inf::PBNI_Class, you need to implement the method GetPBName.
 ```cpp
-// your_pbni_class.h
+// MyExtensionClass.h
 
 #include <Framework.h>
 
-class your_pbni_class : public Inf::PBNI_Class
+class MyExtensionClass : public Inf::PBNI_Class
 {
-	your_pbni_class(IPB_Session* session, pbobject pbobj, std::wstring pb_class_name)
+	MyExtensionClass(IPB_Session* session, pbobject pbobj, std::wstring pb_class_name)
 		: Inf::PBNI_Class(session, pbobj, pb_class_name)
 	{ }
 
 	// Put your methods somewhere here
-	void example(Inf::PBInt some_number);
+	void Example(Inf::PBInt some_number);
 }
 ```
 
 Then define all your functions. Inside a .cpp file use INF_REGISTER_CLASS, and INF_REGISTER_FUNC.
 ```cpp
-// your_pbni_class.cpp
+// MyExtensionClass.cpp
 
 #include "your_pbni_class.h"
 
 #include <WinUser.h>
 #include <ClassDescription.h>
 
-// This needs to be the same name you have in GetPBName
-#INF_REGISTER_CLASS(your_pbni_class, L"u_your_pbni_class");
+// This will be the Name of the PowerBuilder user object.
+#INF_REGISTER_CLASS(MyExtensionClass, L"u_my_extension_class");
 
-// The second argument is the name used by PowerBuilder, after the 2nd argument, the argument names come
-#INF_REGISTER_FUNC(example, L"of_example", L"ai_some_number");
-void your_pbni_class::example(Inf::PBInt some_number)
+// The second argument is the name used by PowerBuilder, after the 2nd argument, the argument names follow.
+#INF_REGISTER_FUNC(Example, L"of_example", L"ai_some_number");
+void MyExtensionClass::Example(Inf::PBInt some_number)
 {
 	MessageBoxW(NULL, L"This is an example", L"Message", MB_OK);
 }
 
 ```
 \
-You don't need to add any PBNI entry points. Those are all handled by ``<PBEntry.cpp>``.
+You don't need to add any PBNI entry points. Those are all handled by ``PBEntry.cpp``.
 
 
 ### Types
@@ -100,8 +100,7 @@ You can create your own by extending Inf::PBNI_Exception.
 ### Variable handling
 Complex PowerBuilder variables get deleted once the functino call ends. If you want to store a value into a member variable, you need to copy it over to your own memory. There are alternatives for some types. For PBObjects, you can use m_Session->AddGlobalRef(), just make sure to m_Session->RemoveGlobalRef(), once you are done using it. With PBArrays you can do m_Session->AcquireArrayItemValue() and m_Session->ReleaseArrayItemValue() respectively. \
 
-To access global variables, use ``m_Session->GetGlobalVarID();`` and ``m_Session->Get<Type>GlobalVar();`` then you can instantiate and Inf::PB<Type> using the returne PowerBuilder type.
-
+To access global variables, use ``m_Session->GetGlobalVarID();`` and ``m_Session->Get<Type>GlobalVar();`` then you can instantiate and Inf::PB<Type> using the returned PowerBuilder type.
 
 ### Example
 Check out [this repository](https://github.com/informaticon/div.cpp.miw.pbni-framework-example) for a complete example.

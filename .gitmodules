@@ -1,60 +1,45 @@
 [submodule "extern/boost_array"]
 	path = extern/boost_array
 	url = https://github.com/boostorg/array.git
-	branch = boost-1.80.0
 [submodule "extern/boost_assert"]
 	path = extern/boost_assert
 	url = https://github.com/boostorg/assert.git
-	branch = boost-1.80.0
 [submodule "extern/boost_config"]
 	path = extern/boost_config
 	url = https://github.com/boostorg/config.git
-	branch = boost-1.80.0
 [submodule "extern/boost_container_hash"]
 	path = extern/boost_container_hash
 	url = https://github.com/boostorg/container_hash.git
-	branch = boost-1.80.0
 [submodule "extern/boost_core"]
 	path = extern/boost_core
 	url = https://github.com/boostorg/core.git
-	branch = boost-1.80.0
 [submodule "extern/boost_io"]
 	path = extern/boost_io
 	url = https://github.com/boostorg/io.git
-	branch = boost-1.80.0
 [submodule "extern/boost_multiprecision"]
 	path = extern/boost_multiprecision
 	url = https://github.com/boostorg/multiprecision.git
-	branch = boost-1.80.0
 [submodule "extern/boost_predef"]
 	path = extern/boost_predef
 	url = https://github.com/boostorg/predef.git
-	branch = boost-1.80.0
 [submodule "extern/boost_preprocessor"]
 	path = extern/boost_preprocessor
 	url = https://github.com/boostorg/preprocessor.git
-	branch = boost-1.80.0
 [submodule "extern/boost_stacktrace"]
 	path = extern/boost_stacktrace
 	url = https://github.com/boostorg/stacktrace.git
-	branch = boost-1.80.0
 [submodule "extern/boost_static_assert"]
 	path = extern/boost_static_assert
 	url = https://github.com/boostorg/static_assert.git
-	branch = boost-1.80.0
 [submodule "extern/boost_throw_exception"]
 	path = extern/boost_throw_exception
 	url = https://github.com/boostorg/throw_exception.git
-	branch = boost-1.80.0
 [submodule "extern/boost_type_traits"]
 	path = extern/boost_type_traits
 	url = https://github.com/boostorg/type_traits.git
-	branch = boost-1.80.0
 [submodule "extern/boost_utility"]
 	path = extern/boost_utility
 	url = https://github.com/boostorg/utility.git
-	branch = boost-1.80.0
 [submodule "extern/boost_winapi"]
 	path = extern/boost_winapi
 	url = https://github.com/boostorg/winapi.git
-	branch = boost-1.80.0

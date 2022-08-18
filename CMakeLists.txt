@@ -14,12 +14,13 @@ set(PBNI_LIBRARY "${PBNI_DIR}/lib/pbni.lib" CACHE FILEPATH "PowerBuilder Native 
 #                 PBNI Framework                 #
 ##################################################
 
+project(lib.cpp.base.pbni-framework VERSION 1.0.0 LANGUAGES CXX)
+
 # Check for 32 bit
 if(NOT CMAKE_SIZEOF_VOID_P EQUAL 4)
 	message(FATAL_ERROR "Powerbuilder runs on 32 bits, choose a 32 bit plattform using '-A Win32'")
 endif()
 
-project(lib.cpp.base.pbni-framework VERSION 1.0.0 LANGUAGES CXX)
 
 set(src
 	src/Framework.cpp

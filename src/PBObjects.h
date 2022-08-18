@@ -41,6 +41,7 @@ namespace Inf
 			: m_Session(session)
 		{
 			m_Object = m_Session->NewObject(PBClass(m_Session));
+			// We need to add a local ref, so we can return an object returned of an invoked function
 			session->AddLocalRef(m_Object);
 		}
 
@@ -158,7 +159,10 @@ namespace Inf
 				if constexpr (std::is_reference_v<Args>)
 				{
 					if (ci.pArgs->GetAt(i)->IsByRef())
+					{
+						// We need to acquire the value, so it doesnt get freed by FreeCallInfo.
 						args = Type<std::remove_reference_t<Args>>::FromArgument(m_Session, ci.pArgs->GetAt(i), true);
+					}
 				}
 				i++;
 			}(), ...);
@@ -169,6 +173,7 @@ namespace Inf
 			}
 			else
 			{
+				// We need to acquire the value, so it doesnt get freed by FreeCallInfo.
 				Ret ret = Type<Ret>::FromArgument(m_Session, ci.returnValue, true);
 
 				m_Session->FreeCallInfo(&ci);
@@ -401,6 +406,11 @@ namespace Inf
 			return s_Class;
 		}
 
+		/**
+		 * This conversion operator is currently the only way of getting the pbobject out.
+		 * 
+		 * \return	The pbobject used for PowerBuilder functions
+		 */
 		operator pbobject() const
 		{
 			return m_Object;

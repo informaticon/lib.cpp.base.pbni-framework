@@ -376,6 +376,16 @@ namespace Inf
 			return GetImpl<PBT>(pos.data());
 		}
 	#pragma endregion
+		
+		/**
+		 * This conversion operator is currently the only way of getting the pbarray out.
+		 *
+		 * \return	The pbarray used for PowerBuilder functions
+		 */
+		operator pbarray() const
+		{
+			return this->m_Array;
+		}
 
 	private:
 		friend Type<PBArray>;
@@ -583,6 +593,15 @@ namespace Inf
 		}
 	#pragma endregion
 
+		/**
+		 * This conversion operator is currently the only way of getting the pbarray out.
+		 *
+		 * \return	The pbarray used for PowerBuilder functions
+		 */
+		operator pbarray() const
+		{
+			return this->m_Array;
+		}
 	private:
 		friend Type<PBArray>;
 

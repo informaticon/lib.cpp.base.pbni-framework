@@ -14,10 +14,11 @@
  * Make sure that the Class was already registered in the same file.
  * Don't use this inside a header File.
  *
- * \param func					Just the plain name of the function (of_func)
+ * \param func					Just the plain name of the function (not in a string)
+ * \param name					A WString containing the Name to be used by PowerBuilder
  * \param ...argument_names		WStrings containing the Argument names to be used by PowerBuilder
  */
-#define INF_REGISTER_FUNC(func, ...) static Inf::MethodDescription func##_desc(s_PBNI_ClassName, L""#func, &Inf_PBNI_Class::func  __VA_OPT__(,) __VA_ARGS__)
+#define INF_REGISTER_FUNC(func, name, ...) static Inf::MethodDescription func##_desc(s_PBNI_ClassName, name, &Inf_PBNI_Class::func  __VA_OPT__(,) __VA_ARGS__)
 
 namespace Inf
 {

@@ -102,9 +102,9 @@ namespace Inf
 		 * \param pos	The Position
 		 * \param t		The Value to set from
 		 *
-		 * \throw Inf::PBNI_NullPointerException	If is Null
-		 * \throw Inf::PBNI_IndexOutOfBounds		If out of bounds
-		 * \throw Inf::PBNI_PowerBuilderException	If PowerBuilder function doesnt return PBX_SUCESS
+		 * \throw Inf::PBNI_NullPointerException		If is Null
+		 * \throw Inf::PBNI_IndexOutOfBoundsException	If out of bounds
+		 * \throw Inf::PBNI_PowerBuilderException		If PowerBuilder function doesnt return PBX_SUCESS
 		 */
 		void Set(pblong pos, const Item t)
 			requires (sizeof...(dims) == 0)
@@ -139,8 +139,8 @@ namespace Inf
 		 * \param pos	The Position
 		 * \return		The Value
 		 *
-		 * \throw Inf::PBNI_NullPointerException	If is Null
-		 * \throw Inf::PBNI_IndexOutOfBounds		If out of bounds
+		 * \throw Inf::PBNI_NullPointerException		If is Null
+		 * \throw Inf::PBNI_IndexOutOfBoundsException	If out of bounds
 		 */
 
 		Item Get(pblong pos)
@@ -164,9 +164,9 @@ namespace Inf
 		 *
 		 * \param pos	The Position
 		 *
-		 * \throw Inf::PBNI_NullPointerException	If is Null
-		 * \throw Inf::PBNI_IndexOutOfBounds		If out of bounds
-		 * \throw Inf::PBNI_PowerBuilderException	If PowerBuilder function doesnt return PBX_SUCESS
+		 * \throw Inf::PBNI_NullPointerException		If is Null
+		 * \throw Inf::PBNI_IndexOutOfBoundsException	If out of bounds
+		 * \throw Inf::PBNI_PowerBuilderException		If PowerBuilder function doesnt return PBX_SUCESS
 		 */
 		inline void SetItemToNull(pblong pos)
 			requires (sizeof...(dims) == 0)
@@ -186,8 +186,8 @@ namespace Inf
 		 * \param pos	The Position
 		 * \return		Is Null
 		 *
-		 * \throw Inf::PBNI_NullPointerException	If is Null
-		 * \throw Inf::PBNI_IndexOutOfBounds		If out of bounds
+		 * \throw Inf::PBNI_NullPointerException		If is Null
+		 * \throw Inf::PBNI_IndexOutOfBoundsException	If out of bounds
 		 */
 		bool IsItemNull(pblong pos)
 			requires (sizeof...(dims) == 0)
@@ -207,9 +207,9 @@ namespace Inf
 		 * \param pos	Array of Positions
 		 * \param t		The Value to set from
 		 *
-		 * \throw Inf::PBNI_NullPointerException	If is Null
-		 * \throw Inf::PBNI_IndexOutOfBounds		If out of bounds
-		 * \throw Inf::PBNI_PowerBuilderException	If PowerBuilder function doesnt return PBX_SUCESS
+		 * \throw Inf::PBNI_NullPointerException		If is Null
+		 * \throw Inf::PBNI_IndexOutOfBoundsException	If out of bounds
+		 * \throw Inf::PBNI_PowerBuilderException		If PowerBuilder function doesnt return PBX_SUCESS
 		 */
 		void Set(std::array<pblong, sizeof...(dims)> pos, const Item t)
 			requires (sizeof...(dims) != 0)
@@ -244,8 +244,8 @@ namespace Inf
 		 * \param pos	Array of Positions
 		 * \return		The Value
 		 *
-		 * \throw Inf::PBNI_NullPointerException	If is Null
-		 * \throw Inf::PBNI_IndexOutOfBounds		If out of bounds
+		 * \throw Inf::PBNI_NullPointerException		If is Null
+		 * \throw Inf::PBNI_IndexOutOfBoundsException	If out of bounds
 		 */
 		Item Get(std::array<pblong, sizeof...(dims)> pos)
 			requires (sizeof...(dims) != 0)
@@ -269,9 +269,9 @@ namespace Inf
 		 *
 		 * \param pos	Array of Positions
 		 *
-		 * \throw Inf::PBNI_NullPointerException	If is Null
-		 * \throw Inf::PBNI_IndexOutOfBounds		If out of bounds
-		 * \throw Inf::PBNI_PowerBuilderException	If PowerBuilder function doesnt return PBX_SUCESS
+		 * \throw Inf::PBNI_NullPointerException		If is Null
+		 * \throw Inf::PBNI_IndexOutOfBoundsException	If out of bounds
+		 * \throw Inf::PBNI_PowerBuilderException		If PowerBuilder function doesnt return PBX_SUCESS
 		 */
 		void SetItemToNull(std::array<pblong, sizeof...(dims)> pos)
 			requires (sizeof...(dims) != 0)
@@ -290,8 +290,8 @@ namespace Inf
 		 * \param pos	Array of Positions
 		 * \return		Is Null
 		 *
-		 * \throw Inf::PBNI_NullPointerException	If is Null
-		 * \throw Inf::PBNI_IndexOutOfBounds		If out of bounds
+		 * \throw Inf::PBNI_NullPointerException		If is Null
+		 * \throw Inf::PBNI_IndexOutOfBoundsException	If out of bounds
 		 */
 		bool IsItemNull(std::array<pblong, sizeof...(dims)> pos)
 			requires (sizeof...(dims) != 0)
@@ -406,8 +406,8 @@ namespace Inf
 		 *
 		 * \param pos	Array of Positions
 		 *
-		 * \throw Inf::PBNI_NullPointerException	If is Null
-		 * \throw Inf::PBNI_IndexOutOfBounds		If out of bounds
+		 * \throw Inf::PBNI_NullPointerException		If is Null
+		 * \throw Inf::PBNI_IndexOutOfBoundsException	If out of bounds
 		 */
 		void AssertInside(std::array<pblong, sizeof...(dims)> pos)
 			requires (sizeof...(dims) != 0)
@@ -418,7 +418,7 @@ namespace Inf
 			for (pbbyte i = 0; i < sizeof...(dims); i++)
 			{
 				if (m_ArrayInfo->bounds[i].lowerBound > pos[i] || pos[i] > m_ArrayInfo->bounds[i].upperBound)
-					throw PBNI_IndexOutOfBounds(pos, Bounds(), i);
+					throw PBNI_IndexOutOfBoundsException(pos, Bounds(), i);
 			}
 		}
 
@@ -429,7 +429,7 @@ namespace Inf
 		 * \param check_upper_bound		Whether to Check if the Position is too big
 		 *
 		 * \throw Inf::PBNI_NullPointerException	If is Null
-		 * \throw Inf::PBNI_IndexOutOfBounds		If out of bounds
+		 * \throw Inf::PBNI_IndexOutOfBoundsException		If out of bounds
 		 */
 		void AssertInside(pblong pos, bool check_upper_bound = true)
 			requires (sizeof...(dims) == 0)
@@ -438,7 +438,7 @@ namespace Inf
 				throw PBNI_NullPointerException(L"PBUnboundedArray");
 
 			if (1 > pos || (check_upper_bound && pos < Size()))
-				throw PBNI_IndexOutOfBounds(pos, Size());
+				throw PBNI_IndexOutOfBoundsException(pos, Size());
 		}
 
 

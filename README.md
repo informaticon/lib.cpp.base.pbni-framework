@@ -5,6 +5,11 @@ Framework for creating PowerBuilder Extensions using PBNI
 ## Dependencies
 PowerBuilder PBNI
 
+
+## Example Usage
+Check out [this repository](https://github.com/informaticon/div.cpp.base.pbni-framework-usage-example) for a complete example. Or [this one](https://github.com/informaticon/lib.pbni.base.tse) for an actual usage. 
+
+
 ## CMake
 Either add this repository as a submodule in your own repository, or just add it as a subfolder somewhere in your cmake source folder. \
 You should already have a complete Cmake file which takes your source files and compiles them to a dll. \
@@ -73,7 +78,7 @@ These are primitive types. They are copied over from PowerBuilder.
  - Inf::PBReal
  - Inf::PBDouble
 
-You can basically use these types directly. But if you perform a lot of operations, its better to copy them to a C++ datatype, because a Null checks happens everytime you do an Operation.
+You can basically use these types directly. But if you perform a lot of operations, its better to copy them to a C++ datatype, because a Null check happens everytime you do an Operation.
 
 ```cpp
 Inf::PBInt i(10);
@@ -113,7 +118,7 @@ Arrays and Objects are the only types that use templates.
 Arrays' template arguments are:
 
  1. The type of the Arrays' Items 
- 2. (.. 4.) The dimensions of the array if it is a Bounded Array, if you leave this empty it will be an Unbounded Array. Maximum of 3 Dimensions
+ 2. .. 4. The dimensions of the array if it is a Bounded Array, if you leave this empty it will be an Unbounded Array. Maximum of 3 Dimensions
 
 When accessing values of Unbounded Arrays, you can give one int as Index. For Bounded Arrays you need to give an std::array as Indices. The Indices go from 1 to N inclusive.
 
@@ -131,22 +136,31 @@ Inf::PBArray<Inf::PBString, 6, 4> strings;
 integers.Set({ 1, 4 }, L"Some value")
 ```
 
+PowerBuilder doesn't support returning Arrays directly. So you can't do it in an extension either.
+
 ### Objects
 Template Arguments:
  1. The ID of the PowerBuilder class, generally `Group.Type` but if both are the same you can just do `Group`.
  2. The type of the Group, can be `pbgroup_structure`, `pbgroup_userobject`, `pbgroup_datawindow` ... There are already some predefined types like Inf::PBStruct, which is just Inf::PBObject<.., pbgroup_structure>.
 
-To Set Fields you can just use SetField. To Get a Field you need to give the Type you want to get as a Template Parameter. For Arrays and Objects you need to use `{Get,Set}{ArrayField,ObjectField}<...>`, because it's easier to handle than `GetField<Inf::PBArray<L"test">>`.
+To Set Fields you can just use SetField. To Get a Field you need to give the Type you want to get as a Template Parameter. 
 
 ```cpp
 // Instantiate a new object
 Inf::PBObject<L"u_person"> charles(m_Session);
 
-charles.SetField(L"ul_age", 54);
-// Getting Arrays
-charles.GetArrayField<Inf::PBString>(L"ar_siblings");
+// Use function Overloads
+charles.SetField(L"d_height", Inf::PBDouble(1.98));
+// Give a Type and let it cast automatically
+charles.SetField<Inf::PBUint>(L"ui_age", 54);
+// Give a Type to return
+Inf::PBString name = charles.GetField<Inf::PBString>("s_full_name");
 
-auto props = charles.GetObjectField<L"u_person.iu_properties">(L"iu_properties");
+
+// Arrays and Objects
+charles.GetField<Inf::PBArray<Inf::PBString>>(L"ar_siblings");
+
+auto props = charles.GetField<Inf::PBObject<L"u_person.iu_properties">>(L"iu_properties");
 props.SetField(L"s_hair_color", L"orange");
 ```
 
@@ -177,7 +191,3 @@ You can call errors from inside C++ using throw. There is a PowerBuilder style e
  - Inf::PBNI_PowerBuilderException
 
 You can create your own by extending Inf::PBNI_Exception.
-
-
-## Example
-Check out [this repository](https://github.com/informaticon/div.cpp.base.pbni-framework-usage-example) for a complete example. Or [this one](https://github.com/informaticon/lib.pbni.base.tse) for an actual usage. 

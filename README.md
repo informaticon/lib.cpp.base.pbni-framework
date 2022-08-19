@@ -16,7 +16,7 @@ target_link_libraries(my_target PRIVATE libPBNIFramework)
 ```
 
 ### Code
-To create a PBNI class, publicly extend Inf::PBNI_Class, you need to implement the method GetPBName.
+To create a PBNI class, publicly extend Inf::PBNI_Class, you need to add a costructor and forward all arguments to INf::PBNI_Class, you can also put other stuff inside the constructor.
 ```cpp
 // MyExtensionClass.h
 

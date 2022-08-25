@@ -1,9 +1,9 @@
 site_name: PBNI Framework
 nav:
-  - Home: index.md
   - Quick Start: quick-start.md
   - Variables: variables.md
   - Errors: errors.md
+  - Doxygen: doxygen/index_classes.md
 
 theme:
   name: mkdocs

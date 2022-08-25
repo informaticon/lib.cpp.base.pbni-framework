@@ -1,0 +1,7 @@
+{
+  "baseUrl": "/doxygen/",
+  "indexInFolders": false,
+  "linkSuffix": "/",
+  "mainPageInRoot": true,
+  "mainPageName": "doxy"
+}

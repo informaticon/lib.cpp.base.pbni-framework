@@ -1,0 +1,21 @@
+DOXYFILE_ENCODING = UTF-8
+PROJECT_NAME = "PBNI Framework"
+OUTPUT_DIRECTORY = doxygen
+GENERATE_LATEX = NO
+GENERATE_HTML = NO
+SKIP_FUNCTION_MACROS = NO
+
+EXCLUDE_SYMBOLS = std, Inf::Helper, INF_STRONG_TYPEDEF
+
+# The necessary stuff!
+GENERATE_XML = YES
+XML_OUTPUT = xml
+INPUT = src
+RECURSIVE = YES
+FILE_PATTERNS = *.h *.hpp *.md
+
+# This is here just so we don't have to mess
+# with dot executable on continous integration.
+HAVE_DOT = NO
+
+IMAGE_PATH = images

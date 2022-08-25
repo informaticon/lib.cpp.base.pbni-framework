@@ -10,6 +10,8 @@ namespace Inf
 	/**
 	 * This is the Genereic Type struct, each PBType implements the Fields it needs.
 	 * You can Access any one of the Functions using e.g. Type<T>::PBSignature.
+	 * 
+	 * \tparam T	The related Type
 	 */
 	template <typename T>
 	struct Type {
@@ -66,6 +68,7 @@ namespace Inf
 		static inline PBXRESULT Return(IPB_Session* session, PBCallInfo* ci, const T& t) { return SetValue(session, ci->returnValue, t); }
 	};
 
+/// \cond typetemplates
 	/**
 	 * We dont want to be used as Argument, only implement whats allowed.
 	 */
@@ -295,4 +298,5 @@ namespace Inf
 		static inline PBXRESULT Return(IPB_Session* session, PBCallInfo* ci, const PBObject<class_id, group_type>& value) { return SetValue(session, ci->returnValue, value); }
 	};
 #pragma endregion
+/// \endcond
 }

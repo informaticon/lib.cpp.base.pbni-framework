@@ -4,7 +4,10 @@ serve:
 	mkdocs serve
 
 doxybook:
-	doxybook2 -i doxygen/xml -o docs/doxygen -c doxybook.json
+	doxybook2 -i doxygen/xml -o docs/doxygen -c .doxybook/mkdocs.json
+
+doxybook-git:
+	doxybook2 -i doxygen/xml -o docs/doxygen -c .doxybook/git.json
 
 .PHONY: doxygen
 doxygen:

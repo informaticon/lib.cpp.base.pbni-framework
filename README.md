@@ -10,4 +10,5 @@ Check out [this repository](https://github.com/informaticon/div.cpp.base.pbni-fr
 
 
 ## MKDocs
-This repository uses MKDocs for documentation. To view it, you need to have python3 installed and `pip install mkdocs` then run `mkdocs serve`, it will create a Web documentation on `localhost:8000`.
+This repository uses MKDocs for documentation. To view it, you need clone this Repository, `pip install mkdocs` and run `mkdocs serve`, it will create a Web documentation on `localhost:8000`.  
+Or just read through docs/*.md

@@ -1,0 +1,16 @@
+html, body {
+    height: 100%;
+}
+
+body::before {
+    background-color: snow;
+    background-image: unset;
+}
+
+.navbar {
+    background-image: linear-gradient(#d83808, #c40d0d 60%, #d40606);
+}
+
+a {
+    color: #f10f07;
+}

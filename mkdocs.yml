@@ -1,0 +1,10 @@
+site_name: PBNI Framework
+nav:
+  - Home: index.md
+  - Quick Start: quick-start.md
+  - Variables: variables.md
+  - Errors: errors.md
+
+theme:
+  name: mkdocs
+  navigation_depth: 4

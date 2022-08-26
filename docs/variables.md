@@ -3,11 +3,10 @@
 
 
 ## Types
-All types used by PowerBuilder Framework start with `Inf::PB`, when you declare Methods, you should only use those. 
-PowerBuilder Types are split into primitive and complex Types. 
+All types used by PowerBuilder Framework start with `Inf::PB`, when you declare Methods, you should only use those. You can use References in your Methods Arguments, these will be saved to PowerBuilder once the Method ends. You cannot use References as Return Value, or Pointers anywhere.
 
 #### Primitives
-The primitive Types are copied to C++. They can be used in operations and are implicitly Cast into their C++ counterparts.  
+Primitive Types are copied to C++. They can be used in operations and are implicitly Cast into their C++ counterparts.  
 In PowerBuilder, even primitive Types can be Null, and if you use `Inf::PB<Type>` you should always check using `.IsNull()`. Otherwise the Framework will throw an `Inf::PBNI_NullPointerException`.
 ```cpp
 Inf::PBInt i(10);

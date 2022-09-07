@@ -9,47 +9,44 @@ Inf::PBNI_Class::PBNI_Class(IPB_Session* session, pbobject pbobj, std::wstring p
 
 PBXRESULT Inf::PBNI_Class::Invoke(IPB_Session* session, pbobject obj, pbmethodID mid, PBCallInfo* ci)
 {
-	if (m_PBObject != obj)
-		throw Inf::PBNI_Exception(L"PowerBuilder called a function on an object that doesnt have the same pbobject as provided");
-
-	if (Inf::IMethodDescription* method = PBNI_Framework::GetInstance().GetClassMethod(PB_NAME, mid))
+	try
 	{
-		try
+		if (Inf::IMethodDescription* method = PBNI_Framework::GetInstance().GetClassMethod(PB_NAME, mid))
 		{
 			m_Session = session;
 			return method->Invoke(this, session, ci);
 		}
-		catch (const Inf::PBNI_Exception& ex)
-		{
-			auto& key_value_store = ex.GetKeyValues();
-
-			Inf::PBObject<L"u_exf_ex_pbni"> pbni_exception(m_Session);
-			auto pbni_error_data = pbni_exception.Invoke<Inf::PBObject<L"u_exf_error_data">>(L"of_init", PBRT_FUNCTION, Inf::PBString(m_Session, key_value_store.at(L"Error")));
-			
-			for (auto& [key, value] : key_value_store)
-			{
-				pbni_error_data.InvokeSig(L"of_push", PBRT_FUNCTION, L"Cu_exf_error_data.SA", Inf::PBString(m_Session, key), Inf::PBString(m_Session, value));
-			}
-
-			m_Session->ThrowException(pbni_exception);
-
-			return PBX_SUCCESS; // Need to return success otherwise it will throw system error
-		}
-		catch (const std::exception& err)
-		{
-			Inf::PBObject<L"u_exf_ex_pbni"> pbni_exception(session);
-			
-			const char* err_msg = err.what();
-			auto pbni_error_data = pbni_exception.Invoke<Inf::PBObject<L"u_exf_error_data">>(L"of_init", PBRT_FUNCTION, Inf::PBString(session, err_msg));
-			pbni_error_data.InvokeSig(L"of_push", PBRT_FUNCTION, L"Cu_exf_error_data.SA", Inf::PBString(m_Session, L"Error"), Inf::PBString(m_Session, err_msg));
-
-			session->ThrowException(pbni_exception);
-
-			return PBX_SUCCESS; // Need to return success otherwise it will throw system error
-		}
+		
+		return PBX_E_INVALID_METHOD_ID;
 	}
+	catch (const Inf::PBNI_Exception& ex)
+	{
+		auto& key_value_store = ex.GetKeyValues();
 
-	return PBX_E_INVALID_METHOD_ID;
+		Inf::PBObject<L"u_exf_ex_pbni"> pbni_exception(m_Session);
+		auto pbni_error_data = pbni_exception.Invoke<Inf::PBObject<L"u_exf_error_data">>(L"of_init", PBRT_FUNCTION, Inf::PBString(m_Session, key_value_store.at(L"Error")));
+
+		for (auto& [key, value] : key_value_store)
+		{
+			pbni_error_data.InvokeSig(L"of_push", PBRT_FUNCTION, L"Cu_exf_error_data.SA", Inf::PBString(m_Session, key), Inf::PBString(m_Session, value));
+		}
+
+		m_Session->ThrowException(pbni_exception);
+
+		return PBX_SUCCESS; // Need to return success otherwise it will throw system error
+	}
+	catch (const std::exception& err)
+	{
+		Inf::PBObject<L"u_exf_ex_pbni"> pbni_exception(session);
+
+		const char* err_msg = err.what();
+		auto pbni_error_data = pbni_exception.Invoke<Inf::PBObject<L"u_exf_error_data">>(L"of_init", PBRT_FUNCTION, Inf::PBString(session, err_msg));
+		pbni_error_data.InvokeSig(L"of_push", PBRT_FUNCTION, L"Cu_exf_error_data.SA", Inf::PBString(m_Session, L"Error"), Inf::PBString(m_Session, err_msg));
+
+		session->ThrowException(pbni_exception);
+
+		return PBX_SUCCESS; // Need to return success otherwise it will throw system error
+	}
 };
 
 

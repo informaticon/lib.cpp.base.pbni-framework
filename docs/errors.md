@@ -1,4 +1,4 @@
-# Errors
+# PBNI Framework - Errors
 ---
 
 The PBNI Framework catches every `std::exception`, and forwards it to PowerBuilder. To be able to make descriptive Errors, the `Inf::PBNI_Exception` was created. It holds a Key-Value Store of WStrings. This Store will be passed over to PowerBuilder. The `Inf::PBNI_Exception` also adds a StackTrace Value to its store using `boost::stacktrace`.  

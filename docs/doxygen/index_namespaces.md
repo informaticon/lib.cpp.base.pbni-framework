@@ -8,10 +8,10 @@ title: Namespaces
 
 
 
-* **namespace [Inf](/doxygen/Namespaces/namespace_inf/)** 
+* **namespace [Inf](/docs/doxygen/Namespaces/namespaceInf.md)** 
 
 
 
 -------------------------------
 
-Updated on 2022-08-25 at 16:29:24 +0200
+Updated on 2022-09-15 at 20:34:45 +0200

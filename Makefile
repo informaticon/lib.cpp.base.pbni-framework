@@ -1,3 +1,11 @@
+ifdef OS
+	# Windows
+        DG = C:/"Program Files"/doxygen/bin/doxygen.exe
+else
+        # Linux/Unix
+	DG = doxygen
+endif
+
 all: doxygen doxybook
 
 serve:
@@ -11,4 +19,4 @@ doxybook-git:
 
 .PHONY: doxygen
 doxygen:
-	C:/"Program Files"/doxygen/bin/doxygen.exe
+	$(DG)

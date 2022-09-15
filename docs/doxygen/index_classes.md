@@ -8,31 +8,28 @@ title: Classes
 
 
 
-* **namespace [Inf](/doxygen/Namespaces/namespace_inf/)** 
-    * **class [ClassDescription](/doxygen/Classes/class_inf_1_1_class_description/)** 
-    * **class [IClassDescription](/doxygen/Classes/class_inf_1_1_i_class_description/)** 
-    * **class [IMethodDescription](/doxygen/Classes/class_inf_1_1_i_method_description/)** 
-    * **class [MethodDescription](/doxygen/Classes/class_inf_1_1_method_description/)** 
-    * **class [PBArray](/doxygen/Classes/class_inf_1_1_p_b_array/)** 
-    * **class [PBBlob](/doxygen/Classes/class_inf_1_1_p_b_blob/)** 
-    * **class [PBDate](/doxygen/Classes/class_inf_1_1_p_b_date/)** 
-    * **class [PBDateTime](/doxygen/Classes/class_inf_1_1_p_b_date_time/)** 
-    * **class [PBDecimal](/doxygen/Classes/class_inf_1_1_p_b_decimal/)** 
-    * **class [PBNI_Class](/doxygen/Classes/class_inf_1_1_p_b_n_i___class/)** 
-    * **class [PBNI_Exception](/doxygen/Classes/class_inf_1_1_p_b_n_i___exception/)** 
-    * **class [PBNI_Framework](/doxygen/Classes/class_inf_1_1_p_b_n_i___framework/)** 
-    * **class [PBNI_IncorrectArgumentsException](/doxygen/Classes/class_inf_1_1_p_b_n_i___incorrect_arguments_exception/)** 
-    * **class [PBNI_IndexOutOfBoundsException](/doxygen/Classes/class_inf_1_1_p_b_n_i___index_out_of_bounds_exception/)** 
-    * **class [PBNI_InvalidFieldException](/doxygen/Classes/class_inf_1_1_p_b_n_i___invalid_field_exception/)** 
-    * **class [PBNI_NullPointerException](/doxygen/Classes/class_inf_1_1_p_b_n_i___null_pointer_exception/)** 
-    * **class [PBNI_PowerBuilderException](/doxygen/Classes/class_inf_1_1_p_b_n_i___power_builder_exception/)** 
-    * **class [PBObject](/doxygen/Classes/class_inf_1_1_p_b_object/)** 
-    * **class [PBString](/doxygen/Classes/class_inf_1_1_p_b_string/)** 
-    * **class [PBTime](/doxygen/Classes/class_inf_1_1_p_b_time/)** 
-    * **struct [Type](/doxygen/Classes/struct_inf_1_1_type/)** 
+* **namespace [Inf](/docs/doxygen/Namespaces/namespaceInf.md)** 
+    * **class [IClassDescription](/docs/doxygen/Classes/classInf_1_1IClassDescription.md)** 
+    * **class [IMethodDescription](/docs/doxygen/Classes/classInf_1_1IMethodDescription.md)** 
+    * **class [PBBlob](/docs/doxygen/Classes/classInf_1_1PBBlob.md)** 
+    * **class [PBDate](/docs/doxygen/Classes/classInf_1_1PBDate.md)** 
+    * **class [PBDateTime](/docs/doxygen/Classes/classInf_1_1PBDateTime.md)** 
+    * **class [PBDecimal](/docs/doxygen/Classes/classInf_1_1PBDecimal.md)** 
+    * **class [PBNI_Class](/docs/doxygen/Classes/classInf_1_1PBNI__Class.md)** 
+    * **class [PBNI_Exception](/docs/doxygen/Classes/classInf_1_1PBNI__Exception.md)** 
+    * **class [PBNI_Framework](/docs/doxygen/Classes/classInf_1_1PBNI__Framework.md)** 
+    * **class [PBNI_IncorrectArgumentsException](/docs/doxygen/Classes/classInf_1_1PBNI__IncorrectArgumentsException.md)** 
+    * **class [PBNI_IndexOutOfBoundsException](/docs/doxygen/Classes/classInf_1_1PBNI__IndexOutOfBoundsException.md)** 
+    * **class [PBNI_InvalidFieldException](/docs/doxygen/Classes/classInf_1_1PBNI__InvalidFieldException.md)** 
+    * **class [PBNI_NullPointerException](/docs/doxygen/Classes/classInf_1_1PBNI__NullPointerException.md)** 
+    * **class [PBNI_PowerBuilderException](/docs/doxygen/Classes/classInf_1_1PBNI__PowerBuilderException.md)** 
+    * **class [PBObject](/docs/doxygen/Classes/classInf_1_1PBObject.md)** 
+    * **class [PBString](/docs/doxygen/Classes/classInf_1_1PBString.md)** 
+    * **class [PBTime](/docs/doxygen/Classes/classInf_1_1PBTime.md)** 
+    * **struct [Type](/docs/doxygen/Classes/structInf_1_1Type.md)** 
 
 
 
 -------------------------------
 
-Updated on 2022-08-25 at 16:29:24 +0200
+Updated on 2022-09-15 at 20:34:45 +0200

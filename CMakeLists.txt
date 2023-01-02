@@ -87,16 +87,16 @@ INTERFACE
 	/INCLUDE:"_PBX_CreateNonVisualObject@16"
 )
 
-
-add_subdirectory(extern)
+find_package(Boost
+REQUIRED
+	stacktrace_windbg
+)
 
 target_link_libraries(libPBNIFramework
 INTERFACE
 	${PBNI_LIBRARY}
 	
 PUBLIC
-	Boost::utility
-	Boost::multiprecision
 	Boost::stacktrace_windbg
 )
 
@@ -106,4 +106,8 @@ INTERFACE
 
 PUBLIC
 	${PBNI_INCLUDE_DIR}
+
+	# Header only libraries
+	Boost::utility
+	Boost::multiprecision
 )

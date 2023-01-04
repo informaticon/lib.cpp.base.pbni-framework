@@ -22,6 +22,7 @@
 
 namespace Inf
 {
+
 	/**
 	 * This Class is there to be extended from, so that different MethodDescription Templates can all be put in one Type.
 	 */
@@ -89,8 +90,8 @@ namespace Inf
 		 * \param ...arg_names		The Names of the arguments
 		 */
 		template <typename... ArgNames>
-			requires (sizeof...(Args) == sizeof...(ArgNames))
-		MethodDescription(std::wstring pc_class_name, std::wstring pb_method_name, Ret (Cls::* method)(Args...), ArgNames... arg_names)
+			requires (sizeof...(Args) == sizeof...(ArgNames) && (std::is_same_v<std::remove_extent_t<ArgNames>, const wchar_t> && ...))
+		MethodDescription(std::wstring pc_class_name, std::wstring pb_method_name, Ret (Cls::* method)(Args...), ArgNames&... arg_names)
 			: m_Method(method)
 		{
 			// Description building

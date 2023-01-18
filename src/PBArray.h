@@ -11,6 +11,10 @@ namespace Inf
 	template <Helper::FixedString class_id, pbgroup_type group_type>
 	class PBObject;
 
+	template <typename Item, pblong... dims>
+		requires (sizeof...(dims) <= 3 && !std::is_reference_v<Item> && !std::is_pointer_v<Item>)
+	class PBArray;
+
 	namespace Helper
 	{
 		template <typename T>

@@ -3,6 +3,7 @@
 #include <string>
 #include <unordered_map>
 
+#define NOMINMAX
 #include <pbext.h>
 
 

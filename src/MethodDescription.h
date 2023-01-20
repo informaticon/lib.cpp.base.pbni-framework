@@ -2,6 +2,7 @@
 
 #include <string>
 
+#define NOMINMAX
 #include <pbext.h>
 
 #include "Framework.h"

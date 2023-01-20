@@ -22,7 +22,7 @@ void Inf::PBBlob::SetData(pbbyte* data, pblong size)
 		PBXRESULT res = m_Session->SetBlob(m_Blob, data, size);
 
 		if (res != PBX_SUCCESS)
-			throw Inf::PBNI_PowerBuilderException(L"IPB_Session::SetDecimal", res);
+			throw Inf::PBNI_PowerBuilderException(L"IPB_Session::SetBlob", res);
 	}
 }
 

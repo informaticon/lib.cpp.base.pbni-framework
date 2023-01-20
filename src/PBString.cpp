@@ -1,6 +1,8 @@
 #include "PBString.h"
 
-#include <stringapiset.h>
+#include <string>
+#include <locale>
+#include <codecvt>
 
 #include "Errors.h"
 
@@ -114,49 +116,34 @@ Inf::PBString::PBString(IPB_Session* session, IPB_Value* value, bool acquire)
 }
 
 
+static std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> s_Converter;
+
 template<> std::wstring Inf::ConvertString(const char* str, size_t size)
 {
-	if (size == 0)
-	{
-		return L"";
-	}
-	std::wstring wstr(size, 0);
-
-	MultiByteToWideChar(CP_ACP, 0, str, size, wstr.data(), size);
-	return wstr;
+	return s_Converter.from_bytes(str, str + size);
 }
 
 template<> std::wstring Inf::ConvertString(const char* str)
 {
-	size_t size = MultiByteToWideChar(CP_ACP, 0, str, -1, nullptr, 0);
-	return ConvertString<std::wstring>(str, size - 1);;
+	return s_Converter.from_bytes(str);
 }
 
 template<> std::wstring Inf::ConvertString(const std::string str)
 {
-	return ConvertString<std::wstring>(str.c_str(), str.size());
+	return s_Converter.from_bytes(str);
 }
 
 template<> std::string Inf::ConvertString(const wchar_t* wstr, size_t size)
 {
-	if (size == 0)
-	{
-		return "";
-	}
-
-	std::string str(size, 0);
-
-	WideCharToMultiByte(CP_ACP, 0, wstr, size, str.data(), size, 0, FALSE);
-	return str;
+	return s_Converter.to_bytes(wstr, wstr + size);
 }
 
 template<> std::string Inf::ConvertString(const wchar_t* wstr)
 {
-	size_t size = WideCharToMultiByte(CP_ACP, 0, wstr, -1, nullptr, 0, 0, FALSE);
-	return ConvertString<std::string>(wstr, size - 1);
+	return s_Converter.to_bytes(wstr);
 }
 
 template<> std::string Inf::ConvertString(const std::wstring wstr)
 {
-	return ConvertString<std::string>(wstr.c_str(), wstr.size());
+	return s_Converter.to_bytes(wstr);
 }

@@ -1,9 +1,5 @@
 #include "PBString.h"
 
-#include <string>
-#include <locale>
-#include <codecvt>
-
 #include "Errors.h"
 
 
@@ -11,10 +7,11 @@ Inf::PBString::PBString(IPB_Session* session, pbstring pb_string)
 	: m_Session(session), m_String(pb_string)
 { }
 
-Inf::PBString::PBString(IPB_Session* session, const std::string& str)
+Inf::PBString::PBString(IPB_Session* session, const std::string& str, StringEncoding encoding)
 	: m_Session(session)
 {
-	m_String = m_Session->NewString(Inf::ConvertString<std::wstring>(str).c_str());
+	std::wstring wstr = Inf::ConvertString<std::wstring>(str, encoding);
+	m_String = m_Session->NewString(wstr.c_str());
 }
 
 Inf::PBString::PBString(IPB_Session* session, const std::wstring& str)
@@ -37,7 +34,7 @@ std::wstring Inf::PBString::GetWString() const
 	return wstr;
 }
 
-std::string Inf::PBString::GetString() const
+std::string Inf::PBString::GetString(StringEncoding encoding) const
 {
 	if (IsNull())
 		throw Inf::PBNI_NullPointerException(L"PBString");
@@ -45,7 +42,7 @@ std::string Inf::PBString::GetString() const
 	LPCTSTR c_str = m_Session->GetString(m_String);
 	pblong size = m_Session->GetStringLength(m_String);
 
-	std::string str = Inf::ConvertString<std::string>(c_str, (size_t)size);
+	std::string str = Inf::ConvertString<std::string>(c_str, (int) size, encoding);
 	m_Session->ReleaseString(c_str);
 
 	return str;
@@ -63,9 +60,9 @@ void Inf::PBString::SetWString(const std::wstring& wstr)
 	}
 }
 
-void Inf::PBString::SetString(const std::string& str)
+void Inf::PBString::SetString(const std::string& str, StringEncoding encoding)
 {
-	std::wstring wstr = Inf::ConvertString<std::wstring>(str);
+	std::wstring wstr = Inf::ConvertString<std::wstring>(str, encoding);
 	if (IsNull())
 	{
 		m_String = m_Session->NewString(wstr.c_str());
@@ -116,34 +113,55 @@ Inf::PBString::PBString(IPB_Session* session, IPB_Value* value, bool acquire)
 }
 
 
-static std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> s_Converter;
-
-template<> std::wstring Inf::ConvertString(const char* str, size_t size)
+template<> std::wstring Inf::ConvertString(const char* str, int size, PBString::StringEncoding encoding)
 {
-	return s_Converter.from_bytes(str, str + size);
+	if (size == 0)
+		return L"";
+
+	int newSize = MultiByteToWideChar(encoding, 0, str, size, NULL, 0);
+
+	std::wstring wstr(newSize, 0);
+
+	MultiByteToWideChar(encoding, 0, str, size, wstr.data(), newSize);
+	return wstr;
 }
 
-template<> std::wstring Inf::ConvertString(const char* str)
+template<> std::wstring Inf::ConvertString(const char* str, PBString::StringEncoding encoding)
 {
-	return s_Converter.from_bytes(str);
+	return ConvertString<std::wstring>(str, -1, encoding);
 }
 
-template<> std::wstring Inf::ConvertString(const std::string str)
+template<> std::wstring Inf::ConvertString(const std::string str, PBString::StringEncoding encoding)
 {
-	return s_Converter.from_bytes(str);
+	return ConvertString<std::wstring>(str.c_str(), (int) str.size(), encoding);
 }
 
-template<> std::string Inf::ConvertString(const wchar_t* wstr, size_t size)
+template<> std::string Inf::ConvertString(const wchar_t* wstr, int size, PBString::StringEncoding encoding)
 {
-	return s_Converter.to_bytes(wstr, wstr + size);
+	if (size == 0)
+		return "";
+
+	int newSize = WideCharToMultiByte(encoding, 0, wstr, size, NULL, 0, 0, NULL);
+
+	std::string str(newSize, 0);
+
+	WideCharToMultiByte(encoding, 0, wstr, size, str.data(), newSize, 0, NULL);
+	return str;
 }
 
-template<> std::string Inf::ConvertString(const wchar_t* wstr)
+template<> std::string Inf::ConvertString(const wchar_t* wstr, PBString::StringEncoding encoding)
 {
-	return s_Converter.to_bytes(wstr);
+	return ConvertString<std::string>(wstr, -1, encoding);
 }
 
-template<> std::string Inf::ConvertString(const std::wstring wstr)
+template<> std::string Inf::ConvertString(const std::wstring wstr, PBString::StringEncoding encoding)
 {
-	return s_Converter.to_bytes(wstr);
+	return ConvertString<std::string>(wstr.c_str(), (int) wstr.size(), encoding);
 }
+
+template<> std::wstring Inf::ConvertString<>(const char* str, int size) { return ConvertString<std::wstring>(str, size, PBString::ANSI); };
+template<> std::wstring Inf::ConvertString<>(const char* str) { return ConvertString<std::wstring>(str, PBString::ANSI); };
+template<> std::wstring Inf::ConvertString<>(const std::string str) { return ConvertString<std::wstring>(str, PBString::ANSI); };
+template<> std::string Inf::ConvertString<>(const wchar_t* wstr, int size) { return ConvertString<std::string>(wstr, size, PBString::ANSI); };
+template<> std::string Inf::ConvertString<>(const wchar_t* wstr) { return ConvertString<std::string>(wstr, PBString::ANSI); };
+template<> std::string Inf::ConvertString<>(const std::wstring wstr) { return ConvertString<std::string>(wstr, PBString::ANSI); };

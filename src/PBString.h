@@ -37,6 +37,12 @@ namespace Inf
 	class PBString
 	{
 	public:
+		enum StringEncoding : UINT
+		{
+			ANSI = CP_ACP,
+			UTF8 = CP_UTF8
+		};
+
 		/**
 		 * Creates a Wrapper to an already existing pb_string.
 		 * Will be Null if pbstring is 0.
@@ -51,7 +57,7 @@ namespace Inf
 		 * \param session	Current Session
 		 * \param str		String to copy
 		 */
-		PBString(IPB_Session* session, const std::string& str);
+		PBString(IPB_Session* session, const std::string& str, StringEncoding encoding = ANSI);
 		/**
 		 * Creates a new pbstring and writes the WString to it.
 		 *
@@ -67,7 +73,7 @@ namespace Inf
 		 * 
 		 * \throw PBNI_NullPointerException		If String is Null
 		 */
-		std::string GetString() const;
+		std::string GetString(StringEncoding encoding = ANSI) const;
 		/**
 		 * Gets the String from Poerbuilder.
 		 * 
@@ -81,7 +87,7 @@ namespace Inf
 		 * 
 		 * \param str	The String to copy
 		 */
-		void SetString(const std::string& str);
+		void SetString(const std::string& str, StringEncoding encoding = ANSI);
 		/**
 		 * Copies the WString to PowerBuilder.
 		 *
@@ -129,12 +135,20 @@ namespace Inf
 	 *
 	 * \tparam ToStr	The Type to be converted to
 	 */
+
 	template <typename ToStr, typename... FromStr> ToStr ConvertString(FromStr... str) = delete;
 
-	template<> std::wstring ConvertString<>(const char* str, size_t size);
+	template<> std::wstring ConvertString<>(const char* str, int size, PBString::StringEncoding encoding);
+	template<> std::wstring ConvertString<>(const char* str, PBString::StringEncoding encoding);
+	template<> std::wstring ConvertString<>(const std::string str, PBString::StringEncoding encoding);
+	template<> std::string ConvertString<>(const wchar_t* wstr, int size, PBString::StringEncoding encoding);
+	template<> std::string ConvertString<>(const wchar_t* wstr, PBString::StringEncoding encoding);
+	template<> std::string ConvertString<>(const std::wstring wstr, PBString::StringEncoding encoding);
+
+	template<> std::wstring ConvertString<>(const char* str, int size);
 	template<> std::wstring ConvertString<>(const char* str);
 	template<> std::wstring ConvertString<>(const std::string str);
-	template<> std::string ConvertString<>(const wchar_t* wstr, size_t size);
+	template<> std::string ConvertString<>(const wchar_t* wstr, int size);
 	template<> std::string ConvertString<>(const wchar_t* wstr);
 	template<> std::string ConvertString<>(const std::wstring wstr);
 }

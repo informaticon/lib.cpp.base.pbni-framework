@@ -341,7 +341,13 @@ namespace Inf
 		 */
 		static pbclass PBClass(IPB_Session* session)
 		{
-			static pbclass s_Class = FindClass(session);
+			static pbclass s_Class;
+			static IPB_Session* s_LastSession = nullptr;
+
+			if (s_LastSession != session)
+				s_Class = FindClass(session);
+
+			s_LastSession = session;
 			return s_Class;
 		}
 

@@ -138,6 +138,7 @@ namespace Inf
 
 	template <typename ToStr, typename... FromStr> ToStr ConvertString(FromStr... str) = delete;
 
+	// TODO Stop uneccessary copying from happening
 	template<> std::wstring ConvertString<>(const char* str, int size, PBString::StringEncoding encoding);
 	template<> std::wstring ConvertString<>(const char* str, PBString::StringEncoding encoding);
 	template<> std::wstring ConvertString<>(const std::string str, PBString::StringEncoding encoding);

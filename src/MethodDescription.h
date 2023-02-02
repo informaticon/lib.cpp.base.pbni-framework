@@ -143,13 +143,13 @@ namespace Inf
 		{
 			// Argument Checking
 			if (ci->pArgs->GetCount() != sizeof...(Args))
-				throw PBNI_IncorrectArgumentsException(object->PB_NAME, m_Description);
+				throw PBNI_IncorrectArgumentsException(object->GetPBName(), m_Description);
 
 			pbint i = 0;
 			([&] {
 				IPB_Value* value = ci->pArgs->GetAt(i);
 				if (!Type<std::remove_reference_t<Args>>::Assert(session, value) || std::is_reference_v<Args> != (value->IsByRef() != 0))
-					throw PBNI_IncorrectArgumentsException(object->PB_NAME, m_Description, i);
+					throw PBNI_IncorrectArgumentsException(object->GetPBName(), m_Description, i);
 			
 				i++;
 				}(), ...);

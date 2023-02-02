@@ -14,22 +14,27 @@ namespace Inf
 
 	/**
 	 * PBNI_Class is the Base Class for all Classes that you want to be used inside PowerBuilder.
-	 * You just need to extend this Class and override GetPBName().
+	 * You just need to extend this Class.
 	 */
 	class PBNI_Class : public IPBX_NonVisualObject
 	{
 	public:
-		const std::wstring PB_NAME;
 
 		/**
+		* Default constructor.
+		*/
+		PBNI_Class() {}
+		/**
+		* [deprecated] This constructor was used to forward variables to the base class.
+		* Now the Class creating this Class is a friend, so we can just set the values.
 		* 
-		* 
+		* \deprecated
 		* \param session		Current Session
 		* \param pbobj			The PowerBuilder object representing this
 		* \param pb_class_name	The name of the class in powerbuilder
 		*/
 		PBNI_Class(IPB_Session* session, pbobject pbobj, std::wstring pb_class_name);
-		virtual ~PBNI_Class() {};
+		virtual ~PBNI_Class() {}
 
 		/**
 		 * This Method will be called by PowerBuilder once it no longer needs this Object, don't use it.
@@ -48,9 +53,18 @@ namespace Inf
 		 */
 		PBXRESULT Invoke(IPB_Session* session, pbobject obj, pbmethodID  mid, PBCallInfo* ci) override;
 	
+		std::wstring GetPBName() { return m_PBName; }
+
 	protected:
 		IPB_Session* m_Session;
 		pbobject m_PBObject;
+
+	private:
+		std::wstring m_PBName;
+
+		template <typename Cls>
+			requires (std::is_base_of_v<PBNI_Class, Cls>)
+		friend class ClassDescription;
 	};
 
 	/**

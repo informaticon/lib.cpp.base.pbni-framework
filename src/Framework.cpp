@@ -4,14 +4,14 @@
 
 
 Inf::PBNI_Class::PBNI_Class(IPB_Session* session, pbobject pbobj, std::wstring pb_class_name)
-	: m_Session(session), m_PBObject(pbobj), PB_NAME(pb_class_name)
+	: m_Session(session), m_PBObject(pbobj), m_PBName(pb_class_name)
 { }
 
 PBXRESULT Inf::PBNI_Class::Invoke(IPB_Session* session, pbobject obj, pbmethodID mid, PBCallInfo* ci)
 {
 	try
 	{
-		if (Inf::IMethodDescription* method = PBNI_Framework::GetInstance().GetClassMethod(PB_NAME, mid))
+		if (Inf::IMethodDescription* method = PBNI_Framework::GetInstance().GetClassMethod(m_PBName, mid))
 		{
 			m_Session = session;
 			return method->Invoke(this, session, ci);

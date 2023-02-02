@@ -101,7 +101,18 @@ namespace Inf
 
 		PBNI_Class* Create(IPB_Session* session, pbobject pbobj, std::wstring pb_class_name) const override
 		{
-			return static_cast<PBNI_Class*>(new Cls(session, pbobj, pb_class_name));
+			if constexpr (std::is_constructible_v<Cls, IPB_Session*, pbobject, std::wstring>)
+			{
+				return static_cast<PBNI_Class*>(new Cls(session, pbobj, pb_class_name));
+			}
+			else
+			{
+				PBNI_Class* cls = static_cast<PBNI_Class*>(new Cls());
+				cls->m_PBObject = pbobj;
+				cls->m_Session = session;
+				cls->m_PBName = pb_class_name;
+				return cls;
+			}
 		}
 	};
 };

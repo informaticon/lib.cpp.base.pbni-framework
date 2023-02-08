@@ -7,11 +7,11 @@ Inf::PBBlob::PBBlob(IPB_Session* session, pbblob blob)
 	: m_Session(session), m_Blob(blob)
 { }
 
-Inf::PBBlob::PBBlob(IPB_Session * session, pbbyte * data, pblong size)
+Inf::PBBlob::PBBlob(IPB_Session * session, const pbbyte * data, pblong size)
 	: m_Session(session), m_Blob(session->NewBlob(data, size))
 { }
 
-void Inf::PBBlob::SetData(pbbyte* data, pblong size)
+void Inf::PBBlob::SetData(const pbbyte* data, pblong size)
 {
 	if (IsNull())
 	{
@@ -32,6 +32,19 @@ pbbyte* Inf::PBBlob::GetData() const
 		throw Inf::PBNI_NullPointerException(L"PBBlob");
 
 	return (pbbyte*)m_Session->GetBlob(m_Blob);
+}
+
+void Inf::PBBlob::FromVector(const std::vector<pbbyte>& from)
+{
+	if (IsNull())
+		throw Inf::PBNI_NullPointerException(L"PBBlob");
+
+	SetData(from.data(), from.size());
+}
+
+std::vector<pbbyte> Inf::PBBlob::ToVector() const
+{
+	return { GetData(), GetData() + Size() };
 }
 
 pblong Inf::PBBlob::Size() const

@@ -31,7 +31,7 @@ namespace Inf
 		 * \param data		The data to copy
 		 * \param size		The size of the data in bytes
 		 */
-		PBBlob(IPB_Session* session, pbbyte* data, pblong size);
+		PBBlob(IPB_Session* session, const pbbyte* data, pblong size);
 
 		/**
 		 * Copies the Data to PowerBuilder. Creates a new Blob if Null.
@@ -39,7 +39,7 @@ namespace Inf
 		 * \param data	Pointer to the Data
 		 * \param size	Size of the Data
 		 */
-		void SetData(pbbyte* data, pblong size);
+		void SetData(const pbbyte* data, pblong size);
 		/**
 		 * Retrieves a Pointer to the Raw Data.
 		 *
@@ -56,6 +56,21 @@ namespace Inf
 		 * \throw Inf::PBNI_NullPointerException if Null
 		 */
 		pblong Size() const;
+
+		/**
+		 * Copies the Vector to PowerBuilder. Creates a new Blob if Null.
+		 *
+		 * \param from	Vector containing the data to be copied
+		 */
+		void FromVector(const std::vector<pbbyte>& from);
+		/**
+		 * Copies the data from PowerBuilder to a Vector.
+		 *
+		 * \return	Newly created Vector
+		 *
+		 * \throw Inf::PBNI_NullPointerException if Null
+		 */
+		std::vector<pbbyte> ToVector() const;
 
 		/**
 		 * Checks whether pbblob is Null.

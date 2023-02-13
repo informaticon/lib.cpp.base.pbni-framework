@@ -129,27 +129,35 @@ namespace Inf
 	};
 
 
+	
+	/**
+	 * These functions return true if the wide string is losslessly convertible to Ansi.
+	 */
+	bool StringConvertibleToANSI(const wchar_t* wstr, size_t size);
+	bool StringConvertibleToANSI(const wchar_t* wstr);
+	bool StringConvertibleToANSI(const std::wstring& wstr);
+
 	/**
 	 * These functions convert a String from Ansi to Unicode or back.
-	 * They use Window's MultiByteToWideChar and WideCharToMultiByte functions (stringapiset.h)
+	 * They use Window's MultiByteToWideChar and WideCharToMultiByte functions (stringapiset.h).
+	 * Characters that cant be converted to ANSI will be replaced with using the default system character ('?').
 	 *
 	 * \tparam ToStr	The Type to be converted to
 	 */
-
 	template <typename ToStr, typename... FromStr> ToStr ConvertString(FromStr... str) = delete;
 
 	// TODO Stop uneccessary copying from happening
-	template<> std::wstring ConvertString<>(const char* str, int size, PBString::StringEncoding encoding);
+	template<> std::wstring ConvertString<>(const char* str, size_t size, PBString::StringEncoding encoding);
 	template<> std::wstring ConvertString<>(const char* str, PBString::StringEncoding encoding);
 	template<> std::wstring ConvertString<>(const std::string str, PBString::StringEncoding encoding);
-	template<> std::string ConvertString<>(const wchar_t* wstr, int size, PBString::StringEncoding encoding);
+	template<> std::string ConvertString<>(const wchar_t* wstr, size_t size, PBString::StringEncoding encoding);
 	template<> std::string ConvertString<>(const wchar_t* wstr, PBString::StringEncoding encoding);
 	template<> std::string ConvertString<>(const std::wstring wstr, PBString::StringEncoding encoding);
 
-	template<> std::wstring ConvertString<>(const char* str, int size);
+	template<> std::wstring ConvertString<>(const char* str, size_t size);
 	template<> std::wstring ConvertString<>(const char* str);
 	template<> std::wstring ConvertString<>(const std::string str);
-	template<> std::string ConvertString<>(const wchar_t* wstr, int size);
+	template<> std::string ConvertString<>(const wchar_t* wstr, size_t size);
 	template<> std::string ConvertString<>(const wchar_t* wstr);
 	template<> std::string ConvertString<>(const std::wstring wstr);
 }

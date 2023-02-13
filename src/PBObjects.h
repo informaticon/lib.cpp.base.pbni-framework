@@ -56,6 +56,20 @@ namespace Inf
 			: m_Session(other.m_Session), m_Object(other.m_Object)
 		{ }
 
+		/**
+		 * Returns the C++ pointer to the Native class of this object.
+		 * 
+		 * \return Pointer to the Object extending IPBX_UserObject
+		 * 
+		 * \throw Inf::PBNI_Exception	If the object is not a Native Object
+		 */
+		IPBX_UserObject* GetNativeInterface()
+		{
+			if (!m_Session->IsNativeObject(m_Object))
+				throw Inf::PBNI_Exception(L"Not a Native Object");
+
+			return m_Session->GetNativeInterface(m_Object);
+		}
 
 		/**
 		 * Invoke a Function of the pbobject with an unknown Signature.

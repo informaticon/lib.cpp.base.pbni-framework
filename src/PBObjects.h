@@ -89,7 +89,7 @@ namespace Inf
 		 * \throw Inf::PBNI_Exception						If the Group or Class cannot be found
 		 */
 		template <typename Ret = void, typename... Args>
-			requires (!std::is_pointer_v<Ret> && !std::is_reference_v<Ret> && (!std::is_pointer_v<Args> && ...))
+			requires (!std::is_pointer_v<Ret> && !std::is_reference_v<Ret> && !Helper::is_pb_array_v<Ret> && (!std::is_pointer_v<Args> && ...))
 		inline Ret Invoke(const std::wstring& method_name, PBRoutineType pbrt, Args... args)
 		{
 			std::wstring pbsig = std::wstring() + Type<Ret>::PBSignature;
@@ -128,7 +128,7 @@ namespace Inf
 		 * \throw Inf::PBNI_Exception						If the Group or Class cannot be found
 		 */
 		template <typename Ret = void, typename... Args>
-			requires (!std::is_pointer_v<Ret> && !std::is_reference_v<Ret> && (!std::is_pointer_v<Args> && ...))
+			requires (!std::is_pointer_v<Ret> && !std::is_reference_v<Ret> && !Helper::is_pb_array_v<Ret> && (!std::is_pointer_v<Args> && ...))
 		inline Ret InvokeSig(const std::wstring& method_name, PBRoutineType pbrt, const std::wstring& pbsig, Args&&... args)
 		{
 			if (IsNull())

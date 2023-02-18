@@ -110,7 +110,7 @@ namespace Inf
 		 * \throw Inf::PBNI_IndexOutOfBoundsException	If out of bounds
 		 * \throw Inf::PBNI_PowerBuilderException		If PowerBuilder function doesnt return PBX_SUCESS
 		 */
-		void Set(pblong pos, const Item t)
+		void Set(pblong pos, const Item& t)
 			requires (sizeof...(dims) == 0)
 		{
 			AssertInside(pos, false);
@@ -140,13 +140,12 @@ namespace Inf
 		 * Retrieves an Item in an Unbounded Array.
 		 * If Item is complex, it will return a reference.
 		 *
-		 * \param pos	The Position
+		 * \param pos	The Position, starts with 1
 		 * \return		The Value
 		 *
 		 * \throw Inf::PBNI_NullPointerException		If is Null
 		 * \throw Inf::PBNI_IndexOutOfBoundsException	If out of bounds
 		 */
-
 		Item Get(pblong pos)
 			requires (sizeof...(dims) == 0)
 		{
@@ -215,7 +214,7 @@ namespace Inf
 		 * \throw Inf::PBNI_IndexOutOfBoundsException	If out of bounds
 		 * \throw Inf::PBNI_PowerBuilderException		If PowerBuilder function doesnt return PBX_SUCESS
 		 */
-		void Set(std::array<pblong, sizeof...(dims)> pos, const Item t)
+		void Set(std::array<pblong, sizeof...(dims)> pos, const Item& t)
 			requires (sizeof...(dims) != 0)
 		{
 			AssertInside(pos);

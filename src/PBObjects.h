@@ -355,14 +355,19 @@ namespace Inf
 		 */
 		static pbclass PBClass(IPB_Session* session)
 		{
-			static pbclass s_Class;
-			static IPB_Session* s_LastSession = nullptr;
+			// No caching because it kept randomly erroring.
+			return FindClass(session);
 
-			if (s_LastSession != session)
-				s_Class = FindClass(session);
+			//static pbclass s_Class;
+			//static IPB_Session* s_LastSession = nullptr;
 
-			s_LastSession = session;
-			return s_Class;
+			//if (s_LastSession != session)
+			//{
+			//	s_Class = FindClass(session);
+			//	s_LastSession = session;
+			//}
+
+			//return s_Class;
 		}
 
 		/**
@@ -470,7 +475,7 @@ namespace Inf
 			if (!cls)
 			{
 				throw PBNI_Exception({
-					{ L"Error", L"Unable to find group" },
+					{ L"Error", L"Unable to find class" },
 					{ L"Group", GroupName() },
 					{ L"Class", ClassName() },
 					{ L"ID", class_id.data },

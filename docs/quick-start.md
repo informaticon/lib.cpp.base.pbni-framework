@@ -1,18 +1,50 @@
 # Setting up a PBNI Extension
 ---
+## Prerequisites
+Firstly you need to install [Visual Studio](https://visualstudio.microsoft.com/downloads/), [cmake](https://cmake.org/install/) and [vcpkg](https://vcpkg.io/en/getting-started.html).\
+Then install the pacakges needed for the PBNI Framework:
+```ps1
+vcpkg install --triplet=x86-windows-static boost-stacktrace boost-utility boost-multiprecision
+```
 
 ## Example Extension
 It is easiest to just modify the example extension found [here](https://github.com/informaticon/div.cpp.base.pbni-framework-usage-example). 
 
 ## CMake
-If you have copied the Example Extension you can skip this step, you just need to rename the Library name inside `CMakeLists.txt`.
+Inside the main CMakeLists.txt file, change the name of the library `libUsageExample` using a find and replace. You can also change the `OUTPUT_NAME` option, this will change the name the `.dll` will be given. Finally, it's recommended to change the `A3_LIB_PATH` option to the folder where the extension will be used.
 
-Otherwise add this Repository as a Subfolder in your CMake File (Either as a Git Submodule or in a global Folder). Then include/link the Target.
+## Building
+To build the CMakeProject, open a terminal and run this command:
+```ps
+mkdir build; cd build
 
-```cmake
-add_subdirectory(path/to/this/repo)
-target_link_libraries(my_target PRIVATE libPBNIFramework)
+cmake .. -A Win32 `
+         -DVCPKG_TARGET_TRIPLET=x86-windows-static `
+         -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake
 ```
+It creates a new folder called `build/` and creates a Visual Studio Solution inside it. You can open it and and edit your code inside Visual Studio. There you have multiple targets, when you build your library, it will create an `out/Release/` or `out/Debug` folder in your project, in there you will find the `.dll`.
+
+If you build `INSTALL` instead, it will build your library and then copy the `.dll` to the `A3_LIB_PATH` you specified.
+
+
+## Creating new Source Files
+New files should be creates in the `src/` directory only, this means that you shouldn't create new Files in Visual Studio, since those would be creted inside the build directory.
+Once you've created the Source File, edit the main CMakeLists.txt file by adding the file in the `add_library` option, you can also add it into a `source_group`, Source Groups are the Folders in Visual Studio.
+```cmake
+add_library(libUsageExample SHARED
+	src/example.h
+	src/example.cpp
+	src/another_file.h
+)
+
+source_group("Source Files"
+FILES
+	src/example.h
+	src/example.cpp
+	src/another_file.h
+)
+```
+After you've edited the CMake file, go back to Visual Studio and build `ZERO_CHECK`, that should reread the CMake file and add the newly created Source Files to the project.
 
 ## C++
 For every User Object you want to add to PowerBuilder, create a .cpp file and a .h file.
@@ -53,3 +85,4 @@ void MyExtensionClass::Example(Inf::PBInt some_number)
 
 Make sure to never use the `INF_REGISTER_[...]` functions inside a Header File, this way the header file could be included into multiple Source Files and gets run multiple times.  
 Also make sure to register the Class before you register the Methods.
+

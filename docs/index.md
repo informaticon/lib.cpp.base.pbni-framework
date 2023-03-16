@@ -10,10 +10,7 @@ Under the hood, the Framework gathers the Argument and Return Types of the Metho
 
 ### Dependencies
  - PowerBuilder PBNI
- - Boost (submodules)
-
-### Requirements
-You already need too have a CMake target setup that builds to a DLL.
+ - Boost (vcpkg)
 
 ### Documentation
   - [Quickstart](quick-start.md)

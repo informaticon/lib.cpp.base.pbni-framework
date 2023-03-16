@@ -19,6 +19,14 @@ Inf::PBDouble d = i + r;
 pbdouble cpp_d = d;
 ```
 You can use the ``Inf::PB<Type>``s directly for basically everything, but I suggest you copy them over to a C++ variable, then you don't need to worry about the Values being null.
+When comparing Primitive types to C++ types, you should cast the variable into the C Type:
+```cpp
+Inf::PBInt i(22);
+
+if ((pbint) i > 10) {
+    ...
+}
+```
 
 #### Complex
 Everything, that isn't a Number, Boolean, Char or Byte, is a complex Type (except Decimal, which is complex). The Values of the complex types are owned by PowerBuilder and the provided `Inf::PB<Type>`s are just Wrappers to the PowerBuilder Objects. These types can also be Null, so make sure to check.

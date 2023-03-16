@@ -1,8 +1,13 @@
 # Setting up a PBNI Extension
 ---
 
+## Example Extension
+It is easiest to just modify the example extension found [here](https://github.com/informaticon/div.cpp.base.pbni-framework-usage-example). 
+
 ## CMake
-Add this Repository as a Subfolder in your CMake File (Either as a Git Submodule or in a global Folder). Then include/link the Target.
+If you have copied the Example Extension you can skip this step, you just need to rename the Library name inside `CMakeLists.txt`.
+
+Otherwise add this Repository as a Subfolder in your CMake File (Either as a Git Submodule or in a global Folder). Then include/link the Target.
 
 ```cmake
 add_subdirectory(path/to/this/repo)
@@ -21,10 +26,6 @@ Inside the header file, create your Class and extend Inf::PBNI_Class `<Framework
 
 class MyExtensionClass : public Inf::PBNI_Class
 {
-	MyExtensionClass(IPB_Session* session, pbobject pbobj, std::wstring pb_class_name)
-		: Inf::PBNI_Class(session, pbobj, pb_class_name)
-	{ }
-
 	// Put your methods here
 	void Example(Inf::PBInt some_number);
 }
@@ -39,10 +40,10 @@ Inside the Source File call `INF_REGISTER_CLASS` once. Then define your Methods 
 #include <ClassDescription.h>
 
 // This will be the Name of the PowerBuilder user object.
-#INF_REGISTER_CLASS(MyExtensionClass, L"u_my_extension_class");
+INF_REGISTER_CLASS(MyExtensionClass, L"u_my_extension_class");
 
 // The second argument is the name used by PowerBuilder, after the 2nd argument, the argument names follow.
-#INF_REGISTER_FUNC(Example, L"of_example", L"ai_some_number");
+INF_REGISTER_FUNC(Example, L"of_example", L"ai_some_number");
 void MyExtensionClass::Example(Inf::PBInt some_number)
 {
 	MessageBoxW(NULL, L"This is an example", L"Message", MB_OK);
@@ -50,5 +51,5 @@ void MyExtensionClass::Example(Inf::PBInt some_number)
 
 ```
 
-Make sure to never use the `INF_REGISTER_[...]` functions inside a Header File, this way it the header file could be included into multiple Source Files and gets ran multiple times.  
+Make sure to never use the `INF_REGISTER_[...]` functions inside a Header File, this way the header file could be included into multiple Source Files and gets run multiple times.  
 Also make sure to register the Class before you register the Methods.

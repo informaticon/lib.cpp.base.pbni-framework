@@ -19,6 +19,7 @@ You already need too have a CMake target setup that builds to a DLL.
   - [Quickstart](quick-start.md)
   - [PowerBuilder Variables in the PBNI Framework](variables.md)
   - [Exception Handling](errors.md)
+  - [External Libraries](libraries.md)
   - [Doxygen Documentation](https://github.com/informaticon/lib.cpp.base.pbni-framework/tree/main/docs/doxygen)
 
 ### Examples

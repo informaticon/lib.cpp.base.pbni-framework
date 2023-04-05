@@ -17,12 +17,18 @@ namespace Inf
 	class PBNI_Exception : public std::exception
 	{
 	public:
-		PBNI_Exception(std::wstring err_msg)
+		PBNI_Exception(const std::wstring& err_msg)
 			: PBNI_Exception({ { L"Error", err_msg } })
-		{}
+		{ }
 
-		PBNI_Exception(std::map<std::wstring, std::wstring> key_values)
-			: m_KeyValueStore(key_values)
+		PBNI_Exception(const std::wstring& errMsg, const std::map<std::wstring, std::wstring>& keyValues)
+			: PBNI_Exception(keyValues)
+		{
+			m_KeyValueStore[L"Error"] = errMsg;
+		}
+
+		PBNI_Exception(const std::map<std::wstring, std::wstring>& keyValues)
+			: m_KeyValueStore(keyValues)
 		{
 			boost::stacktrace::stacktrace st;
 			m_KeyValueStore.insert({ L"Stacktrace", ConvertString<std::wstring>(boost::stacktrace::to_string(st)) });

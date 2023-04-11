@@ -9,6 +9,7 @@ set(PBNI_DIR "C:/Program Files (x86)/Appeon/PowerBuilder 17.0/SDK/PBNI" CACHE PA
 set(PBNI_INCLUDE_DIR "${PBNI_DIR}/include" CACHE PATH "PowerBuilder Native Interface header files location")
 set(PBNI_LIBRARY "${PBNI_DIR}/lib/pbni.lib" CACHE FILEPATH "PowerBuilder Native Interface library for release target")
 
+option(PBNI_USE_MULTITHREADED_RUNTIME "Whether to set the MTD option when building" OFF)
 
 ##################################################
 #                 PBNI Framework                 #
@@ -71,13 +72,19 @@ target_compile_features(libPBNIFramework PUBLIC cxx_std_20)
 # To be able to use __VA_OPT__
 target_compile_options(libPBNIFramework PUBLIC /Zc:preprocessor)
 
+if(PBNI_USE_MULTITHREADED_RUNTIME) 
+	set_target_properties(libPBNIFramework
+	PROPERTIES
+		MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
+	)
+endif()
+
 target_compile_definitions(libPBNIFramework
 PUBLIC
 	-DUNICODEs
 	-D_UNICODE
 	-DWIN32_LEAN_AND_MEAN
 )
-
 
 # Visual C++ Linker doesn't include Functions from a Static Library in a DLL, even if they are declared using dllexport
 # This forces the Linker to include the Functions, and export them if they have dllexport.

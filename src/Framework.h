@@ -7,12 +7,22 @@
 #include <pbext.h>
 
 #include "PBArray.h"
-
+#include "PBObjects.h"
+#include "Errors.h"
 
 namespace Inf
 {
 	class IClassDescription;
 	class IMethodDescription;
+
+	/**
+	 * Converts the given exception to one that can be used by PowerBuilder.
+	 * Checks whether `ex` is of typ `Inf::PBNI_Exception`
+	 * 
+	 * \param ex	Reference to a valid Exception
+	 * \return		A reference to the PowerBuilder Exception
+	 */
+	PBObject<L"u_exf_ex_pbni"> ConvertException(IPB_Session* session, const std::exception& ex);
 
 	/**
 	 * PBNI_Class is the Base Class for all Classes that you want to be used inside PowerBuilder.
@@ -28,6 +38,7 @@ namespace Inf
 		PBNI_Class() {}
 		/**
 		* [deprecated] This constructor was used to forward variables to the base class.
+		* You should use the defautl constructor instead.
 		* Now the Class creating this Class is a friend, so we can just set the values.
 		* 
 		* \deprecated

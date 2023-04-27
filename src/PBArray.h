@@ -198,7 +198,7 @@ namespace Inf
 			// No need to check upper bound
 			AssertInside(pos, false);
 
-			return m_Session->IsArrayItemNull(&pos);
+			return m_Session->IsArrayItemNull(m_Array, &pos);
 		}
 	#pragma endregion
 
@@ -301,7 +301,7 @@ namespace Inf
 		{
 			AssertInside(pos);
 
-			return m_Session->IsArrayItemNull(pos);
+			return m_Session->IsArrayItemNull(m_Array, pos);
 		}
 
 		/**

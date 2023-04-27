@@ -2,7 +2,7 @@
 ---
 ## Prerequisites
 Firstly you need to install [Visual Studio](https://visualstudio.microsoft.com/downloads/), [cmake](https://cmake.org/install/) and [vcpkg](https://vcpkg.io/en/getting-started.html).\
-Then install the pacakges needed for the PBNI Framework:
+Then install the packages needed for the PBNI Framework:
 ```ps1
 vcpkg install --triplet=x86-windows-static boost-stacktrace boost-utility boost-multiprecision
 ```

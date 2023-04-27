@@ -110,8 +110,8 @@ namespace Inf
 		 */
 		static PBNI_Framework& GetInstance()
 		{
-			static PBNI_Framework instance;
-			return instance;
+			static PBNI_Framework s_Instance;
+			return s_Instance;
 		}
 		PBNI_Framework(PBNI_Framework const&) = delete;
 		void operator=(PBNI_Framework const&) = delete;

@@ -22,7 +22,9 @@ cmake .. -A Win32 `
          -DVCPKG_TARGET_TRIPLET=x86-windows-static `
          -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake
 ```
-It creates a new folder called `build/` and creates a Visual Studio Solution inside it. You can open it and and edit your code inside Visual Studio. There you have multiple targets, when you build your library, it will create an `out/Release/` or `out/Debug` folder in your project, in there you will find the `.dll`.
+It creates a new folder called `build/` and creates a Visual Studio Solution inside it. You can open it and and edit your code inside Visual Studio. There you have multiple targets, when you build your library, it will create an `out/{Build_Configuration}` folder in your project, in there you will find the `.dll`s.
+
+While developing its recommended to use the `Debug` Configuration, this way it wont optimize the code and thus compile faster. When Releasing you should use `RelWithDebInfo`, this will optimize code and shrink Filesize but still keep the Debugging Information needed by boost Starcktrace to create verbose Exceptions.
 
 If you build `INSTALL` instead, it will build your library and then copy the `.dll` to the `A3_LIB_PATH` you specified.
 

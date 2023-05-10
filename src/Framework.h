@@ -17,12 +17,12 @@ namespace Inf
 
 	/**
 	 * Converts the given exception to one that can be used by PowerBuilder.
-	 * Checks whether `ex` is of typ `Inf::PBNI_Exception`
+	 * Checks whether `ex` is of type `Inf::PBNI_Exception`
 	 * 
 	 * \param ex	Reference to a valid Exception
 	 * \return		A reference to the PowerBuilder Exception
 	 */
-	PBObject<L"u_exf_ex_pbni"> ConvertException(IPB_Session* session, const std::exception& ex);
+	PBObject<L"u_exf_ex"> ConvertException(IPB_Session* session, const std::exception& ex);
 
 	/**
 	 * PBNI_Class is the Base Class for all Classes that you want to be used inside PowerBuilder.

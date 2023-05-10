@@ -56,17 +56,40 @@ namespace Inf
 		}
 
 		/**
+		 * Method to retrieve the Type to nest as.
+		 * 
+		 * \return Type or empty string
+		 */
+		virtual const std::wstring& GetNestAs() const
+		{
+			return m_NestedType;
+		}
+
+		/**
 		 * Push a KeyValue to an already existing error.
 		 * 
 		 * \param key		Key To add
 		 * \param value		Value to add as key
 		 */
-		virtual void Push(std::wstring key, std::wstring value)
+		virtual PBNI_Exception& Push(std::wstring key, std::wstring value)
 		{
 			m_KeyValueStore.insert({ key, value });
+			return *this;
+		}
+
+		/**
+		 * Nests the `u_exf_ex` in a new exception with type exceptionType. 
+		 * 
+		 * \param exceptionType	The Type of the new exception
+		 */
+		PBNI_Exception& NestAs(std::wstring exceptionType)
+		{
+			m_NestedType = exceptionType;
+			return *this;
 		}
 	private:
 		mutable std::string m_What;
+		std::wstring m_NestedType;
 		std::map<std::wstring, std::wstring> m_KeyValueStore;
 	};
 

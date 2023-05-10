@@ -3,35 +3,41 @@
 #include "ClassDescription.h"
 
 
-Inf::PBObject<L"u_exf_ex_pbni"> Inf::ConvertException(IPB_Session* session, const std::exception& ex)
+Inf::PBObject<L"u_exf_ex"> Inf::ConvertException(IPB_Session* session, const std::exception& ex)
 {
-	const Inf::PBNI_Exception* pbniEx = dynamic_cast<const Inf::PBNI_Exception*>(&ex);
-	if (pbniEx != nullptr)
+	PBObject<L"u_exf_ex_pbni"> pbException(session);
+
+	const PBNI_Exception* pbniEx = dynamic_cast<const PBNI_Exception*>(&ex);
+	if (pbniEx)
 	{
-		auto& key_value_store = pbniEx->GetKeyValues();
+		auto& keyValueStore = pbniEx->GetKeyValues();
+		auto pbErrorData = pbException.Invoke<PBObject<L"u_exf_error_data">>(L"of_init", PBRT_FUNCTION, PBString(session, keyValueStore.at(L"Error")));
 
-		Inf::PBObject<L"u_exf_ex_pbni"> pbni_exception(session);
-		auto pbni_error_data = pbni_exception.Invoke<Inf::PBObject<L"u_exf_error_data">>(L"of_init", PBRT_FUNCTION, Inf::PBString(session, key_value_store.at(L"Error")));
-
-		for (auto& [key, value] : key_value_store)
+		for (auto& [key, value] : keyValueStore)
 		{
-			pbni_error_data.InvokeSig(L"of_push", PBRT_FUNCTION, L"Cu_exf_error_data.SA", Inf::PBString(session, key), Inf::PBString(session, value));
+			pbErrorData.InvokeSig(L"of_push", PBRT_FUNCTION, L"Cu_exf_error_data.SA", PBString(session, key), PBString(session, value));
 		}
 
-		return pbni_exception;
+		const std::wstring nestAs = pbniEx->GetNestAs();
+		if (!nestAs.empty())
+		{
+			auto nestedException = pbException.Invoke<PBObject<L"u_exf_ex">>(L"of_nest", PBRT_FUNCTION, PBString(session, nestAs));
+			if (!nestedException.IsNull())
+				return nestedException;
+
+			return ConvertException(session, PBNI_Exception(L"Tried to Nest an exception as an invalid Type", {{ L"Type", nestAs }}));
+		}
 	}
 	else
 	{
-		Inf::PBObject<L"u_exf_ex_pbni"> pbni_exception(session);
-	
 		const char* err_msg = ex.what();
-		auto pbni_error_data = pbni_exception.Invoke<Inf::PBObject<L"u_exf_error_data">>(L"of_init", PBRT_FUNCTION, Inf::PBString(session, err_msg));
-		pbni_error_data.InvokeSig(L"of_push", PBRT_FUNCTION, L"Cu_exf_error_data.SA", Inf::PBString(session, L"Error"), Inf::PBString(session, err_msg));
-		
-		return pbni_exception;
+		pbException
+			.Invoke<PBObject<L"u_exf_error_data">>(L"of_init", PBRT_FUNCTION, PBString(session, err_msg))
+			.InvokeSig(L"of_push", PBRT_FUNCTION, L"Cu_exf_error_data.SA", PBString(session, L"Error"), PBString(session, err_msg));
 	}
-}
 
+	return { session, pbException };
+}
 
 Inf::PBNI_Class::PBNI_Class(IPB_Session* session, pbobject pbobj, std::wstring pb_class_name)
 	: m_Session(session), m_PBObject(pbobj), m_PBName(pb_class_name)
@@ -52,8 +58,10 @@ PBXRESULT Inf::PBNI_Class::Invoke(IPB_Session* session, pbobject obj, pbmethodID
 	catch (const std::exception& ex)
 	{
 		m_Session->ThrowException(ConvertException(m_Session, ex));
-		return PBX_SUCCESS; // Need to return success otherwise it will throw system error
 	}
+	
+	// Need to return success even after ThrowException otherwise it will throw system error
+	return PBX_SUCCESS;
 };
 
 
@@ -118,3 +126,4 @@ void Inf::PBNI_Framework::RegisterPBMethod(std::wstring pb_class_name, Inf::IMet
 		cls->second->AddMethod(method);
 	}
 }
+

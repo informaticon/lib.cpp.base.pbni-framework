@@ -30,8 +30,12 @@ namespace Inf
 		PBNI_Exception(const std::map<std::wstring, std::wstring>& keyValues)
 			: m_KeyValueStore(keyValues)
 		{
+#if NDEBUG
+			m_KeyValueStore.insert({ L"Stacktrace", L"Use the debug library to get Stacktraces from C++"});
+#else
 			boost::stacktrace::stacktrace st;
 			m_KeyValueStore.insert({ L"Stacktrace", ConvertString<std::wstring>(boost::stacktrace::to_string(st)) });
+#endif
 		}
 
 		/**

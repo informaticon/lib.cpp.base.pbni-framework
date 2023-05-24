@@ -24,7 +24,7 @@ cmake .. -A Win32 `
 ```
 It creates a new folder called `build/` and creates a Visual Studio Solution inside it. You can open it and and edit your code inside Visual Studio. There you have multiple targets, when you build your library, it will create an `out/{Build_Configuration}` folder in your project, in there you will find the `.dll`s.
 
-While developing its recommended to use the `Debug` Configuration, this way it wont optimize the code and thus compile faster. When Releasing you should use `RelWithDebInfo`, this will optimize code and shrink Filesize but still keep the Debugging Information needed by boost Starcktrace to create verbose Exceptions.
+While developing its recommended to use the `Debug` Configuration, this way it wont optimize the code and thus compile faster, it will also add Stacktraces to PBNI Exceptions. When Releasing you should use `MinSizeRel`, this will optimize code and shrink Filesize but Exceptions wont have stacktraces.
 
 If you build `INSTALL` instead, it will build your library and then copy the `.dll` to the `A3_LIB_PATH` you specified.
 

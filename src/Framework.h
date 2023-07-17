@@ -3,9 +3,6 @@
 #include <string>
 #include <unordered_map>
 
-#define NOMINMAX
-#include <pbext.h>
-
 #include "PBArray.h"
 #include "PBObjects.h"
 #include "Errors.h"

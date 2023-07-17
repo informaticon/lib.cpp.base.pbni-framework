@@ -2,9 +2,6 @@
 
 #include <string>
 
-#define NOMINMAX
-#include <pbext.h>
-
 #include "Framework.h"
 #include "PBTypes.h"
 
@@ -92,7 +89,7 @@ namespace Inf
 		 */
 		template <typename... ArgNames>
 			requires (sizeof...(Args) == sizeof...(ArgNames) && (std::is_same_v<std::remove_extent_t<ArgNames>, const wchar_t> && ...))
-		MethodDescription(std::wstring pc_class_name, std::wstring pb_method_name, Ret (Cls::* method)(Args...), ArgNames&... arg_names)
+		MethodDescription(std::wstring pc_class_name, Ret (Cls::* method)(Args...), std::wstring pb_method_name, ArgNames&... arg_names)
 			: m_Method(method)
 		{
 			// Description building

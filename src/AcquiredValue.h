@@ -2,6 +2,7 @@
 
 #include <memory>
 
+#define NOMINMAX
 #include <pbext.h>
 
 

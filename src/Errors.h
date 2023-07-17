@@ -101,7 +101,7 @@ namespace Inf
 	public:
 		PBNI_IndexOutOfBoundsException(pblong pos, pblong size)
 			: PBNI_Exception({
-					{ L"Error", L"Accesssing an index out of bounds in an Unounded PBArray" },
+					{ L"Error", L"Accesssing an index out of bounds in an Unbounded PBArray" },
 					{ L"Position", std::to_wstring(pos) },
 					{ L"Bounds", L"1 to " + std::to_wstring(size) }
 				})

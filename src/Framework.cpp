@@ -11,7 +11,7 @@ Inf::PBObject<L"u_exf_ex"> Inf::ConvertException(IPB_Session* session, const std
 	if (pbniEx)
 	{
 		auto& keyValueStore = pbniEx->GetKeyValues();
-		auto pbErrorData = pbException.Invoke<PBObject<L"u_exf_error_data">>(L"of_init", PBRT_FUNCTION, PBString(session, keyValueStore.at(L"Error")));
+		auto pbErrorData = pbException.Call<PBObject<L"u_exf_error_data">>(L"of_init", PBString(session, keyValueStore.at(L"Error")));
 
 		for (auto& [key, value] : keyValueStore)
 		{
@@ -21,7 +21,7 @@ Inf::PBObject<L"u_exf_ex"> Inf::ConvertException(IPB_Session* session, const std
 		const std::wstring nestAs = pbniEx->GetNestAs();
 		if (!nestAs.empty())
 		{
-			auto nestedException = pbException.Invoke<PBObject<L"u_exf_ex">>(L"of_nest", PBRT_FUNCTION, PBString(session, nestAs));
+			auto nestedException = pbException.Call<PBObject<L"u_exf_ex">>(L"of_nest", PBString(session, nestAs));
 			if (!nestedException.IsNull())
 				return nestedException;
 
@@ -32,7 +32,7 @@ Inf::PBObject<L"u_exf_ex"> Inf::ConvertException(IPB_Session* session, const std
 	{
 		const char* err_msg = ex.what();
 		pbException
-			.Invoke<PBObject<L"u_exf_error_data">>(L"of_init", PBRT_FUNCTION, PBString(session, err_msg))
+			.Call<PBObject<L"u_exf_error_data">>(L"of_init", PBString(session, err_msg))
 			.InvokeSig(L"of_push", PBRT_FUNCTION, L"Cu_exf_error_data.SA", PBString(session, L"Error"), PBString(session, err_msg));
 	}
 

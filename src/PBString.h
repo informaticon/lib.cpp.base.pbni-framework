@@ -2,8 +2,6 @@
 
 #include <string>
 
-#include <pbext.h>
-
 #include "AcquiredValue.h"
 
 
@@ -58,6 +56,8 @@ namespace Inf
 		 * \param str		String to copy
 		 */
 		PBString(IPB_Session* session, const std::string& str, StringEncoding encoding = ANSI);
+		PBString(IPB_Session* session, const std::string_view& str, StringEncoding encoding = ANSI);
+		PBString(IPB_Session* session, const char* str, StringEncoding encoding = ANSI);
 		/**
 		 * Creates a new pbstring and writes the WString to it.
 		 *
@@ -149,6 +149,7 @@ namespace Inf
 	// TODO Stop uneccessary copying from happening
 	template<> std::wstring ConvertString<>(const char* str, size_t size, PBString::StringEncoding encoding);
 	template<> std::wstring ConvertString<>(const char* str, PBString::StringEncoding encoding);
+	template<> std::wstring ConvertString<>(const std::string_view str, PBString::StringEncoding encoding);
 	template<> std::wstring ConvertString<>(const std::string str, PBString::StringEncoding encoding);
 	template<> std::string ConvertString<>(const wchar_t* wstr, size_t size, PBString::StringEncoding encoding);
 	template<> std::string ConvertString<>(const wchar_t* wstr, PBString::StringEncoding encoding);
@@ -156,6 +157,7 @@ namespace Inf
 
 	template<> std::wstring ConvertString<>(const char* str, size_t size);
 	template<> std::wstring ConvertString<>(const char* str);
+	template<> std::wstring ConvertString<>(const std::string_view str);
 	template<> std::wstring ConvertString<>(const std::string str);
 	template<> std::string ConvertString<>(const wchar_t* wstr, size_t size);
 	template<> std::string ConvertString<>(const wchar_t* wstr);

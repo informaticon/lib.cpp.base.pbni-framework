@@ -16,6 +16,20 @@ Inf::PBString::PBString(IPB_Session* session, const std::string& str, StringEnco
 	m_String = m_Session->NewString(wstr.c_str());
 }
 
+Inf::PBString::PBString(IPB_Session* session, const std::string_view& str, StringEncoding encoding)
+	: m_Session(session)
+{
+	std::wstring wstr = Inf::ConvertString<std::wstring>(str, encoding);
+	m_String = m_Session->NewString(wstr.c_str());
+}
+
+Inf::PBString::PBString(IPB_Session* session, const char* str, StringEncoding encoding)
+	: m_Session(session)
+{
+	std::wstring wstr = Inf::ConvertString<std::wstring>(str, encoding);
+	m_String = m_Session->NewString(wstr.c_str());
+}
+
 Inf::PBString::PBString(IPB_Session* session, const std::wstring& str)
 	: m_Session(session)
 {
@@ -152,6 +166,11 @@ template<> std::wstring Inf::ConvertString(const char* str, PBString::StringEnco
 	return ConvertString<std::wstring>(str, strlen(str), encoding);
 }
 
+template<> std::wstring Inf::ConvertString(const std::string_view str, PBString::StringEncoding encoding)
+{
+	return ConvertString<std::wstring>(str.data(), str.size(), encoding);
+}
+
 template<> std::wstring Inf::ConvertString(const std::string str, PBString::StringEncoding encoding)
 {
 	return ConvertString<std::wstring>(str.data(), str.size(), encoding);
@@ -182,6 +201,7 @@ template<> std::string Inf::ConvertString(const std::wstring wstr, PBString::Str
 
 template<> std::wstring Inf::ConvertString<>(const char* str, size_t size) { return ConvertString<std::wstring>(str, size, PBString::ANSI); };
 template<> std::wstring Inf::ConvertString<>(const char* str) { return ConvertString<std::wstring>(str, PBString::ANSI); };
+template<> std::wstring Inf::ConvertString<>(const std::string_view str) { return ConvertString<std::wstring>(str, PBString::ANSI); };
 template<> std::wstring Inf::ConvertString<>(const std::string str) { return ConvertString<std::wstring>(str, PBString::ANSI); };
 template<> std::string Inf::ConvertString<>(const wchar_t* wstr, size_t size) { return ConvertString<std::string>(wstr, size, PBString::ANSI); };
 template<> std::string Inf::ConvertString<>(const wchar_t* wstr) { return ConvertString<std::string>(wstr, PBString::ANSI); };

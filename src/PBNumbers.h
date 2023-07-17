@@ -7,6 +7,7 @@
 #include <boost/type_traits/has_nothrow_constructor.hpp>
 #include <boost/type_traits/has_nothrow_copy.hpp>
 
+#define NOMINMAX
 #include <pbext.h>
 
 #include "Errors.h"

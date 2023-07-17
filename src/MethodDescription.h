@@ -16,7 +16,11 @@
  * \param name					A WString containing the Name to be used by PowerBuilder
  * \param ...argument_names		WStrings containing the Argument names to be used by PowerBuilder
  */
-#define INF_REGISTER_FUNC(func, name, ...) static Inf::MethodDescription func##_desc(s_PBNI_ClassName, name, &Inf_PBNI_Class::func  __VA_OPT__(,) __VA_ARGS__)
+#ifdef VSCODE
+	#define INF_REGISTER_FUNC(func, ...) static Inf::MethodDescription func##_desc(s_PBNI_ClassName, &Inf_PBNI_Class::func, __VA_ARGS__)
+#else
+	#define INF_REGISTER_FUNC(func, name, ...) static Inf::MethodDescription func##_desc(s_PBNI_ClassName, &Inf_PBNI_Class::func, name, __VA_OPT__(,) __VA_ARGS__)
+#endif
 
 namespace Inf
 {

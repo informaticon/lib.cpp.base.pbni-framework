@@ -72,6 +72,39 @@ namespace Inf
 		}
 
 		/**
+		 * Simple helper function that calls Invoke in the background, for more info read the Invoke documentation.
+		 * 
+		 * \throw Inf::PBNI_InvalidFieldException			If no matching functions were found
+		 * \throw Inf::PBNI_IncorrectArgumentsException		If the argument types dont match up
+		 * \throw Inf::PBNI_NullPointerException			If pbobject is Null
+		 * \throw Inf::PBNI_PowerBuilderException			If the function doesnt return PBX_SUCCESS
+		 * \throw Inf::PBNI_Exception						If the Group or Class cannot be found
+		*/
+		template <typename Ret = void, typename... Args>
+			requires (!std::is_pointer_v<Ret> && !std::is_reference_v<Ret> && !Helper::is_pb_array_v<Ret> && (!std::is_pointer_v<Args> && ...))
+		inline Ret Call(const std::wstring& method_name, Args... args)
+		{
+			return Invoke<Ret, Args&...>(method_name, PBRT_FUNCTION, args...);
+		}
+
+		/**
+		 * Simple helper function that calls InvokeSig in the background, for more info read the InvokeSig documentation.
+		 * 
+		 * \throw Inf::PBNI_InvalidFieldException			If no matching functions were found
+		 * \throw Inf::PBNI_IncorrectArgumentsException		If the argument types dont match up
+		 * \throw Inf::PBNI_NullPointerException			If pbobject is Null
+		 * \throw Inf::PBNI_PowerBuilderException			If the function doesnt return PBX_SUCCESS
+		 * \throw Inf::PBNI_Exception						If the Group or Class cannot be found
+		*/
+		template <typename Ret = void, typename... Args>
+			requires (!std::is_pointer_v<Ret> && !std::is_reference_v<Ret> && !Helper::is_pb_array_v<Ret> && (!std::is_pointer_v<Args> && ...))
+		inline Ret CallSig(const std::wstring& method_name, const std::wstring& pbsig, Args... args)
+		{
+			return InvokeSig<Ret, Args&...>(method_name, PBRT_FUNCTION, pbsig, args...);
+		}
+
+
+		/**
 		 * Invoke a Function of the pbobject with an unknown Signature.
 		 * Generates a signature out of the provided Return and Argument Types.
 		 *

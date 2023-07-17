@@ -84,7 +84,7 @@ namespace Inf
 			requires (!std::is_pointer_v<Ret> && !std::is_reference_v<Ret> && !Helper::is_pb_array_v<Ret> && (!std::is_pointer_v<Args> && ...))
 		inline Ret Call(const std::wstring& method_name, Args... args)
 		{
-			return Invoke<Ret, Args&...>(method_name, PBRT_FUNCTION, args...);
+			return Invoke<Ret, Args...>(method_name, PBRT_FUNCTION, args...);
 		}
 
 		/**

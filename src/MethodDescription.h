@@ -19,7 +19,7 @@
 #ifdef VSCODE
 	#define INF_REGISTER_FUNC(func, ...) static Inf::MethodDescription func##_desc(s_PBNI_ClassName, &Inf_PBNI_Class::func, __VA_ARGS__)
 #else
-	#define INF_REGISTER_FUNC(func, name, ...) static Inf::MethodDescription func##_desc(s_PBNI_ClassName, &Inf_PBNI_Class::func, name, __VA_OPT__(,) __VA_ARGS__)
+	#define INF_REGISTER_FUNC(func, name, ...) static Inf::MethodDescription func##_desc(s_PBNI_ClassName, &Inf_PBNI_Class::func, name __VA_OPT__(,) __VA_ARGS__)
 #endif
 
 namespace Inf

@@ -440,7 +440,7 @@ namespace Inf
 			if (IsNull())
 				throw PBNI_NullPointerException(L"PBUnboundedArray");
 
-			if (1 > pos || (check_upper_bound && pos < Size()))
+			if (pos < 1 || (check_upper_bound && pos > Size()))
 				throw PBNI_IndexOutOfBoundsException(pos, Size());
 		}
 

@@ -49,6 +49,34 @@ namespace Inf
 	class PBArray
 	{
 	public:
+		struct Iterator
+		{
+			using iterator_category = std::input_iterator_tag;
+			using difference_type = pblong;
+			using value_type = Item;
+			using pointer = Item;
+			using reference = Item;
+
+			Iterator(PBArray<Item, dims...>& array, pblong index)
+				: m_Array(array), m_Index(index)
+			{ }
+
+			reference operator*() const { return m_Array.Get(m_Index); }
+			pointer operator->() { return m_Array.Get(m_Index); }
+
+			Iterator& operator++() { m_Index++; return *this; }  
+			Iterator operator++(int) { Iterator m_Index = *this; ++(*this); return m_Index; }
+			Iterator& operator--() { m_Index--; return *this; }  
+			Iterator operator--(int) { Iterator m_Index = *this; --(*this); return m_Index; }
+
+			friend bool operator== (const Iterator& a, const Iterator& b) { return a.m_Index == b.m_Index && (pbarray) a.m_Array == (pbarray) b.m_Array; };
+			friend bool operator!= (const Iterator& a, const Iterator& b) { return a.m_Index != b.m_Index || (pbarray) a.m_Array != (pbarray) b.m_Array; };
+
+		private:
+			PBArray<value_type, dims...>& m_Array;
+			pblong m_Index;
+		};
+
 		/**
 		 * Creates a Wrapper to an existing pbarray.
 		 * Null if arr is 0
@@ -59,8 +87,11 @@ namespace Inf
 		PBArray(IPB_Session* session, pbarray arr)
 			: m_Session(session), m_Array(arr)
 		{
-			if (!IsNull())
-				m_ArrayInfo = std::shared_ptr<PBArrayInfo>(m_Session->GetArrayInfo(m_Array), [=](PBArrayInfo* info) { m_Session->ReleaseArrayInfo(info); });
+			if constexpr (sizeof...(dims) != 0)
+			{
+				if (!IsNull())
+					m_ArrayInfo = std::shared_ptr<PBArrayInfo>(m_Session->GetArrayInfo(m_Array), [=](PBArrayInfo* info) { m_Session->ReleaseArrayInfo(info); });
+			}
 		}
 
 		/**
@@ -93,9 +124,10 @@ namespace Inf
 				{
 					m_Array = m_Session->NewBoundedSimpleArray(Type<Item>::PBType, sizeof...(dims), bounds);
 				}
+
+				m_ArrayInfo = std::shared_ptr<PBArrayInfo>(m_Session->GetArrayInfo(m_Array), [=](PBArrayInfo* info) { m_Session->ReleaseArrayInfo(info); });
 			}
 
-			m_ArrayInfo = std::shared_ptr<PBArrayInfo>(m_Session->GetArrayInfo(m_Array), [=](PBArrayInfo* info) { m_Session->ReleaseArrayInfo(info); });
 		}
 
 	#pragma region UnboundedArray_Functions
@@ -200,6 +232,38 @@ namespace Inf
 
 			return m_Session->IsArrayItemNull(m_Array, &pos);
 		}
+
+		/**
+		 * Creates new Iterator pointing to the first element
+		 *
+		 * \return		New Iterator
+		 *
+		 * \throw Inf::PBNI_NullPointerException		If is Null
+		 */
+		Iterator begin()
+			requires (sizeof...(dims) == 0)
+		{
+			if (IsNull())
+				throw PBNI_NullPointerException(L"PBArray");
+
+			return { *this, 1 };
+		}
+		/**
+		 * Creates new Iterator pointing to the current last + 1 element
+		 *
+		 * \return		New Iterator
+		 *
+		 * \throw Inf::PBNI_NullPointerException		If is Null
+		 */
+		Iterator end()
+			requires (sizeof...(dims) == 0)
+		{
+			if (IsNull())
+				throw PBNI_NullPointerException(L"PBArray");
+
+			return { *this, Size() + 1 };
+		}
+
 	#pragma endregion
 
 	#pragma region BoundedArray_Functions

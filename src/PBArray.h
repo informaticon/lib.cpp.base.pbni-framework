@@ -327,7 +327,7 @@ namespace Inf
 			}
 			else
 			{
-				return GetImpl<Item>(pos.data());
+				return GetImpl(pos.data());
 			}
 		}
 
@@ -508,46 +508,43 @@ namespace Inf
 				throw PBNI_IndexOutOfBoundsException(pos, Size());
 		}
 
-
-		template <typename T>
-		inline PBXRESULT SetImpl(pblong* dim, const T t) = delete;
-		template <typename T>
-		inline T GetImpl(pblong* dim) const = delete;
-
-		template<> inline PBXRESULT SetImpl<PBByte		>(pblong* dim, const PBByte		t) { return m_Session->SetByteArrayItem(m_Array, dim, t); }
-		template<> inline PBXRESULT SetImpl<PBBoolean	>(pblong* dim, const PBBoolean	t) { return m_Session->SetCharArrayItem(m_Array, dim, t); }
-		template<> inline PBXRESULT SetImpl<PBChar		>(pblong* dim, const PBChar		t) { return m_Session->SetCharArrayItem(m_Array, dim, t); }
-		template<> inline PBXRESULT SetImpl<PBInt		>(pblong* dim, const PBInt		t) { return m_Session->SetIntArrayItem(m_Array, dim, t); }
-		template<> inline PBXRESULT SetImpl<PBUint		>(pblong* dim, const PBUint		t) { return m_Session->SetUintArrayItem(m_Array, dim, t); }
-		template<> inline PBXRESULT SetImpl<PBLong		>(pblong* dim, const PBLong		t) { return m_Session->SetLongArrayItem(m_Array, dim, t); }
-		template<> inline PBXRESULT SetImpl<PBUlong		>(pblong* dim, const PBUlong	t) { return m_Session->SetUlongArrayItem(m_Array, dim, t); }
-		template<> inline PBXRESULT SetImpl<PBLongLong	>(pblong* dim, const PBLongLong	t) { return m_Session->SetLongLongArrayItem(m_Array, dim, t); }
-		template<> inline PBXRESULT SetImpl<PBReal		>(pblong* dim, const PBReal		t) { return m_Session->SetRealArrayItem(m_Array, dim, t); }
-		template<> inline PBXRESULT SetImpl<PBDouble	>(pblong* dim, const PBDouble	t) { return m_Session->SetDoubleArrayItem(m_Array, dim, t); }
-		template<> inline PBXRESULT SetImpl<PBDecimal	>(pblong* dim, const PBDecimal	t) { return m_Session->SetDecArrayItem(m_Array, dim, t.m_Decimal); }
-		template<> inline PBXRESULT SetImpl<PBTime		>(pblong* dim, const PBTime		t) { return m_Session->SetTimeArrayItem(m_Array, dim, t.m_Time); }
-		template<> inline PBXRESULT SetImpl<PBDate		>(pblong* dim, const PBDate		t) { return m_Session->SetDateArrayItem(m_Array, dim, t.m_Date); }
-		template<> inline PBXRESULT SetImpl<PBDateTime	>(pblong* dim, const PBDateTime	t) { return m_Session->SetDateTimeArrayItem(m_Array, dim, t.m_DateTime); }
-		template<> inline PBXRESULT SetImpl<PBString	>(pblong* dim, const PBString	t) { return m_Session->SetPBStringArrayItem(m_Array, dim, t.m_String); }
-		template<> inline PBXRESULT SetImpl<PBBlob		>(pblong* dim, const PBBlob		t) { return m_Session->SetBlobArrayItem(m_Array, dim, t.m_Blob); }
-
-		template<> inline PBByte		GetImpl<PBByte		>(pblong* dim) const { pbboolean is_null = false; pbbyte pb_byte			= m_Session->GetByteArrayItem(m_Array, dim, is_null);		return is_null ? PBByte()		: PBByte(pb_byte); }
-		template<> inline PBBoolean		GetImpl<PBBoolean	>(pblong* dim) const { pbboolean is_null = false; pbboolean pb_boolean		= m_Session->GetCharArrayItem(m_Array, dim, is_null);		return is_null ? PBBoolean()	: PBBoolean(pb_boolean); }
-		template<> inline PBChar		GetImpl<PBChar		>(pblong* dim) const { pbboolean is_null = false; pbchar pb_char			= m_Session->GetCharArrayItem(m_Array, dim, is_null);		return is_null ? PBChar()		: PBChar(pb_char); }
-		template<> inline PBInt			GetImpl<PBInt		>(pblong* dim) const { pbboolean is_null = false; pbint pb_int				= m_Session->GetIntArrayItem(m_Array, dim, is_null);		return is_null ? PBInt()		: PBInt(pb_int); }
-		template<> inline PBUint		GetImpl<PBUint		>(pblong* dim) const { pbboolean is_null = false; pbuint pb_uint			= m_Session->GetUintArrayItem(m_Array, dim, is_null);		return is_null ? PBUint()		: PBUint(pb_uint); }
-		template<> inline PBLong		GetImpl<PBLong		>(pblong* dim) const { pbboolean is_null = false; pblong pb_long			= m_Session->GetLongArrayItem(m_Array, dim, is_null);		return is_null ? PBLong()		: PBLong(pb_long); }
-		template<> inline PBUlong		GetImpl<PBUlong		>(pblong* dim) const { pbboolean is_null = false; pbulong pb_ulong			= m_Session->GetUlongArrayItem(m_Array, dim, is_null);		return is_null ? PBUlong()		: PBUlong(pb_ulong); }
-		template<> inline PBLongLong	GetImpl<PBLongLong	>(pblong* dim) const { pbboolean is_null = false; pblonglong pb_longlong	= m_Session->GetLongLongArrayItem(m_Array, dim, is_null);	return is_null ? PBLongLong()	: PBLongLong(pb_longlong); }
-		template<> inline PBReal		GetImpl<PBReal		>(pblong* dim) const { pbboolean is_null = false; pbreal pb_real			= m_Session->GetRealArrayItem(m_Array, dim, is_null);		return is_null ? PBReal()		: PBReal(pb_real); }
-		template<> inline PBDouble		GetImpl<PBDouble	>(pblong* dim) const { pbboolean is_null = false; pbdouble pb_double		= m_Session->GetDoubleArrayItem(m_Array, dim, is_null);		return is_null ? PBDouble()		: PBDouble(pb_double); }
-		template<> inline PBDecimal		GetImpl<PBDecimal	>(pblong* dim) const { pbboolean is_null = false; pbdec pb_dec				= m_Session->GetDecArrayItem(m_Array, dim, is_null);		return { m_Session, is_null ? 0 : pb_dec }; }
-		template<> inline PBTime		GetImpl<PBTime		>(pblong* dim) const { pbboolean is_null = false; pbtime pb_time			= m_Session->GetTimeArrayItem(m_Array, dim, is_null);		return { m_Session, is_null ? 0 : pb_time }; }
-		template<> inline PBDate		GetImpl<PBDate		>(pblong* dim) const { pbboolean is_null = false; pbdate pb_date			= m_Session->GetDateArrayItem(m_Array, dim, is_null);		return { m_Session, is_null ? 0 : pb_date }; }
-		template<> inline PBDateTime	GetImpl<PBDateTime	>(pblong* dim) const { pbboolean is_null = false; pbdatetime pb_datetime	= m_Session->GetDateTimeArrayItem(m_Array, dim, is_null);	return { m_Session, is_null ? 0 : pb_datetime }; }
-		template<> inline PBString		GetImpl<PBString	>(pblong* dim) const { pbboolean is_null = false; pbstring pb_string		= m_Session->GetStringArrayItem(m_Array, dim, is_null);		return { m_Session, is_null ? 0 : pb_string }; }
-		template<> inline PBBlob		GetImpl<PBBlob		>(pblong* dim) const { pbboolean is_null = false; pbblob pb_blob			= m_Session->GetBlobArrayItem(m_Array, dim, is_null);		return { m_Session, is_null ? 0 : pb_blob }; }
-		template<> inline PBAny 		GetImpl<PBAny		>(pblong* dim) const { pbboolean is_null = false; IPB_Value* pb_any			= m_Session->GetPBAnyArrayItem(m_Object, fid, is_null);		return { m_Session, pb_any }; }
+        PBXRESULT SetImpl(pblong* dim, const Item& t)
 	};
+
+
+
+    template<> inline PBXRESULT PBArray<PBByte		>::SetImpl(pblong* dim, const PBByte&		t) { return m_Session->SetByteArrayItem(m_Array, dim, t); }
+    template<> inline PBXRESULT PBArray<PBBoolean	>::SetImpl(pblong* dim, const PBBoolean&	t) { return m_Session->SetCharArrayItem(m_Array, dim, t); }
+    template<> inline PBXRESULT PBArray<PBChar		>::SetImpl(pblong* dim, const PBChar&		t) { return m_Session->SetCharArrayItem(m_Array, dim, t); }
+    template<> inline PBXRESULT PBArray<PBInt		>::SetImpl(pblong* dim, const PBInt&		t) { return m_Session->SetIntArrayItem(m_Array, dim, t); }
+    template<> inline PBXRESULT PBArray<PBUint		>::SetImpl(pblong* dim, const PBUint&		t) { return m_Session->SetUintArrayItem(m_Array, dim, t); }
+    template<> inline PBXRESULT PBArray<PBLong		>::SetImpl(pblong* dim, const PBLong&		t) { return m_Session->SetLongArrayItem(m_Array, dim, t); }
+    template<> inline PBXRESULT PBArray<PBUlong		>::SetImpl(pblong* dim, const PBUlong&	t) { return m_Session->SetUlongArrayItem(m_Array, dim, t); }
+    template<> inline PBXRESULT PBArray<PBLongLong	>::SetImpl(pblong* dim, const PBLongLong&	t) { return m_Session->SetLongLongArrayItem(m_Array, dim, t); }
+    template<> inline PBXRESULT PBArray<PBReal		>::SetImpl(pblong* dim, const PBReal&		t) { return m_Session->SetRealArrayItem(m_Array, dim, t); }
+    template<> inline PBXRESULT PBArray<PBDouble	>::SetImpl(pblong* dim, const PBDouble&	t) { return m_Session->SetDoubleArrayItem(m_Array, dim, t); }
+    template<> inline PBXRESULT PBArray<PBDecimal	>::SetImpl(pblong* dim, const PBDecimal&	t) { return m_Session->SetDecArrayItem(m_Array, dim, t.m_Decimal); }
+    template<> inline PBXRESULT PBArray<PBTime		>::SetImpl(pblong* dim, const PBTime&		t) { return m_Session->SetTimeArrayItem(m_Array, dim, t.m_Time); }
+    template<> inline PBXRESULT PBArray<PBDate		>::SetImpl(pblong* dim, const PBDate&		t) { return m_Session->SetDateArrayItem(m_Array, dim, t.m_Date); }
+    template<> inline PBXRESULT PBArray<PBDateTime	>::SetImpl(pblong* dim, const PBDateTime&	t) { return m_Session->SetDateTimeArrayItem(m_Array, dim, t.m_DateTime); }
+    template<> inline PBXRESULT PBArray<PBString	>::SetImpl(pblong* dim, const PBString&	t) { return m_Session->SetPBStringArrayItem(m_Array, dim, t.m_String); }
+    template<> inline PBXRESULT PBArray<PBBlob		>::SetImpl(pblong* dim, const PBBlob&		t) { return m_Session->SetBlobArrayItem(m_Array, dim, t.m_Blob); }
+
+    template<> inline PBByte		PBArray<PBByte		>::GetImpl(pblong* dim) const { pbboolean is_null = false; pbbyte pb_byte			= m_Session->GetByteArrayItem(m_Array, dim, is_null);		return is_null ? PBByte()		: PBByte(pb_byte); }
+    template<> inline PBBoolean		PBArray<PBBoolean	>::GetImpl(pblong* dim) const { pbboolean is_null = false; pbboolean pb_boolean		= m_Session->GetCharArrayItem(m_Array, dim, is_null);		return is_null ? PBBoolean()	: PBBoolean(pb_boolean); }
+    template<> inline PBChar		PBArray<PBChar		>::GetImpl(pblong* dim) const { pbboolean is_null = false; pbchar pb_char			= m_Session->GetCharArrayItem(m_Array, dim, is_null);		return is_null ? PBChar()		: PBChar(pb_char); }
+    template<> inline PBInt			PBArray<PBInt		>::GetImpl(pblong* dim) const { pbboolean is_null = false; pbint pb_int				= m_Session->GetIntArrayItem(m_Array, dim, is_null);		return is_null ? PBInt()		: PBInt(pb_int); }
+    template<> inline PBUint		PBArray<PBUint		>::GetImpl(pblong* dim) const { pbboolean is_null = false; pbuint pb_uint			= m_Session->GetUintArrayItem(m_Array, dim, is_null);		return is_null ? PBUint()		: PBUint(pb_uint); }
+    template<> inline PBLong		PBArray<PBLong		>::GetImpl(pblong* dim) const { pbboolean is_null = false; pblong pb_long			= m_Session->GetLongArrayItem(m_Array, dim, is_null);		return is_null ? PBLong()		: PBLong(pb_long); }
+    template<> inline PBUlong		PBArray<PBUlong		>::GetImpl(pblong* dim) const { pbboolean is_null = false; pbulong pb_ulong			= m_Session->GetUlongArrayItem(m_Array, dim, is_null);		return is_null ? PBUlong()		: PBUlong(pb_ulong); }
+    template<> inline PBLongLong	PBArray<PBLongLong	>::GetImpl(pblong* dim) const { pbboolean is_null = false; pblonglong pb_longlong	= m_Session->GetLongLongArrayItem(m_Array, dim, is_null);	return is_null ? PBLongLong()	: PBLongLong(pb_longlong); }
+    template<> inline PBReal		PBArray<PBReal		>::GetImpl(pblong* dim) const { pbboolean is_null = false; pbreal pb_real			= m_Session->GetRealArrayItem(m_Array, dim, is_null);		return is_null ? PBReal()		: PBReal(pb_real); }
+    template<> inline PBDouble		PBArray<PBDouble	>::GetImpl(pblong* dim) const { pbboolean is_null = false; pbdouble pb_double		= m_Session->GetDoubleArrayItem(m_Array, dim, is_null);		return is_null ? PBDouble()		: PBDouble(pb_double); }
+    template<> inline PBDecimal		PBArray<PBDecimal	>::GetImpl(pblong* dim) const { pbboolean is_null = false; pbdec pb_dec				= m_Session->GetDecArrayItem(m_Array, dim, is_null);		return { m_Session, is_null ? 0 : pb_dec }; }
+    template<> inline PBTime		PBArray<PBTime		>::GetImpl(pblong* dim) const { pbboolean is_null = false; pbtime pb_time			= m_Session->GetTimeArrayItem(m_Array, dim, is_null);		return { m_Session, is_null ? 0 : pb_time }; }
+    template<> inline PBDate		PBArray<PBDate		>::GetImpl(pblong* dim) const { pbboolean is_null = false; pbdate pb_date			= m_Session->GetDateArrayItem(m_Array, dim, is_null);		return { m_Session, is_null ? 0 : pb_date }; }
+    template<> inline PBDateTime	PBArray<PBDateTime	>::GetImpl(pblong* dim) const { pbboolean is_null = false; pbdatetime pb_datetime	= m_Session->GetDateTimeArrayItem(m_Array, dim, is_null);	return { m_Session, is_null ? 0 : pb_datetime }; }
+    template<> inline PBString		PBArray<PBString	>::GetImpl(pblong* dim) const { pbboolean is_null = false; pbstring pb_string		= m_Session->GetStringArrayItem(m_Array, dim, is_null);		return { m_Session, is_null ? 0 : pb_string }; }
+    template<> inline PBBlob		PBArray<PBBlob		>::GetImpl(pblong* dim) const { pbboolean is_null = false; pbblob pb_blob			= m_Session->GetBlobArrayItem(m_Array, dim, is_null);		return { m_Session, is_null ? 0 : pb_blob }; }
 }
 

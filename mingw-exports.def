@@ -1,0 +1,10 @@
+EXPORTS
+
+PBX_CreateNonVisualObject@16
+_PBX_CreateNonVisualObject@16 = PBX_CreateNonVisualObject@16
+
+PBX_GetDescription@0
+_PBX_GetDescription@0 = PBX_GetDescription@0
+
+PBX_GetVersion@0
+_PBX_GetVersion@0 = PBX_GetVersion@0

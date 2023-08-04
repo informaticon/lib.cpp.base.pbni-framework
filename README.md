@@ -2,8 +2,17 @@
 Framework for creating PowerBuilder Extensions using PBNI.
 
 ## Dependencies
- - PowerBuilder PBNI
+ - PowerBuilder PBNI Library
  - vcpkg (to use Boost)
+
+## Vcpkg dependencies
+```ps1
+vcpkg install --triplet=x86-windows-static `
+	boost-stacktrace `
+	boost-utility `
+	boost-multiprecision `
+	boost-algorithm
+```
 
 ## Example Usage
 Check out [this repository](https://github.com/informaticon/div.cpp.base.pbni-framework-usage-example) for a documented example. Or [this one](https://github.com/informaticon/lib.pbni.base.tse) for an actual usage. 

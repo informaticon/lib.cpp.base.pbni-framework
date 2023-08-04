@@ -48,6 +48,7 @@ set(types
 	src/PBObjects.h
 	src/PBString.cpp
 	src/PBString.h
+	src/PBAny.h
 )
 
 set(headers ${src})

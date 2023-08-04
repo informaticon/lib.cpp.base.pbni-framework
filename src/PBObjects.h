@@ -1,6 +1,7 @@
 #pragma once
 
 #include "PBArray.h"
+#include "PBAny.h"
 
 
 namespace Inf
@@ -17,6 +18,9 @@ namespace Inf
 	class PBObject
 	{
 	public:
+		static constexpr Helper::FixedString _class_id = class_id;
+		static constexpr pbgroup_type _group_type = group_type;
+
 		/**
 		 * Creates a new Wrapper for an already existing object.
 		 * Will be Null if obj is 0.
@@ -181,16 +185,16 @@ namespace Inf
 
 			pbint i = 0;
 			([&] {
-				IPB_Value* value = ci.pArgs->GetAt(i);
-				if (value->GetType() != pbvalue_any && !Type<std::remove_reference_t<Args>>::Assert(m_Session, value))
+				PBAny value(m_Session, ci.pArgs->GetAt(i));
+				if (value.GetType() != Type<PBAny>::PBType && !value.Is<std::remove_reference_t<Args>>())
 					throw PBNI_IncorrectArgumentsException(class_id.data, method_name + L"(" + pbsig + L")", i);
 				i++;
-				}(), ...);
+			}(), ...);
 
 
 			// Argument Gathering
 			i = 0;
-			(Type<std::remove_reference_t<Args>>::SetValue(m_Session, ci.pArgs->GetAt(i++), args), ...);
+			(PBAny(m_Session, ci.pArgs->GetAt(i++)).Set<std::remove_reference_t<Args>>(args), ...);
 
 			PBXRESULT res = m_Session->InvokeObjectFunction(m_Object, mid, &ci);
 
@@ -209,7 +213,7 @@ namespace Inf
 					if (ci.pArgs->GetAt(i)->IsByRef())
 					{
 						// We need to acquire the value, so it doesnt get freed by FreeCallInfo.
-						args = Type<std::remove_reference_t<Args>>::FromArgument(m_Session, ci.pArgs->GetAt(i), true);
+						args = PBAny(m_Session, ci.pArgs->GetAt(i)).Get<std::remove_reference_t<Args>>(true);
 					}
 				}
 				i++;
@@ -222,7 +226,7 @@ namespace Inf
 			else
 			{
 				// We need to acquire the value, so it doesnt get freed by FreeCallInfo.
-				Ret ret = Type<Ret>::FromArgument(m_Session, ci.returnValue, true);
+				Ret ret = PBAny(m_Session, ci.returnValue).Get<Ret>(true);
 
 				m_Session->FreeCallInfo(&ci);
 				return ret;
@@ -561,6 +565,7 @@ namespace Inf
 		template<> inline PBDateTime	GetFieldImpl(pbfieldID fid) const { pbboolean is_null = false; pbdatetime pb_datetime	= m_Session->GetDateTimeField(m_Object, fid, is_null);	return { m_Session, is_null ? 0 : pb_datetime }; }
 		template<> inline PBString 		GetFieldImpl(pbfieldID fid) const { pbboolean is_null = false; pbstring pb_string		= m_Session->GetStringField(m_Object, fid, is_null);	return { m_Session, is_null ? 0 : pb_string }; }
 		template<> inline PBBlob 		GetFieldImpl(pbfieldID fid) const { pbboolean is_null = false; pbblob pb_blob			= m_Session->GetBlobField(m_Object, fid, is_null);		return { m_Session, is_null ? 0 : pb_blob }; }
+		template<> inline PBAny 		GetFieldImpl(pbfieldID fid) const { pbboolean is_null = false; IPB_Value* pb_any		= m_Session->GetPBAnyField(m_Object, fid, is_null);		return { m_Session, pb_any }; }
 		// clang-format on
 	};
 

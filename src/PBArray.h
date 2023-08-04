@@ -1,9 +1,6 @@
 #pragma once
 
-#include "PBNumbers.h"
-#include "PBDateTimes.h"
-#include "PBString.h"
-#include "PBBlob.h"
+#include "PBTypes.h"
 
 
 namespace Inf
@@ -49,6 +46,9 @@ namespace Inf
 	class PBArray
 	{
 	public:
+		using _Item = Item;
+		static constexpr std::array<pblong, sizeof...(dims)> _dims = {dims...};
+
 		struct Iterator
 		{
 			using iterator_category = std::input_iterator_tag;
@@ -432,7 +432,7 @@ namespace Inf
 		}
 
 	private:
-		friend Type<PBArray>;
+		friend PBAny;
 
 		IPB_Session* m_Session;
 		pbarray m_Array;
@@ -547,6 +547,7 @@ namespace Inf
 		template<> inline PBDateTime	GetImpl<PBDateTime	>(pblong* dim) const { pbboolean is_null = false; pbdatetime pb_datetime	= m_Session->GetDateTimeArrayItem(m_Array, dim, is_null);	return { m_Session, is_null ? 0 : pb_datetime }; }
 		template<> inline PBString		GetImpl<PBString	>(pblong* dim) const { pbboolean is_null = false; pbstring pb_string		= m_Session->GetStringArrayItem(m_Array, dim, is_null);		return { m_Session, is_null ? 0 : pb_string }; }
 		template<> inline PBBlob		GetImpl<PBBlob		>(pblong* dim) const { pbboolean is_null = false; pbblob pb_blob			= m_Session->GetBlobArrayItem(m_Array, dim, is_null);		return { m_Session, is_null ? 0 : pb_blob }; }
+		template<> inline PBAny 		GetImpl<PBAny		>(pblong* dim) const { pbboolean is_null = false; IPB_Value* pb_any			= m_Session->GetPBAnyArrayItem(m_Object, fid, is_null);		return { m_Session, pb_any }; }
 	};
 }
 

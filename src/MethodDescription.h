@@ -2,8 +2,8 @@
 
 #include <string>
 
+#include "PBAny.h"
 #include "Framework.h"
-#include "PBTypes.h"
 
 
 /**
@@ -68,7 +68,7 @@ namespace Inf
 		inline static void SetReference(IPB_Session* session, IPB_Value* value, const Arg& arg) {
 			if constexpr (std::is_reference_v<Arg>)
 			{
-				PBXRESULT res = Type<std::remove_reference_t<Arg>>::SetValue(session, value, arg);
+				PBXRESULT res = PBAny(session, value).Set<std::remove_reference_t<Arg>>(arg);
 				if (res != PBX_SUCCESS)
 					throw PBNI_PowerBuilderException(L"IPB_Value::Set<Type> for " + Type<std::remove_reference_t<Arg>>::GetPBName(L""), res);
 			}
@@ -148,8 +148,8 @@ namespace Inf
 
 			pbint i = 0;
 			([&] {
-				IPB_Value* value = ci->pArgs->GetAt(i);
-				if (!Type<std::remove_reference_t<Args>>::Assert(session, value) || std::is_reference_v<Args> != (value->IsByRef() != 0))
+				PBAny value(session, ci->pArgs->GetAt(i));
+				if (!value.Is<std::remove_reference_t<Args>>() || std::is_reference_v<Args> != (value.IsRef() != 0))
 					throw PBNI_IncorrectArgumentsException(object->GetPBName(), m_Description, i);
 			
 				i++;
@@ -157,7 +157,7 @@ namespace Inf
 
 			// Gathering arguments
 			i = 0;
-			std::tuple<Cls*, std::remove_reference_t<Args>...> args{ static_cast<Cls*>(object), Type<std::remove_reference_t<Args>>::FromArgument(session, ci->pArgs->GetAt(i++), false)... };
+			std::tuple<Cls*, std::remove_reference_t<Args>...> args{ static_cast<Cls*>(object), PBAny(session, ci->pArgs->GetAt(i++)).Get<std::remove_reference_t<Args>>(false)... };
 
 			if constexpr (std::is_void_v<Ret>)
 			{
@@ -165,7 +165,7 @@ namespace Inf
 			}
 			else
 			{
-				PBXRESULT res = Type<Ret>::Return(session, ci, std::apply(m_Method, args));
+				PBXRESULT res = PBAny(session, ci->returnValue).Set(std::apply(m_Method, args));
 
 				if (res != PBX_SUCCESS)
 					throw PBNI_PowerBuilderException(L"IPB_Value::Set<Type> for " + Type<Ret>::GetPBName(L""), res);

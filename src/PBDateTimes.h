@@ -1,6 +1,7 @@
 #pragma once
 
 #include <tuple>
+#include <chrono>
 
 #include "PBString.h"
 #include "AcquiredValue.h"
@@ -32,6 +33,15 @@ namespace Inf
 		PBTime(IPB_Session* session, pbint hours, pbint minutes, pbdouble seconds);
 
 		/**
+		 * Gets the Time from PowerBuilder and converts it to unix time.
+		 * 
+		 * \return	std::chrono time
+		 * 
+		 * \throw Inf::PBNI_NullPointerException	If Null
+		 * \throw Inf::PBNI_PowerBuilderException	If PowerBuilder function doesnt return PBX_SUCESS
+		 */
+		std::chrono::time_point<std::chrono::system_clock> GetChrono() const;
+		/**
 		 * Gets the Time from PowerBuilder.
 		 * 
 		 * \return	hours, minutes, seconds
@@ -60,9 +70,15 @@ namespace Inf
 		 */
 		void SetToNull();
 
+		/**
+		 * Retrieve the private PB Reference
+		 */
+		operator pbtime() const {
+			return m_Time;
+		}
+
 	private:
-		template <typename T>
-		friend struct Type;
+		friend class PBAny;
 		template <typename PBT, pblong... dims>
 			requires (sizeof...(dims) <= 3 && !std::is_reference_v<PBT> && !std::is_pointer_v<PBT>)
 		friend class PBArray;
@@ -101,6 +117,15 @@ namespace Inf
 		PBDate(IPB_Session* session, pbint years, pbint months, pbint days);
 
 		/**
+		 * Gets the Time from PowerBuilder and converts it to unix time.
+		 * 
+		 * \return	std::chrono time
+		 * 
+		 * \throw Inf::PBNI_NullPointerException	If Null
+		 * \throw Inf::PBNI_PowerBuilderException	If PowerBuilder function doesnt return PBX_SUCESS
+		 */
+		std::chrono::time_point<std::chrono::system_clock> GetChrono() const;
+		/**
 		 * Gets the Date from PowerBuilder.
 		 *
 		 * \return	years, months, days
@@ -129,9 +154,14 @@ namespace Inf
 		 */
 		void SetToNull();
 
+		/**
+		 * Retrieve the private PB Reference
+		 */
+		operator pbdate() const {
+			return m_Date;
+		}
 	private:
-		template <typename T>
-		friend struct Type;
+		friend class PBAny;
 		template <typename PBT, pblong... dims>
 			requires (sizeof...(dims) <= 3 && !std::is_reference_v<PBT> && !std::is_pointer_v<PBT>)
 		friend class PBArray;
@@ -173,6 +203,15 @@ namespace Inf
 		PBDateTime(IPB_Session* session, pbint years, pbint months, pbint days, pbint hours, pbint minutes, pbdouble seconds);
 
 		/**
+		 * Gets the Time from PowerBuilder and converts it to unix time.
+		 * 
+		 * \return	std::chrono time
+		 * 
+		 * \throw Inf::PBNI_NullPointerException	If Null
+		 * \throw Inf::PBNI_PowerBuilderException	If PowerBuilder function doesnt return PBX_SUCESS
+		 */
+		std::chrono::time_point<std::chrono::system_clock> GetChrono() const;
+		/**
 		 * Gets the DateTime from PowerBuilder.
 		 *
 		 * \return	years, months, days, hours, minutes, seconds
@@ -204,9 +243,14 @@ namespace Inf
 		 */
 		void SetToNull();
 
+		/**
+		 * Retrieve the private PB Reference
+		 */
+		operator pbdatetime() const {
+			return m_DateTime;
+		}
 	private:
-		template <typename T>
-		friend struct Type;
+		friend class PBAny;
 		template <typename PBT, pblong... dims>
 			requires (sizeof...(dims) <= 3 && !std::is_reference_v<PBT> && !std::is_pointer_v<PBT>)
 		friend class PBArray;

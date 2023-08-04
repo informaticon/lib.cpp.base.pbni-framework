@@ -112,9 +112,15 @@ namespace Inf
 		 * Sets the pbstring to Null.
 		 */
 		void SetToNull();
+
+		/**
+		 * Retrieve the private PB Reference
+		 */
+		operator pbstring() const {
+			return m_String;
+		}
 	private:
-		template <typename T>
-		friend struct Type;
+		friend class PBAny;
 		template <typename PBT, pblong... dims>
 			requires (sizeof...(dims) <= 3 && !std::is_reference_v<PBT> && !std::is_pointer_v<PBT>)
 		friend class PBArray;

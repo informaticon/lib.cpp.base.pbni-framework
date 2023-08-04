@@ -13,6 +13,19 @@ Inf::PBTime::PBTime(IPB_Session* session, pbint hours, pbint minutes, pbdouble s
 	SetTime(hours, minutes, seconds);
 }
 
+std::chrono::time_point<std::chrono::system_clock> Inf::PBTime::GetChrono() const
+{
+	auto [hour, min, sec] = GetTime();
+	std::tm time = {
+		.tm_min = min,
+		.tm_hour = hour
+	};
+
+	// Doing some weird stuff because we want subsecond precission
+	return std::chrono::system_clock::from_time_t(std::mktime(&time)) +
+		std::chrono::microseconds(static_cast<std::chrono::microseconds::rep>(sec * std::micro::den));
+}
+
 std::tuple<pbint, pbint, pbdouble> Inf::PBTime::GetTime() const
 {
 	if (IsNull())
@@ -81,6 +94,17 @@ Inf::PBDate::PBDate(IPB_Session * session, pbint years, pbint months, pbint days
 	SetDate(years, months, days);
 }
 
+std::chrono::time_point<std::chrono::system_clock> Inf::PBDate::GetChrono() const
+{
+	auto [year, mon, day] = GetDate();
+	std::tm time = {
+		.tm_mday = day,
+		.tm_mon = mon,
+		.tm_year = year
+	};
+	return std::chrono::system_clock::from_time_t(std::mktime(&time));
+}
+
 std::tuple<pbint, pbint, pbint> Inf::PBDate::GetDate() const
 {
 	if (IsNull())
@@ -146,6 +170,22 @@ Inf::PBDateTime::PBDateTime(IPB_Session* session, pbint years, pbint months, pbi
 	: m_Session(session), m_DateTime(0)
 {
 	SetDateTime(years, months, days, hours, minutes, seconds);
+}
+
+std::chrono::time_point<std::chrono::system_clock> Inf::PBDateTime::GetChrono() const
+{
+	auto [year, mon, day, hour, min, sec] = GetDateTime();
+	std::tm time = {
+		.tm_min = min,
+		.tm_hour = hour,
+		.tm_mday = day,
+		.tm_mon = mon,
+		.tm_year = year
+	};
+
+	// Doing some weird stuff because we want subsecond precission
+	return std::chrono::system_clock::from_time_t(std::mktime(&time)) +
+		std::chrono::microseconds(static_cast<std::chrono::microseconds::rep>(sec * std::micro::den));
 }
 
 std::tuple<pbint, pbint, pbint, pbint, pbint, pbdouble> Inf::PBDateTime::GetDateTime() const

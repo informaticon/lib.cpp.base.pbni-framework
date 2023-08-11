@@ -5,17 +5,17 @@
  * This Function will be called by PowerBuilder when you create a new Object of a Class that is defined in C++.
  * It will create a new Object on the Heap and return the Pointer to it.
  * 
- * \param pbSession		Current PowerBuilder Session
- * \param pbobj			The PowerBuilder reference to this
- * \param xtraName		The name of the Class
- * \param obj			The returned Object
- * \return				PBX_SUCESS if Object created, otherwise PBX_E_NO_SUCH_CLASS
+ * \param pbSession     Current PowerBuilder Session
+ * \param pbobj         The PowerBuilder reference to this
+ * \param xtraName      The name of the Class
+ * \param obj           The returned Object
+ * \return              PBX_SUCESS if Object created, otherwise PBX_E_NO_SUCH_CLASS
  */
 extern "C" PBXEXPORT PBXRESULT PBXCALL PBX_CreateNonVisualObject(IPB_Session* pbsession, pbobject pbobj, LPCTSTR xtraName, IPBX_NonVisualObject** obj)
 {
-	*obj = Inf::PBNI_Framework::GetInstance().CreateClass(xtraName, pbsession, pbobj);
+    *obj = Inf::PBNI_Framework::GetInstance().CreateClass(xtraName, pbsession, pbobj);
 
-	return *obj ? PBX_SUCCESS : PBX_E_NO_SUCH_CLASS;
+    return *obj ? PBX_SUCCESS : PBX_E_NO_SUCH_CLASS;
 };
 
 /**
@@ -26,5 +26,5 @@ extern "C" PBXEXPORT PBXRESULT PBXCALL PBX_CreateNonVisualObject(IPB_Session* pb
  */
 extern "C" PBXEXPORT LPCTSTR PBXCALL PBX_GetDescription()
 {
-	return Inf::PBNI_Framework::GetInstance().GetDescription().c_str();
+    return Inf::PBNI_Framework::GetInstance().GetDescription().c_str();
 }

@@ -7,7 +7,6 @@
 #include <boost/type_traits/has_nothrow_constructor.hpp>
 #include <boost/type_traits/has_nothrow_copy.hpp>
 
-#define NOMINMAX
 #include <pbext.h>
 
 #include "Errors.h"
@@ -15,8 +14,8 @@
 /**
  * Taken from <boost/serialization/strong_typedef.hpp>and slightly adapted to be able to set to null
  * 
- * \param T		Base Type
- * \param D		Derived Type
+ * \param T     Base Type
+ * \param D     Derived Type
  */
 #define INF_STRONG_TYPEDEF(T, D)                                                                                                                            \
 struct D                                                                                                                                                    \
@@ -42,107 +41,105 @@ private:                                                                        
 
 namespace Inf
 {
-	/**
-	 * Needed to add NEW custom types, otherwise(pbuint <->pbchar), (pbint <->pbboolean) would conflict, because they are both base type unsigned short or short.
-	 * INF_STRONG_TYPEDEF needs to be used because it creates a struct, that is almost equal to base type.
-	 * This way we were also able to add Nullability.
-	 */
+    /**
+     * Needed to add NEW custom types, otherwise(pbuint <->pbchar), (pbint <->pbboolean) would conflict, because they are both base type unsigned short or short.
+     * INF_STRONG_TYPEDEF needs to be used because it creates a struct, that is almost equal to base type.
+     * This way we were also able to add Nullability.
+     */
 
 
-	INF_STRONG_TYPEDEF(pbbyte, PBByte);
-	INF_STRONG_TYPEDEF(pbboolean, PBBoolean);
-	INF_STRONG_TYPEDEF(pbchar, PBChar);
+    INF_STRONG_TYPEDEF(pbbyte, PBByte);
+    INF_STRONG_TYPEDEF(pbboolean, PBBoolean);
+    INF_STRONG_TYPEDEF(pbchar, PBChar);
 
-	INF_STRONG_TYPEDEF(pbint, PBInt);
-	INF_STRONG_TYPEDEF(pbuint, PBUint);
-	INF_STRONG_TYPEDEF(pblong, PBLong);
-	INF_STRONG_TYPEDEF(pbulong, PBUlong);
-	INF_STRONG_TYPEDEF(pblonglong, PBLongLong);
+    INF_STRONG_TYPEDEF(pbint, PBInt);
+    INF_STRONG_TYPEDEF(pbuint, PBUint);
+    INF_STRONG_TYPEDEF(pblong, PBLong);
+    INF_STRONG_TYPEDEF(pbulong, PBUlong);
+    INF_STRONG_TYPEDEF(pblonglong, PBLongLong);
 
-	INF_STRONG_TYPEDEF(pbreal, PBReal);
-	INF_STRONG_TYPEDEF(pbdouble, PBDouble);
-	using PBFloat = PBReal;
+    INF_STRONG_TYPEDEF(pbreal, PBReal);
+    INF_STRONG_TYPEDEF(pbdouble, PBDouble);
+    using PBFloat = PBReal;
 
-	// Decimals aren't natively supported in C++/std, so we use boost
-	// Power builder decimals are max 30 digits long (excluding - and .) Boost decimals are weird 8 -> 32 digits
-	namespace Helper
-	{
-		/**
-		 * Since decimals arent natively supported, we use boost.
-		 * PowerBuilder decimals are 30 Digits max (excluding - and .) cpp_dec_float<8> has a precission of 32 digits.
-		 * If the Number gets too big, it will set to 0.
-		 */
-		using PBDecimalImpl = boost::multiprecision::number<boost::multiprecision::cpp_dec_float<8>>;
-	};
+    namespace Helper
+    {
+        /**
+         * Since decimals arent natively supported, we use boost.
+         * PowerBuilder decimals are 30 Digits max (excluding - and .) cpp_dec_float<8> has a precission of 32 digits.
+         * If the Number gets too big, it will set to 0.
+         */
+        using PBDecimalImpl = boost::multiprecision::number<boost::multiprecision::cpp_dec_float<8>>;
+    };
 
 
-	/**
-	 * Small Wrapper for pbdec.
-	 */
-	class PBDecimal
-	{
-	public:
-		/**
-		 * Creates a Wrapper to an already existing pbdec.
-		 * Will be Null if dec is 0.
-		 *
-		 * \param session	Current session
-		 * \param dec		The exsiting pbdec or 0
-		 */
-		PBDecimal(IPB_Session* session, pbdec dec);
-		/**
-		 * Creates a new pbdec.
-		 *
-		 * \param session	Current Session
-		 * \param value		The Decimal to copy
-		 */
-		PBDecimal(IPB_Session* session, const Helper::PBDecimalImpl& value);
+    /**
+     * Small Wrapper for pbdec.
+     */
+    class PBDecimal
+    {
+    public:
+        /**
+         * Creates a Wrapper to an already existing pbdec.
+         * Will be Null if dec is 0.
+         *
+         * \param session   Current session
+         * \param dec       The exsiting pbdec or 0
+         */
+        PBDecimal(IPB_Session* session, pbdec dec);
+        /**
+         * Creates a new pbdec.
+         *
+         * \param session   Current Session
+         * \param value     The Decimal to copy
+         */
+        PBDecimal(IPB_Session* session, const Helper::PBDecimalImpl& value);
 
-		/**
-		 * Copies the Decimal string to PowerBuilder, crates a new Decimal if Null.
-		 *
-		 * \param value		The Decimal to copy
-		 */
-		void SetDecimal(const Helper::PBDecimalImpl& value);
-		/**
-		 * Copies the Decimal from PowerBuilder.
-		 *
-		 * \return	Boost Decimal
-		 *
-		 * \throw Inf::PBNI_NullPointerException if Null
-		 */
-		Helper::PBDecimalImpl GetDecimal() const;
+        /**
+         * Copies the Decimal string to PowerBuilder, crates a new Decimal if Null.
+         *
+         * \param value     The Decimal to copy
+         */
+        void SetDecimal(const Helper::PBDecimalImpl& value);
+        /**
+         * Copies the Decimal from PowerBuilder.
+         *
+         * \return  Boost Decimal
+         *
+         * \throw Inf::PBNI_NullPointerException if Null
+         */
+        Helper::PBDecimalImpl GetDecimal() const;
 
-		/**
-		 * Checks whether pbdec is Null.
-		 *
-		 * \return Is Null
-		 */
-		bool IsNull() const;
-		/**
-		 * Sets pbdec to Null.
-		 */
-		void SetToNull();
-		
-		/**
-		 * Retrieve the private PB Reference
-		 */
-		operator pbdec() const {
-			return m_Decimal;
-		}
+        /**
+         * Checks whether pbdec is Null.
+         *
+         * \return Is Null
+         */
+        bool IsNull() const;
+        /**
+         * Sets pbdec to Null.
+         */
+        void SetToNull();
+        
+        /**
+         * Retrieve the private PB Reference
+         */
+        operator pbdec() const {
+            return m_Decimal;
+        }
 
-	private:
-		friend class PBAny;
-		template <typename PBT, pblong... dims>
-			requires (sizeof...(dims) <= 3 && !std::is_reference_v<PBT> && !std::is_pointer_v<PBT>)
-		friend class PBArray;
-		template <Helper::FixedString class_id, pbgroup_type group_type>
-		friend class PBObject;
+    private:
+        friend class PBAny;
+        template <typename PBT, pblong... dims>
+            requires (sizeof...(dims) <= 3 && !std::is_reference_v<PBT> && !std::is_pointer_v<PBT>)
+        friend class PBArray;
+        template <Helper::FixedString class_id, pbgroup_type group_type>
+        friend class PBObject;
 
-		pbdec m_Decimal;
-		IPB_Session* m_Session;
-		std::shared_ptr<Helper::AcquiredValue> m_AcquiredValue;
+        pbdec m_Decimal;
+        IPB_Session* m_Session;
+        std::shared_ptr<Helper::AcquiredValue> m_AcquiredValue;
 
-		PBDecimal(IPB_Session* session, IPB_Value* value, bool acquire);
-	};
+        PBDecimal(IPB_Session* session, IPB_Value* value, bool acquire);
+    };
 }

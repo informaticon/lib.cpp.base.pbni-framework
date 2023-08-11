@@ -31,6 +31,7 @@ set(src
 	src/Errors.h
 	src/AcquiredValue.h
 	src/PBEntry.cpp
+	src/Helper.h
 )
 
 set(descriptions

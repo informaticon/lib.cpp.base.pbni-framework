@@ -78,6 +78,7 @@ namespace Inf
         }
 
     private:
+        friend class Helper::PBValue;
         friend class PBAny;
         template <typename PBT, pblong... dims>
             requires (sizeof...(dims) <= 3 && !std::is_reference_v<PBT> && !std::is_pointer_v<PBT>)
@@ -161,6 +162,7 @@ namespace Inf
             return m_Date;
         }
     private:
+        friend class Helper::PBValue;
         friend class PBAny;
         template <typename PBT, pblong... dims>
             requires (sizeof...(dims) <= 3 && !std::is_reference_v<PBT> && !std::is_pointer_v<PBT>)
@@ -250,6 +252,7 @@ namespace Inf
             return m_DateTime;
         }
     private:
+        friend class Helper::PBValue;
         friend class PBAny;
         template <typename PBT, pblong... dims>
             requires (sizeof...(dims) <= 3 && !std::is_reference_v<PBT> && !std::is_pointer_v<PBT>)

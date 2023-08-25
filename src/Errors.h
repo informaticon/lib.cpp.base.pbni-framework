@@ -43,7 +43,7 @@ namespace Inf
          * 
          * \return The First error
          */
-        virtual const char* what() const _GLIBCXX_NOTHROW override
+        virtual const char* what() const noexcept override
         {
             m_What = ConvertString<std::string>( (*m_KeyValueStore.begin()).second );
             return m_What.c_str();

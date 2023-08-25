@@ -32,6 +32,7 @@ set(src
 	src/AcquiredValue.h
 	src/PBEntry.cpp
 	src/Helper.h
+	src/PBValue.h
 )
 
 set(descriptions
@@ -51,6 +52,7 @@ set(types
 	src/PBObjects.h
 	src/PBString.cpp
 	src/PBString.h
+	src/PBAny.cpp
 	src/PBAny.h
 )
 
@@ -95,15 +97,6 @@ if (NOT MINGW)
 			MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
 		)
 	endif()
-
-	# TODO: remove? since object library
-	# Visual C++ Linker doesn't include Functions from a Static Library in a DLL, even if they are declared using dllexport
-	# This forces the Linker to include the Functions, and export them if they have dllexport.
-	target_link_options(libPBNIFramework
-	INTERFACE
-		/INCLUDE:"_PBX_GetDescription@0"
-		/INCLUDE:"_PBX_CreateNonVisualObject@16"
-	)
 endif()
 
 target_compile_definitions(libPBNIFramework

@@ -402,6 +402,7 @@ namespace Inf
         }
 
     private:
+        friend struct Helper::PBValue;
         friend PBAny;
 
         IPB_Session* m_Session;
@@ -436,6 +437,12 @@ namespace Inf
                     m_Array = value->GetArray();
                 }
             }
+
+            if constexpr (sizeof...(dims) != 0)
+            {
+                m_ArrayInfo = std::shared_ptr<PBArrayInfo>(m_Session->GetArrayInfo(m_Array), [=](PBArrayInfo* info) { m_Session->ReleaseArrayInfo(info); });
+            }
+
         }
 
         /**

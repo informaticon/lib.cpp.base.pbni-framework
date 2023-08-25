@@ -22,6 +22,8 @@ namespace Inf
 
             wchar_t data[N];
         };
+
+        class PBValue;
     }
 
     class PBAny;

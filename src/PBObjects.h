@@ -185,8 +185,8 @@ namespace Inf
 
             pbint i = 0;
             ([&] {
-                PBAny value(m_Session, ci.pArgs->GetAt(i));
-                if (value.GetType() != Type<PBAny>::PBType && !value.Is<std::remove_reference_t<Args>>())
+                Helper::PBValue value(m_Session, ci.pArgs->GetAt(i));
+                if (ci.pArgs->GetAt(i)->GetType() != Type<PBAny>::PBType && !value.Is<std::remove_reference_t<Args>>())
                     throw PBNI_IncorrectArgumentsException(class_id.data, method_name + L"(" + pbsig + L")", i);
                 i++;
             }(), ...);
@@ -194,7 +194,7 @@ namespace Inf
 
             // Argument Gathering
             i = 0;
-            (PBAny(m_Session, ci.pArgs->GetAt(i++)).Set<std::remove_reference_t<Args>>(args), ...);
+            (Helper::PBValue(m_Session, ci.pArgs->GetAt(i++)).Set<std::remove_reference_t<Args>>(args), ...);
 
             PBXRESULT res = m_Session->InvokeObjectFunction(m_Object, mid, &ci);
 
@@ -213,7 +213,7 @@ namespace Inf
                     if (ci.pArgs->GetAt(i)->IsByRef())
                     {
                         // We need to acquire the value, so it doesnt get freed by FreeCallInfo.
-                        args = PBAny(m_Session, ci.pArgs->GetAt(i)).Get<std::remove_reference_t<Args>>(true);
+                        args = Helper::PBValue(m_Session, ci.pArgs->GetAt(i)).Get<std::remove_reference_t<Args>>(true);
                     }
                 }
                 i++;
@@ -226,7 +226,7 @@ namespace Inf
             else
             {
                 // We need to acquire the value, so it doesnt get freed by FreeCallInfo.
-                Ret ret = PBAny(m_Session, ci.returnValue).Get<Ret>(true);
+                Ret ret = Helper::PBValue(m_Session, ci.returnValue).Get<Ret>(true);
 
                 m_Session->FreeCallInfo(&ci);
                 return ret;
@@ -294,7 +294,7 @@ namespace Inf
                 }
                 else
                 {
-                    result = SetFieldImpl<Field>(fid, value);
+                    result = SetFieldImpl(fid, value);
                 }
             }
 
@@ -320,8 +320,12 @@ namespace Inf
         {
             pbfieldID fid = GetFieldId(field_name);
 
+            bool isarray = m_Session->IsFieldArray(PBClass(m_Session), fid);
+            bool isobject = m_Session->IsFieldObject(PBClass(m_Session), fid);
+            auto fieldtype = m_Session->GetFieldType(PBClass(m_Session), fid);
+
             if constexpr (Helper::is_pb_array_v<Field>)
-            {
+                {
                 if (!m_Session->IsFieldArray(PBClass(m_Session), fid))
                     throw PBNI_IncorrectArgumentsException(class_id.data, field_name);
 
@@ -343,7 +347,7 @@ namespace Inf
             else
             {
                 pbuint field_type = m_Session->GetFieldType(PBClass(m_Session), fid);
-                if (field_type != Type<Field>::PBType && field_type != pbvalue_any)
+                if (field_type != Type<Field>::PBType)
                     throw PBNI_IncorrectArgumentsException(class_id.data, field_name);
 
                 return GetFieldImpl(Type<Field>(), fid);
@@ -417,6 +421,8 @@ namespace Inf
             return m_Object;
         }
     private:
+        friend struct Helper::PBValue;
+        friend struct PBAny;
         template <typename T>
         friend struct Type;
         template <typename PBT, pblong... dims>
@@ -524,44 +530,41 @@ namespace Inf
 
 
         // Visual studio always messes up the nice formatting here, idk if this does anything, but its my last hope
-        inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBByte t)        { return m_Session->SetByteField(m_Object, fid, t); }
-        inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBBoolean t)     { return m_Session->SetCharField(m_Object, fid, t); }
-        inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBChar t)        { return m_Session->SetCharField(m_Object, fid, t); }
-        inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBInt t)         { return m_Session->SetIntField(m_Object, fid, t); }
-        inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBUint t)        { return m_Session->SetUintField(m_Object, fid, t); }
-        inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBLong t)        { return m_Session->SetLongField(m_Object, fid, t); }
-        inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBUlong t)       { return m_Session->SetUlongField(m_Object, fid, t); }
-        inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBLongLong t)    { return m_Session->SetLongLongField(m_Object, fid, t); }
-        inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBReal t)        { return m_Session->SetRealField(m_Object, fid, t); }
-        inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBDouble t)      { return m_Session->SetDoubleField(m_Object, fid, t); }
-        inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBDecimal t)     { return m_Session->SetDecField(m_Object, fid, t.m_Decimal); }
-        inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBTime t)        { return m_Session->SetTimeField(m_Object, fid, t.m_Time); }
-        inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBDate t)        { return m_Session->SetDateField(m_Object, fid, t.m_Date); }
-        inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBDateTime t)    { return m_Session->SetDateTimeField(m_Object, fid, t.m_DateTime); }
-        inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBString t)      { return m_Session->SetPBStringField(m_Object, fid, t.m_String); }
-        inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBBlob t)        { return m_Session->SetBlobField(m_Object, fid, t.m_Blob); }
+        inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBByte&     t) { return m_Session->SetByteField(m_Object, fid, t); }
+        inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBBoolean&  t) { return m_Session->SetCharField(m_Object, fid, t); }
+        inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBChar&     t) { return m_Session->SetCharField(m_Object, fid, t); }
+        inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBInt&      t) { return m_Session->SetIntField(m_Object, fid, t); }
+        inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBUint&     t) { return m_Session->SetUintField(m_Object, fid, t); }
+        inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBLong&     t) { return m_Session->SetLongField(m_Object, fid, t); }
+        inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBUlong&    t) { return m_Session->SetUlongField(m_Object, fid, t); }
+        inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBLongLong& t) { return m_Session->SetLongLongField(m_Object, fid, t); }
+        inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBReal&     t) { return m_Session->SetRealField(m_Object, fid, t); }
+        inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBDouble&   t) { return m_Session->SetDoubleField(m_Object, fid, t); }
+        inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBDecimal&  t) { return m_Session->SetDecField(m_Object, fid, t.m_Decimal); }
+        inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBTime&     t) { return m_Session->SetTimeField(m_Object, fid, t.m_Time); }
+        inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBDate&     t) { return m_Session->SetDateField(m_Object, fid, t.m_Date); }
+        inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBDateTime& t) { return m_Session->SetDateTimeField(m_Object, fid, t.m_DateTime); }
+        inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBString&   t) { return m_Session->SetPBStringField(m_Object, fid, t.m_String); }
+        inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBBlob&     t) { return m_Session->SetBlobField(m_Object, fid, t.m_Blob); }
+        inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBAny&      t) { pbboolean is_null; return t.ToValue(m_Session->GetPBAnyField(m_Object, fid, is_null)); }
 
-        inline PBByte       GetFieldImpl(Type<PBByte>,     pbfieldID fid) const { pbboolean is_null = false; pbbyte pb_byte         = m_Session->GetByteField(m_Object, fid, is_null);      return is_null ? PBByte()       : PBByte(pb_byte); }
-        inline PBBoolean    GetFieldImpl(Type<PBBoolean>,  pbfieldID fid) const { pbboolean is_null = false; pbboolean pb_boolean   = m_Session->GetCharField(m_Object, fid, is_null);      return is_null ? PBBoolean()    : PBBoolean(pb_boolean); }
-        inline PBChar       GetFieldImpl(Type<PBChar>,     pbfieldID fid) const { pbboolean is_null = false; pbchar pb_char         = m_Session->GetCharField(m_Object, fid, is_null);      return is_null ? PBChar()       : PBChar(pb_char); }
-        inline PBInt        GetFieldImpl(Type<PBInt>,      pbfieldID fid) const { pbboolean is_null = false; pbint pb_int           = m_Session->GetIntField(m_Object, fid, is_null);       return is_null ? PBInt()        : PBInt(pb_int); }
-        inline PBUint       GetFieldImpl(Type<PBUint>,     pbfieldID fid) const { pbboolean is_null = false; pbuint pb_uint         = m_Session->GetUintField(m_Object, fid, is_null);      return is_null ? PBUint()       : PBUint(pb_uint); }
-        inline PBLong       GetFieldImpl(Type<PBLong>,     pbfieldID fid) const { pbboolean is_null = false; pblong pb_long         = m_Session->GetLongField(m_Object, fid, is_null);      return is_null ? PBLong()       : PBLong(pb_long); }
-        inline PBUlong      GetFieldImpl(Type<PBUlong>,    pbfieldID fid) const { pbboolean is_null = false; pbulong pb_ulong       = m_Session->GetUlongField(m_Object, fid, is_null);     return is_null ? PBUlong()      : PBUlong(pb_ulong); }
-        inline PBLongLong   GetFieldImpl(Type<PBLongLong>, pbfieldID fid) const { pbboolean is_null = false; pblonglong pb_longlong = m_Session->GetLongLongField(m_Object, fid, is_null);  return is_null ? PBLongLong()   : PBLongLong(pb_longlong); }
-        inline PBReal       GetFieldImpl(Type<PBReal>,     pbfieldID fid) const { pbboolean is_null = false; pbreal pb_real         = m_Session->GetRealField(m_Object, fid, is_null);      return is_null ? PBReal()       : PBReal(pb_real); }
-        inline PBDouble     GetFieldImpl(Type<PBDouble>,   pbfieldID fid) const { pbboolean is_null = false; pbdouble pb_double     = m_Session->GetDoubleField(m_Object, fid, is_null);    return is_null ? PBDouble()     : PBDouble(pb_double); }
-        inline PBDecimal    GetFieldImpl(Type<PBDecimal>,  pbfieldID fid) const { pbboolean is_null = false; pbdec pb_dec           = m_Session->GetDecField(m_Object, fid, is_null);       return { m_Session, is_null ? 0 : pb_dec }; }
-        inline PBTime       GetFieldImpl(Type<PBTime>,     pbfieldID fid) const { pbboolean is_null = false; pbtime pb_time         = m_Session->GetTimeField(m_Object, fid, is_null);      return { m_Session, is_null ? 0 : pb_time }; }
-        inline PBDate       GetFieldImpl(Type<PBDate>,     pbfieldID fid) const { pbboolean is_null = false; pbdate pb_date         = m_Session->GetDateField(m_Object, fid, is_null);      return { m_Session, is_null ? 0 : pb_date }; }
-        inline PBDateTime   GetFieldImpl(Type<PBDateTime>, pbfieldID fid) const { pbboolean is_null = false; pbdatetime pb_datetime = m_Session->GetDateTimeField(m_Object, fid, is_null);  return { m_Session, is_null ? 0 : pb_datetime }; }
-        inline PBString     GetFieldImpl(Type<PBString>,   pbfieldID fid) const { pbboolean is_null = false; pbstring pb_string     = m_Session->GetStringField(m_Object, fid, is_null);    return { m_Session, is_null ? 0 : pb_string }; }
-
-        inline PBBlob       GetFieldImpl(Type<PBBlob> _,     pbfieldID fid) const {
-            pbboolean is_null = false;
-            pbblob pb_blob          = m_Session->GetBlobField(m_Object, fid, is_null);
-            return { m_Session, is_null ? 0 : pb_blob };
-        }
+        inline PBByte       GetFieldImpl(Type<PBByte>,     pbfieldID fid) const { pbboolean is_null = false; pbbyte pb_byte         = m_Session->GetByteField(m_Object, fid, is_null);     return is_null ? PBByte()       : PBByte(pb_byte); }
+        inline PBBoolean    GetFieldImpl(Type<PBBoolean>,  pbfieldID fid) const { pbboolean is_null = false; pbboolean pb_boolean   = m_Session->GetCharField(m_Object, fid, is_null);     return is_null ? PBBoolean()    : PBBoolean(pb_boolean); }
+        inline PBChar       GetFieldImpl(Type<PBChar>,     pbfieldID fid) const { pbboolean is_null = false; pbchar pb_char         = m_Session->GetCharField(m_Object, fid, is_null);     return is_null ? PBChar()       : PBChar(pb_char); }
+        inline PBInt        GetFieldImpl(Type<PBInt>,      pbfieldID fid) const { pbboolean is_null = false; pbint pb_int           = m_Session->GetIntField(m_Object, fid, is_null);      return is_null ? PBInt()        : PBInt(pb_int); }
+        inline PBUint       GetFieldImpl(Type<PBUint>,     pbfieldID fid) const { pbboolean is_null = false; pbuint pb_uint         = m_Session->GetUintField(m_Object, fid, is_null);     return is_null ? PBUint()       : PBUint(pb_uint); }
+        inline PBLong       GetFieldImpl(Type<PBLong>,     pbfieldID fid) const { pbboolean is_null = false; pblong pb_long         = m_Session->GetLongField(m_Object, fid, is_null);     return is_null ? PBLong()       : PBLong(pb_long); }
+        inline PBUlong      GetFieldImpl(Type<PBUlong>,    pbfieldID fid) const { pbboolean is_null = false; pbulong pb_ulong       = m_Session->GetUlongField(m_Object, fid, is_null);    return is_null ? PBUlong()      : PBUlong(pb_ulong); }
+        inline PBLongLong   GetFieldImpl(Type<PBLongLong>, pbfieldID fid) const { pbboolean is_null = false; pblonglong pb_longlong = m_Session->GetLongLongField(m_Object, fid, is_null); return is_null ? PBLongLong()   : PBLongLong(pb_longlong); }
+        inline PBReal       GetFieldImpl(Type<PBReal>,     pbfieldID fid) const { pbboolean is_null = false; pbreal pb_real         = m_Session->GetRealField(m_Object, fid, is_null);     return is_null ? PBReal()       : PBReal(pb_real); }
+        inline PBDouble     GetFieldImpl(Type<PBDouble>,   pbfieldID fid) const { pbboolean is_null = false; pbdouble pb_double     = m_Session->GetDoubleField(m_Object, fid, is_null);   return is_null ? PBDouble()     : PBDouble(pb_double); }
+        inline PBDecimal    GetFieldImpl(Type<PBDecimal>,  pbfieldID fid) const { pbboolean is_null = false; pbdec pb_dec           = m_Session->GetDecField(m_Object, fid, is_null);      return { m_Session, is_null ? 0 : pb_dec }; }
+        inline PBTime       GetFieldImpl(Type<PBTime>,     pbfieldID fid) const { pbboolean is_null = false; pbtime pb_time         = m_Session->GetTimeField(m_Object, fid, is_null);     return { m_Session, is_null ? 0 : pb_time }; }
+        inline PBDate       GetFieldImpl(Type<PBDate>,     pbfieldID fid) const { pbboolean is_null = false; pbdate pb_date         = m_Session->GetDateField(m_Object, fid, is_null);     return { m_Session, is_null ? 0 : pb_date }; }
+        inline PBDateTime   GetFieldImpl(Type<PBDateTime>, pbfieldID fid) const { pbboolean is_null = false; pbdatetime pb_datetime = m_Session->GetDateTimeField(m_Object, fid, is_null); return { m_Session, is_null ? 0 : pb_datetime }; }
+        inline PBString     GetFieldImpl(Type<PBString>,   pbfieldID fid) const { pbboolean is_null = false; pbstring pb_string     = m_Session->GetStringField(m_Object, fid, is_null);   return { m_Session, is_null ? 0 : pb_string }; }
+        inline PBBlob       GetFieldImpl(Type<PBBlob>,     pbfieldID fid) const { pbboolean is_null = false; pbblob pb_blob         = m_Session->GetBlobField(m_Object, fid, is_null);     return { m_Session, is_null ? 0 : pb_blob }; }
+        inline PBAny        GetFieldImpl(Type<PBAny>,      pbfieldID fid) const { pbboolean is_null = false; IPB_Value* pb_any      = m_Session->GetPBAnyField(m_Object, fid, is_null);    return { m_Session, is_null ? 0 : pb_any, false }; }
         // clang-format on
     };
 

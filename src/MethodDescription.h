@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include "PBAny.h"
+#include "PBValue.h"
 #include "Framework.h"
 
 
@@ -68,7 +68,7 @@ namespace Inf
         inline static void SetReference(IPB_Session* session, IPB_Value* value, const Arg& arg) {
             if constexpr (std::is_reference_v<Arg>)
             {
-                PBXRESULT res = PBAny(session, value).Set<std::remove_reference_t<Arg>>(arg);
+                PBXRESULT res = Helper::PBValue(session, value).Set<std::remove_reference_t<Arg>>(arg);
                 if (res != PBX_SUCCESS)
                     throw PBNI_PowerBuilderException(L"IPB_Value::Set<Type> for " + Type<std::remove_reference_t<Arg>>::GetPBName(L""), res);
             }
@@ -148,8 +148,8 @@ namespace Inf
 
             pbint i = 0;
             ([&] {
-                PBAny value(session, ci->pArgs->GetAt(i));
-                if (!value.Is<std::remove_reference_t<Args>>() || std::is_reference_v<Args> != (value.IsRef() != 0))
+                Helper::PBValue value(session, ci->pArgs->GetAt(i));
+                if (!value.Is<std::remove_reference_t<Args>>() || std::is_reference_v<Args> != (ci->pArgs->GetAt(i)->IsByRef() != 0))
                     throw PBNI_IncorrectArgumentsException(object->GetPBName(), m_Description, i);
             
                 i++;
@@ -157,7 +157,7 @@ namespace Inf
 
             // Gathering arguments
             i = 0;
-            std::tuple<Cls*, std::remove_reference_t<Args>...> args{ static_cast<Cls*>(object), PBAny(session, ci->pArgs->GetAt(i++)).Get<std::remove_reference_t<Args>>(false)... };
+            std::tuple<Cls*, std::remove_reference_t<Args>...> args{ static_cast<Cls*>(object), Helper::PBValue(session, ci->pArgs->GetAt(i++)).Get<std::remove_reference_t<Args>>(false)... };
 
             if constexpr (std::is_void_v<Ret>)
             {
@@ -165,7 +165,7 @@ namespace Inf
             }
             else
             {
-                PBXRESULT res = PBAny(session, ci->returnValue).Set(std::apply(m_Method, args));
+                PBXRESULT res = Helper::PBValue(session, ci->returnValue).Set(std::apply(m_Method, args));
 
                 if (res != PBX_SUCCESS)
                     throw PBNI_PowerBuilderException(L"IPB_Value::Set<Type> for " + Type<Ret>::GetPBName(L""), res);

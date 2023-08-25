@@ -1,7 +1,9 @@
 #pragma once
 
+#include <any>
+
 #include "Helper.h"
-#include "PBTypes.h"
+#include "PBValue.h"
 
 
 namespace Inf
@@ -11,55 +13,102 @@ namespace Inf
      */
     class PBAny {
     public:
+        enum AnyType : pbuint
+        {
+            Notype = pbvalue_notype,
+            Int = pbvalue_int,
+            Long = pbvalue_long,
+            Real = pbvalue_real,
+            Double = pbvalue_double,
+            Dec = pbvalue_dec,
+            String = pbvalue_string,
+            Boolean = pbvalue_boolean,
+            Uint = pbvalue_uint,
+            Ulong = pbvalue_ulong,
+            Blob = pbvalue_blob,
+            Date = pbvalue_date,
+            Time = pbvalue_time,
+            DateTime = pbvalue_datetime,
+            Char = pbvalue_char,
+            Longlong = pbvalue_longlong,
+            Byte = pbvalue_byte,
+        
+            Null = 200,
+            Object = 201
+        };
+
         /**
-         * Creates a Wrapper to an already existing pbtime.
-         * Will be Null if time is 0.
+         * Creates a PBAny holding Null
+         * 
+         * \param session   Current session
+         */
+        PBAny(IPB_Session* session)
+            : m_Session(session), m_Type(AnyType::Null)
+        { }
+
+        /**
+         * Creates a PBAny holding the specified value
+         * 
+         * \param session   Current session
+         * \param t         The thing that PBAny will be
+         */
+        template<typename T>
+        PBAny(IPB_Session* session, const T& t)
+            : PBAny(session)
+        {
+            Set(t);
+        }
+        
+        /**
+         * Creates a Wrapper to an already existing IPB_Value.
+         * Will be Null if value is 0.
          * 
          * \param session   Current session
          * \param value     A value
          */
-        PBAny(IPB_Session* session, IPB_Value* value)
-            : m_Session(session), m_Value(value)
-        { }
+        PBAny(IPB_Session* session, IPB_Value* value, bool acquire);
+
 
         /**
-         * Checks whether the pbtime is Null
+         * Writes the PBAny to an IPB_Value*
+         * 
+         * \param value     The value to be written to
+         */
+        PBXRESULT ToValue(IPB_Value* value) const;
+
+        /**
+         * Checks whether the pbany is Null
          */
         bool IsNull() const
         {
-            return m_Value->IsNull();
+            return m_Type == AnyType::Null;
         }
+
         /**
-         * Sets the pbtime to Null.
+         * Sets itself to Null and releases the stored variable
          */
         void SetToNull()
         {
-            m_Value->SetToNull();
-        }
-
-        /**
-         * Check if the type is a reference
-         */
-        bool IsRef()
-        {
-            return m_Value->IsByRef();
-        }
-
-        /**
-         * Check if the type is a readonly
-         */
-        bool IsReadOnly()
-        {
-            return m_Value->IsReadOnly();
+            m_Value.reset();
+            m_IsArray = false;
+            m_Type = AnyType::Null;
         }
 
         /**
          * Returns the type of the IPB_Value
-         * To compare you can use Inf::Type<PBInt>::PBType
+         * To compare to a Type you can use Inf::Type<PBInt>::PBType
          */
-        pbuint GetType()
+        AnyType GetType() const
         {
-            return m_Value->GetType();
+            return m_Type;
+        }
+        
+        /**
+         * Returns whether the PBAny is holding an array
+         */
+        bool IsArray() const
+        {
+            return m_IsArray;
         }
 
         /**
@@ -68,76 +117,23 @@ namespace Inf
          * \return          true if its okay to convert, false otherwise.
          */
         template <typename T>
-        bool Is() {
-            if constexpr (std::is_same_v<PBAny, T>)
-            {
-                return true;
-            }
+        bool Is() const
+        {
             if constexpr (Helper::is_pb_array_v<T>)
             {
-                if (!m_Value->IsArray())
+                if (!m_IsArray)
                     return false;
-                if (m_Value->IsNull())
-                    return true;
-
-                bool is_correct = false;
-
-                PBArrayInfo* info = m_Session->GetArrayInfo(m_Value->GetArray());
             
                 using ItemType = T::_Item;
                 if constexpr (Helper::is_pb_object_v<ItemType>)
-                {
-                    if constexpr (T::_dims.size() == 0)
-                    {
-                        is_correct = info->arrayType == info->UnboundedArray && info->itemGroup != 0;
-                    }
-                    else
-                    {
-                        is_correct = \
-                            info->arrayType == info->BoundedArray && \
-                            info->itemGroup != 0 && \
-                            info->numDimensions == T::_dims.size();
-
-                        for (uint8_t i = 0; i < T::_dims.size(); i++)
-                            is_correct = is_correct && info->bounds[i].upperBound - info->bounds[i++].lowerBound == T::_dims[i];
-                    }
-                }
+                    return m_Type == AnyType::Object && m_Class == ItemType::PBClass(m_Session);
                 else
-                {
-
-                    if constexpr (T::_dims.size() == 0)
-                    {
-                        is_correct = info->arrayType == info->UnboundedArray && info->valueType == Type<ItemType>::PBType;
-                    }
-                    else
-                    {
-                        is_correct = \
-                            info->arrayType == info->BoundedArray && \
-                            info->valueType == Type<ItemType>::PBType && \
-                            info->numDimensions == T::_dims.size();
-                            
-                        for (uint8_t i = 0; i < T::_dims.size(); i++)
-                            is_correct = is_correct && info->bounds[i].upperBound - info->bounds[i++].lowerBound == T::_dims[i];
-                    }
-                }
-
-                m_Session->ReleaseArrayInfo(info);
-                return is_correct;
+                    return m_Type == (AnyType) Type<ItemType>::PBType;
             }
             else if constexpr (Helper::is_pb_object_v<T>)
-            {
-                if (!m_Value->IsObject())
-                    return false;
-                if (m_Value->IsNull())
-                    return true;
-                
-                // TODO works?
-                return m_Value->GetClass() == T::PBClass(m_Session);
-            }
+                return m_Type == AnyType::Object && m_Class == T::PBClass(m_Session);
             else
-            {
-                return m_Value->GetType() == Type<T>::PBType;
-            }
+                return m_Type == (AnyType) Type<T>::PBType;
         }
 
         /**
@@ -147,20 +143,21 @@ namespace Inf
          * \return          The returned Type
          */
         template <typename T>
-        inline T Get(bool acquire = false)
+        inline T Get()
         {
+            if (!Is<T>())
+                throw Inf::PBNI_Exception(L"Tried to cast a PBAny to the wrong Type");
+            
             if constexpr (Helper::is_pb_array_v<T>)
-            {
-                return { m_Session, m_Value, acquire };
-            }
+                return { m_Session, IsNull() ? 0 : (pbarray) std::any_cast<PBArray<PBAny>>(m_Value) };
             else if constexpr (Helper::is_pb_object_v<T>)
-            {
-                // TODO acquire
-                return { m_Session, m_Value->GetObject() };
-            }
+                return { m_Session, IsNull() ? 0 : (pbobject) std::any_cast<PBObject<L"">>(m_Value) };
             else
             {
-                return GetImpl(Type<T>(), acquire);
+                if (IsNull())
+                    return GetNulled(Type<T>());
+
+                return std::any_cast<T>(m_Value);
             }
         }
 
@@ -170,24 +167,39 @@ namespace Inf
          * \param t         Type to set Value to
          */
         template <typename T>
-        inline PBXRESULT Set(const T& t)
+        inline void Set(const T& t)
         {
             if (t.IsNull())
-                return m_Value->SetToNull();
+            {
+                m_Type = AnyType::Null;
+                m_Value.reset();
+                return;
+            }
 
+            m_IsArray = false;
             if constexpr (Helper::is_pb_array_v<T>)
             {
-                return m_Value->SetArray(t);
+                m_IsArray = true;
+                m_Value = PBArray<PBAny>(m_Session, (pbarray) t);
+
+                using ItemType = T::_Item;
+                if constexpr (Helper::is_pb_object_v<ItemType>)
+                    m_Type = AnyType::Object;
+                else
+                    m_Type = (AnyType) Type<ItemType>::PBType;
             }
             else if constexpr (Helper::is_pb_object_v<T>)
             {
-                return m_Value->SetObject(t);
+                m_Type = AnyType::Object;
+                m_Value = PBObject<L"">(m_Session, t);
             }
             else
             {
-                return SetImpl(t);
+                m_Type = (AnyType) Type<T>::PBType;
+                m_Value = t;
             }
         }
+
 
     private:
         template <typename PBT, pblong... dims>
@@ -196,45 +208,29 @@ namespace Inf
         template <Helper::FixedString class_id, pbgroup_type group_type>
         friend class PBObject;
 
+        std::any m_Value;
+
+        AnyType m_Type = AnyType::Notype;
+        bool m_IsArray = false;
+        pbclass m_Class = 0;
+
         IPB_Session* m_Session;
-        IPB_Value* m_Value;
 
-        PBAny(IPB_Session* session, IPB_Value* value, bool acquire);
-
-        inline PBByte     GetImpl(Type<PBByte    >, bool acquire) { return m_Value->IsNull() ? PBByte() : PBByte(m_Value->GetByte()); }
-        inline PBBoolean  GetImpl(Type<PBBoolean >, bool acquire) { return m_Value->IsNull() ? PBBoolean() : PBBoolean(m_Value->GetBool()); }
-        inline PBChar     GetImpl(Type<PBChar    >, bool acquire) { return m_Value->IsNull() ? PBChar() : PBChar(m_Value->GetChar()); }
-        inline PBInt      GetImpl(Type<PBInt     >, bool acquire) { return m_Value->IsNull() ? PBInt() : PBInt(m_Value->GetInt()); }
-        inline PBUint     GetImpl(Type<PBUint    >, bool acquire) { return m_Value->IsNull() ? PBUint() : PBUint(m_Value->GetUint()); }
-        inline PBLong     GetImpl(Type<PBLong    >, bool acquire) { return m_Value->IsNull() ? PBLong() : PBLong(m_Value->GetLong()); }
-        inline PBUlong    GetImpl(Type<PBUlong   >, bool acquire) { return m_Value->IsNull() ? PBUlong() : PBUlong(m_Value->GetUlong()); }
-        inline PBLongLong GetImpl(Type<PBLongLong>, bool acquire) { return m_Value->IsNull() ? PBLongLong() : PBLongLong(m_Value->GetLongLong()); }
-        inline PBReal     GetImpl(Type<PBReal    >, bool acquire) { return m_Value->IsNull() ? PBReal() : PBReal(m_Value->GetReal()); }
-        inline PBDouble   GetImpl(Type<PBDouble  >, bool acquire) { return m_Value->IsNull() ? PBDouble() : PBDouble(m_Value->GetDouble()); }
-        inline PBDecimal  GetImpl(Type<PBDecimal >, bool acquire) { return { m_Session, m_Value, acquire }; }
-        inline PBTime     GetImpl(Type<PBTime    >, bool acquire) { return { m_Session, m_Value, acquire }; }
-        inline PBDate     GetImpl(Type<PBDate    >, bool acquire) { return { m_Session, m_Value, acquire }; }
-        inline PBDateTime GetImpl(Type<PBDateTime>, bool acquire) { return { m_Session, m_Value, acquire }; }
-        inline PBString   GetImpl(Type<PBString  >, bool acquire) { return { m_Session, m_Value, acquire }; }
-        inline PBBlob     GetImpl(Type<PBBlob    >, bool acquire) { return { m_Session, m_Value, acquire }; }
-        inline PBAny      GetImpl(Type<PBAny     >, bool acquire) { return { m_Session, m_Value }; }
-
-        inline PBXRESULT SetImpl(const PBByte& value)     { return m_Value->SetByte(value); }
-        inline PBXRESULT SetImpl(const PBBoolean& value)  { return m_Value->SetBool(value); }
-        inline PBXRESULT SetImpl(const PBChar& value)     { return m_Value->SetChar(value); }
-        inline PBXRESULT SetImpl(const PBInt& value)      { return m_Value->SetInt(value); }
-        inline PBXRESULT SetImpl(const PBUint& value)     { return m_Value->SetUint(value); }
-        inline PBXRESULT SetImpl(const PBLong& value)     { return m_Value->SetLong(value); }
-        inline PBXRESULT SetImpl(const PBUlong& value)    { return m_Value->SetUlong(value); }
-        inline PBXRESULT SetImpl(const PBLongLong& value) { return m_Value->SetLongLong(value); }
-        inline PBXRESULT SetImpl(const PBReal& value)     { return m_Value->SetReal(value); }
-        inline PBXRESULT SetImpl(const PBDouble& value)   { return m_Value->SetDouble(value); }
-        inline PBXRESULT SetImpl(const PBDecimal& value)  { return m_Value->SetDecimal(value); }
-        inline PBXRESULT SetImpl(const PBTime& value)     { return m_Value->SetTime(value); }
-        inline PBXRESULT SetImpl(const PBDate& value)     { return m_Value->SetDate(value); }
-        inline PBXRESULT SetImpl(const PBDateTime& value) { return m_Value->SetDateTime(value); }
-        inline PBXRESULT SetImpl(const PBString& value)   { return m_Value->SetPBString(value); }
-        inline PBXRESULT SetImpl(const PBBlob& value)     { return m_Value->SetBlob(value); }
-        inline PBXRESULT SetImpl(const PBAny& value)      { m_Value = value.m_Value; return PBX_SUCCESS; }
+        inline PBByte     GetNulled(Type<PBByte    >) { return PBByte(); }
+        inline PBBoolean  GetNulled(Type<PBBoolean >) { return PBBoolean(); }
+        inline PBChar     GetNulled(Type<PBChar    >) { return PBChar(); }
+        inline PBInt      GetNulled(Type<PBInt     >) { return PBInt(); }
+        inline PBUint     GetNulled(Type<PBUint    >) { return PBUint(); }
+        inline PBLong     GetNulled(Type<PBLong    >) { return PBLong(); }
+        inline PBUlong    GetNulled(Type<PBUlong   >) { return PBUlong(); }
+        inline PBLongLong GetNulled(Type<PBLongLong>) { return PBLongLong(); }
+        inline PBReal     GetNulled(Type<PBReal    >) { return PBReal(); }
+        inline PBDouble   GetNulled(Type<PBDouble  >) { return PBDouble(); }
+        inline PBDecimal  GetNulled(Type<PBDecimal >) { return { m_Session, 0 }; }
+        inline PBTime     GetNulled(Type<PBTime    >) { return { m_Session, 0 }; }
+        inline PBDate     GetNulled(Type<PBDate    >) { return { m_Session, 0 }; }
+        inline PBDateTime GetNulled(Type<PBDateTime>) { return { m_Session, 0 }; }
+        inline PBString   GetNulled(Type<PBString  >) { return { m_Session, (pbstring) 0 }; }
+        inline PBBlob     GetNulled(Type<PBBlob    >) { return { m_Session, 0 }; }
     };
 }

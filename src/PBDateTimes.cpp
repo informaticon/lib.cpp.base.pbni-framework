@@ -2,6 +2,15 @@
 
 #include "Errors.h"
 
+static time_t mkgmtime(struct tm* tm)
+{
+    // TODO use gmtime or something else?
+#if defined(_WIN32)
+   return _mkgmtime(tm);
+#elif defined(linux)
+   return timegm(tm);
+#endif
+}
 
 Inf::PBTime::PBTime(IPB_Session* session, pbtime time)
     : m_Session(session), m_Time(time)
@@ -16,13 +25,15 @@ Inf::PBTime::PBTime(IPB_Session* session, pbint hours, pbint minutes, pbdouble s
 std::chrono::time_point<std::chrono::system_clock> Inf::PBTime::GetChrono() const
 {
     auto [hour, min, sec] = GetTime();
-    std::tm time = {
+    std::tm tm = {
         .tm_min = min,
-        .tm_hour = hour
+        .tm_hour = hour,
+        .tm_mday = 1,
+        .tm_year = 1970 - 1900 // because .tm_year is years since 1900, and mkgmtime wants atleast 1970
     };
 
     // Doing some weird stuff because we want subsecond precission
-    return std::chrono::system_clock::from_time_t(std::mktime(&time)) +
+    return std::chrono::system_clock::from_time_t(mkgmtime(&tm)) +
         std::chrono::microseconds(static_cast<std::chrono::microseconds::rep>(sec * std::micro::den));
 }
 
@@ -97,12 +108,14 @@ Inf::PBDate::PBDate(IPB_Session * session, pbint years, pbint months, pbint days
 std::chrono::time_point<std::chrono::system_clock> Inf::PBDate::GetChrono() const
 {
     auto [year, mon, day] = GetDate();
-    std::tm time = {
+    std::tm tm = {
         .tm_mday = day,
-        .tm_mon = mon,
-        .tm_year = year
+        .tm_mon = mon - 1,
+        .tm_year = year - 1900,
     };
-    return std::chrono::system_clock::from_time_t(std::mktime(&time));
+
+    // Doing some weird stuff because we want subsecond precission
+    return std::chrono::system_clock::from_time_t(mkgmtime(&tm));
 }
 
 std::tuple<pbint, pbint, pbint> Inf::PBDate::GetDate() const
@@ -175,16 +188,17 @@ Inf::PBDateTime::PBDateTime(IPB_Session* session, pbint years, pbint months, pbi
 std::chrono::time_point<std::chrono::system_clock> Inf::PBDateTime::GetChrono() const
 {
     auto [year, mon, day, hour, min, sec] = GetDateTime();
-    std::tm time = {
+    std::tm tm = {
         .tm_min = min,
         .tm_hour = hour,
         .tm_mday = day,
-        .tm_mon = mon,
-        .tm_year = year
+        .tm_mon = mon - 1,
+        .tm_year = year - 1900,
     };
 
     // Doing some weird stuff because we want subsecond precission
-    return std::chrono::system_clock::from_time_t(std::mktime(&time)) +
+
+    return std::chrono::system_clock::from_time_t(mkgmtime(&tm)) +
         std::chrono::microseconds(static_cast<std::chrono::microseconds::rep>(sec * std::micro::den));
 }
 
@@ -243,3 +257,4 @@ Inf::PBDateTime::PBDateTime(IPB_Session* session, IPB_Value* value, bool acquire
         }
     }
 }
+

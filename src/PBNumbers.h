@@ -109,6 +109,14 @@ namespace Inf
          * \throw Inf::PBNI_NullPointerException if Null
          */
         Helper::PBDecimalImpl GetDecimal() const;
+        /**
+         * Copies the Decimal from PowerBuilder into a String
+         *
+         * \return  String
+         *
+         * \throw Inf::PBNI_NullPointerException if Null
+         */
+        std::string GetString() const;
 
         /**
          * Checks whether pbdec is Null.

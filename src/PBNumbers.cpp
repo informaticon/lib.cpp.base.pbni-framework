@@ -36,6 +36,19 @@ Inf::Helper::PBDecimalImpl Inf::PBDecimal::GetDecimal() const
     return Inf::Helper::PBDecimalImpl(repr);
 }
 
+std::string Inf::PBDecimal::GetString() const
+{
+    if (IsNull())
+        throw Inf::PBNI_NullPointerException(L"PBDecimal");
+
+    auto dec_repr = m_Session->GetDecimalString(m_Decimal);
+    std::string repr = Inf::ConvertString<std::string>(dec_repr);
+
+    m_Session->ReleaseDecimalString(dec_repr);
+
+    return repr;
+}
+
 
 bool Inf::PBDecimal::IsNull() const
 {

@@ -8,7 +8,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.18)
 if (MINGW)
 	set(PBNI_INCLUDE_DIR "~/.local/include/pbni" CACHE PATH "PowerBuilder Native Interface header files location")
 else()
-	set(PBNI_INCLUDE_DIR "$C:/Program Files (x86)/Appeon/PowerBuilder 17.0/SDK/PBNI/include" CACHE PATH "PowerBuilder Native Interface header files location")
+	set(PBNI_INCLUDE_DIR "C:/Program Files (x86)/Appeon/PowerBuilder 17.0/SDK/PBNI/include" CACHE PATH "PowerBuilder Native Interface header files location")
 endif()
 
 option(PBNI_USE_STATIC_RUNTIME  "Whether to set the MTD option when building" OFF)

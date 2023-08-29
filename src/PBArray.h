@@ -547,7 +547,6 @@ namespace Inf
 		template<> inline PBDateTime	GetImpl<PBDateTime	>(pblong* dim) const { pbboolean is_null = false; pbdatetime pb_datetime	= m_Session->GetDateTimeArrayItem(m_Array, dim, is_null);	return { m_Session, is_null ? 0 : pb_datetime }; }
 		template<> inline PBString		GetImpl<PBString	>(pblong* dim) const { pbboolean is_null = false; pbstring pb_string		= m_Session->GetStringArrayItem(m_Array, dim, is_null);		return { m_Session, is_null ? 0 : pb_string }; }
 		template<> inline PBBlob		GetImpl<PBBlob		>(pblong* dim) const { pbboolean is_null = false; pbblob pb_blob			= m_Session->GetBlobArrayItem(m_Array, dim, is_null);		return { m_Session, is_null ? 0 : pb_blob }; }
-		template<> inline PBAny 		GetImpl<PBAny		>(pblong* dim) const { pbboolean is_null = false; IPB_Value* pb_any			= m_Session->GetPBAnyArrayItem(m_Object, fid, is_null);		return { m_Session, pb_any }; }
 	};
 }
 

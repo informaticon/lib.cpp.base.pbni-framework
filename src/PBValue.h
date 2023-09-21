@@ -95,7 +95,11 @@ namespace Inf
                     if (m_Value->IsNull())
                         return true;
 
-                    return m_Value->GetClass() == T::PBClass(m_Session);
+                    pbclass cls = m_Value->GetClass();
+                    if (m_Session->GetClassName(cls) == std::wstring(L"powerobject"))
+                        return true;
+
+                    return cls == T::PBClass(m_Session);
                 }
                 else
                 {

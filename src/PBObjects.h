@@ -342,6 +342,11 @@ namespace Inf
                 pbboolean is_null = false;
 
                 pbobject pb_object = m_Session->GetObjectField(m_Object, fid, is_null);
+
+                // TODO 
+                if (!is_null && m_Session->GetClass(pb_object) != Field::PBClass(m_Session))
+                    throw PBNI_IncorrectArgumentsException(class_id.data, field_name);
+
                 return { m_Session, is_null ? 0 : pb_object };
             }
             else

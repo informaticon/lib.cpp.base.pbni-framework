@@ -29,6 +29,8 @@ namespace Inf
          * \param argument_name     The name to put between type and []
          * \return                  The combined string
          */
+        // TODO const ref to argument_name
+        // TODO function still needed?
         static inline std::wstring GetPBName(std::wstring argument_name) = delete;
     };
 
@@ -243,13 +245,20 @@ namespace Inf
         }
     };
 
+    template<>
+    struct Type<DynPBObject>
+    {
+        static inline std::wstring PBSignature = L"Cpowerobject.";
+        static inline std::wstring GetPBName(std::wstring argument_name) { return L"powerobject" + argument_name; }
+    };
 
     template <Helper::FixedString class_id, pbgroup_type group_type>
     struct Type<PBObject<class_id, group_type>>
     {
-        static inline std::wstring PBSignature = std::wstring(L"C") + PBObject<class_id, group_type>::ClassName() + L".";
+        static inline std::wstring PBSignature = std::wstring(L"C") + DynPBObject::ClassName(class_id.data) + L".";
         static inline std::wstring GetPBName(std::wstring argument_name) { return std::wstring(class_id.data) + argument_name; }
     };
+
 #pragma endregion
 /// \endcond
 }

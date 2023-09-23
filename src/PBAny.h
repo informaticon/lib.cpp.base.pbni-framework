@@ -30,7 +30,7 @@ namespace Inf
             Time = pbvalue_time,
             DateTime = pbvalue_datetime,
             Char = pbvalue_char,
-            Longlong = pbvalue_longlong,
+            LongLong = pbvalue_longlong,
             Byte = pbvalue_byte,
         
             Null = 200,
@@ -127,11 +127,15 @@ namespace Inf
                 using ItemType = T::_Item;
                 if constexpr (Helper::is_pb_object_v<ItemType>)
                     return m_Type == AnyType::Object && m_Class == ItemType::PBClass(m_Session);
+                else if constexpr (std::is_same_v<DynPBObject, ItemType>)
+                    return m_Type == AnyType::Object;
                 else
                     return m_Type == (AnyType) Type<ItemType>::PBType;
             }
             else if constexpr (Helper::is_pb_object_v<T>)
                 return m_Type == AnyType::Object && m_Class == T::PBClass(m_Session);
+            else if constexpr (std::is_same_v<DynPBObject, T>)
+                return m_Type == AnyType::Object;
             else
                 return m_Type == (AnyType) Type<T>::PBType;
         }
@@ -151,7 +155,9 @@ namespace Inf
             if constexpr (Helper::is_pb_array_v<T>)
                 return { m_Session, IsNull() ? 0 : (pbarray) std::any_cast<PBArray<PBAny>>(m_Value) };
             else if constexpr (Helper::is_pb_object_v<T>)
-                return { m_Session, IsNull() ? 0 : (pbobject) std::any_cast<PBObject<L"">>(m_Value) };
+                return { m_Session, IsNull() ? 0 : (pbobject) std::any_cast<DynPBObject>(m_Value) };
+            else if constexpr (std::is_same_v<DynPBObject, T>)
+                return std::any_cast<DynPBObject>(m_Value);
             else
             {
                 if (IsNull())
@@ -191,7 +197,12 @@ namespace Inf
             else if constexpr (Helper::is_pb_object_v<T>)
             {
                 m_Type = AnyType::Object;
-                m_Value = PBObject<L"">(m_Session, t);
+                m_Value = DynPBObject(m_Session, (pbobject) t);
+            }
+            else if constexpr (std::is_same_v<DynPBObject, T>)
+            {
+                m_Type = AnyType::Object;
+                m_Value = t;
             }
             else
             {

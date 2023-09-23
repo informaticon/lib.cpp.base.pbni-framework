@@ -28,6 +28,8 @@ namespace Inf
 
     class PBAny;
 
+    class DynPBObject;
+
     template <Helper::FixedString class_id, pbgroup_type group_type>
     class PBObject;
 

@@ -28,7 +28,7 @@ Inf::PBAny::PBAny(IPB_Session* session, IPB_Value* value, bool acquire)
 
     if (value->IsObject())
     {
-        m_Value = PBObject<L"">(session, value->GetObject());
+        m_Value = DynPBObject(session, value->GetObject());
         return;
     }
 
@@ -81,7 +81,7 @@ PBXRESULT Inf::PBAny::ToValue(IPB_Value* value) const
         case Type<PBString  >::PBType: return pbValue.Set(std::any_cast<PBString>(m_Value));
         case Type<PBBlob    >::PBType: return pbValue.Set(std::any_cast<PBBlob>(m_Value));
 
-        case AnyType::Object: return pbValue.Set(std::any_cast<PBObject<L"">>(m_Value));
+        case AnyType::Object: return pbValue.Set(std::any_cast<DynPBObject>(m_Value));
     }
 
     return PBX_E_NO_SUCH_CLASS;

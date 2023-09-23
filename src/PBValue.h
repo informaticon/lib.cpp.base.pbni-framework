@@ -95,11 +95,12 @@ namespace Inf
                     if (m_Value->IsNull())
                         return true;
 
-                    pbclass cls = m_Value->GetClass();
-                    if (m_Session->GetClassName(cls) == std::wstring(L"powerobject"))
-                        return true;
-
-                    return cls == T::PBClass(m_Session);
+                    // TODO inheritance
+                    return m_Value->GetClass() == T::PBClass(m_Session);
+                }
+                else if constexpr (std::is_same_v<DynPBObject, T>)
+                {
+                    return m_Value->IsObject();
                 }
                 else
                 {
@@ -120,6 +121,8 @@ namespace Inf
                     return { m_Session, m_Value, acquire };
                 else if constexpr (Helper::is_pb_object_v<T>)
                     return { m_Session, m_Value->GetObject() };
+                else if constexpr (std::is_same_v<T, DynPBObject>)
+                    return { m_Session, m_Value->GetObject(), m_Value->GetClass() }; // TODO unknown?
                 else if constexpr (std::is_same_v<T, PBAny>)
                     return { m_Session, m_Value, acquire };
                 else
@@ -141,6 +144,8 @@ namespace Inf
                     return m_Value->SetArray(t);
                 else if constexpr (Helper::is_pb_object_v<T>)
                     return m_Value->SetObject(t);
+                else if constexpr (std::is_same_v<T, DynPBObject>)
+                    return m_Value->SetObject(t);
                 else if constexpr (std::is_same_v<T, PBAny>)
                     return t.ToValue(m_Value);
                 else
@@ -153,6 +158,7 @@ namespace Inf
             friend class PBArray;
             template <Helper::FixedString class_id, pbgroup_type group_type>
             friend class PBObject;
+            // TODO remove all friend stuff
 
             IPB_Session* m_Session;
             IPB_Value* m_Value;

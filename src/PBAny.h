@@ -33,7 +33,6 @@ namespace Inf
             Longlong = pbvalue_longlong,
             Byte = pbvalue_byte,
         
-            Null = 200,
             Object = 201
         };
 
@@ -43,7 +42,7 @@ namespace Inf
          * \param session   Current session
          */
         PBAny(IPB_Session* session)
-            : m_Session(session), m_Type(AnyType::Null)
+            : m_Session(session)
         { }
 
         /**
@@ -81,7 +80,7 @@ namespace Inf
          */
         bool IsNull() const
         {
-            return m_Type == AnyType::Null;
+            return !m_Value.has_value();
         }
 
         /**
@@ -90,8 +89,6 @@ namespace Inf
         void SetToNull()
         {
             m_Value.reset();
-            m_IsArray = false;
-            m_Type = AnyType::Null;
         }
 
         /**
@@ -169,34 +166,36 @@ namespace Inf
         template <typename T>
         inline void Set(const T& t)
         {
-            if (t.IsNull())
-            {
-                m_Type = AnyType::Null;
-                m_Value.reset();
-                return;
-            }
-
             m_IsArray = false;
             if constexpr (Helper::is_pb_array_v<T>)
             {
                 m_IsArray = true;
-                m_Value = PBArray<PBAny>(m_Session, (pbarray) t);
-
                 using ItemType = T::_Item;
                 if constexpr (Helper::is_pb_object_v<ItemType>)
                     m_Type = AnyType::Object;
                 else
                     m_Type = (AnyType) Type<ItemType>::PBType;
+
+                if (t.IsNull())
+                    m_Value.reset();
+                else
+                    m_Value = PBArray<PBAny>(m_Session, (pbarray) t);
             }
             else if constexpr (Helper::is_pb_object_v<T>)
             {
                 m_Type = AnyType::Object;
-                m_Value = PBObject<L"">(m_Session, t);
+                if (t.IsNull())
+                    m_Value.reset();
+                else
+                    m_Value = PBObject<L"">(m_Session, t);
             }
             else
             {
                 m_Type = (AnyType) Type<T>::PBType;
-                m_Value = t;
+                if (t.IsNull())
+                    m_Value.reset();
+                else
+                    m_Value = t;
             }
         }
 

@@ -146,7 +146,6 @@ namespace Inf
         /**
          * This Function Retrieves the specified Type from an IPB_Value.
          *
-         * \param acquire   Whether or not to take ownership of the type, only relevant for complex types. The Type will free itself
          * \return          The returned Type
          */
         template <typename T>

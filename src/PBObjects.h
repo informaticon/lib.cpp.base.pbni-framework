@@ -24,10 +24,10 @@ namespace Inf
             m_Class = cls;
             if (!IsNull())
             {
-                session->AddLocalRef(m_Object);
+                session->AddGlobalRef(m_Object);
 
                 if (!m_Class)
-                    m_Class = m_Session->GetClass(obj);
+                    m_Class = m_Session->GetClass(m_Object);
             }
         }
 
@@ -54,11 +54,13 @@ namespace Inf
          * \throw Inf::PBNI_Exception   If the Group or Class cannot be found
          */
         DynPBObject(IPB_Session* session, pbclass cls)
-            : m_Session(session), m_Class(cls)
+            : DynPBObject(session, session->NewObject(cls), cls)
+        { }
+
+        ~DynPBObject()
         {
-            m_Object = m_Session->NewObject(m_Class);
-            // We need to add a local ref, so we can return an object returned of an invoked function
-            session->AddLocalRef(m_Object);
+            if (m_Object)
+                m_Session->RemoveGlobalRef(m_Object);
         }
 
         /**
@@ -719,7 +721,7 @@ namespace Inf
         static pbclass PBClass(IPB_Session* session)
         {
             // No caching because it kept randomly erroring.
-            return FindClass(session);
+            return FindClass(session, class_id.data, group_type);
 
             //static pbclass s_Class;
             //static IPB_Session* s_LastSession = nullptr;

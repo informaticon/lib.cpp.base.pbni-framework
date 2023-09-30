@@ -49,6 +49,19 @@ std::string Inf::PBDecimal::GetString() const
     return repr;
 }
 
+std::wstring Inf::PBDecimal::GetWString() const
+{
+    if (IsNull())
+        throw Inf::PBNI_NullPointerException(L"PBDecimal");
+
+    auto dec_repr = m_Session->GetDecimalString(m_Decimal);
+    std::wstring repr(dec_repr);
+
+    m_Session->ReleaseDecimalString(dec_repr);
+
+    return repr;
+}
+
 
 bool Inf::PBDecimal::IsNull() const
 {

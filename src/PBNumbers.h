@@ -119,6 +119,15 @@ namespace Inf
         std::string GetString() const;
 
         /**
+         * Copies the Decimal from PowerBuilder into a WString
+         *
+         * \return  String
+         *
+         * \throw Inf::PBNI_NullPointerException if Null
+         */
+        std::wstring GetWString() const;
+
+        /**
          * Checks whether pbdec is Null.
          *
          * \return Is Null

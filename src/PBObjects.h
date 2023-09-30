@@ -107,6 +107,22 @@ namespace Inf
             return InvokeSig<Ret, Args&...>(method_name, PBRT_FUNCTION, pbsig, args...);
         }
 
+        /**
+         * Simple helper function that calls InvokeMatching in the background, for more info read the InvokeMatching documentation.
+         * 
+         * \throw Inf::PBNI_InvalidFieldException           If no matching functions were found
+         * \throw Inf::PBNI_IncorrectArgumentsException     If the argument types dont match up
+         * \throw Inf::PBNI_NullPointerException            If pbobject is Null
+         * \throw Inf::PBNI_PowerBuilderException           If the function doesnt return PBX_SUCCESS
+         * \throw Inf::PBNI_Exception                       If the Group or Class cannot be found
+        */
+        template <typename Ret = void, typename... Args>
+            requires (!std::is_pointer_v<Ret> && !std::is_reference_v<Ret> && !Helper::is_pb_array_v<Ret> && (!std::is_pointer_v<Args> && ...))
+        inline Ret CallMatching(const std::wstring& method_name, const std::wstring& arg_types, Args... args)
+        {
+            return InvokeMatching<Ret, Args&...>(method_name, PBRT_FUNCTION, arg_types, args...);
+        }
+
 
         /**
          * Invoke a Function of the pbobject with an unknown Signature.
@@ -148,6 +164,38 @@ namespace Inf
         }
 
         /**
+         * Invokes a Function of a pbobject with known argument types. The return type doesn't matter.
+         *
+         * \param method_name   The name of the Function to invoke
+         * \param pbrt          The Type of the Function (Function or Event)
+         * \param arg_types     Comma seperated names of the argument types (L"int, double")
+         * \param ...args       The Arguments to forward to the Function
+         * \return              The acquired Value returned by the Function
+         *
+         * \tparam Ret  The type to be returned
+         *
+         * \throw Inf::PBNI_InvalidFieldException           If no matching functions were found
+         * \throw Inf::PBNI_IncorrectArgumentsException     If the argument types dont match up
+         * \throw Inf::PBNI_NullPointerException            If pbobject is Null
+         * \throw Inf::PBNI_PowerBuilderException           If the function doesnt return PBX_SUCCESS
+         * \throw Inf::PBNI_Exception                       If the Group or Class cannot be found
+         */
+        template <typename Ret = void, typename... Args>
+            requires (!std::is_pointer_v<Ret> && !std::is_reference_v<Ret> && !Helper::is_pb_array_v<Ret> && (!std::is_pointer_v<Args> && ...))
+        inline Ret InvokeMatching(const std::wstring& method_name, PBRoutineType pbrt, const std::wstring& arg_types, Args&&... args)
+        {
+            if (IsNull())
+                throw PBNI_NullPointerException(class_id.data);
+
+            pbmethodID mid = m_Session->FindMatchingFunction(PBClass(m_Session), method_name.c_str(), pbrt, arg_types.c_str());
+
+            if (mid == kUndefinedMethodID)
+                throw PBNI_InvalidFieldException(class_id.data, method_name + L"(" + arg_types + L")", L"Method");
+
+            return InvokeFid<Ret, Args&...>(mid, args...);
+        }
+
+        /**
          * Invokes a Function of a pbobject with a known Signature.
          *
          * \param method_name   The name of the Function to invoke
@@ -176,18 +224,43 @@ namespace Inf
             if (mid == kUndefinedMethodID)
                 throw PBNI_InvalidFieldException(class_id.data, method_name + L"(" + pbsig + L")", L"Method");
 
+            return InvokeFid<Ret, Args&...>(mid, args...);
+        }
+
+        /**
+         * Invokes a Function of a pbobject with a Method ID
+         *
+         * \param method_id     The powerbuilder ID of the Method
+         * \param ...args       The Arguments to forward to the Function
+         * \return              The acquired Value returned by the Function
+         *
+         * \tparam Ret  The type to be returned
+         *
+         * \throw Inf::PBNI_InvalidFieldException           If no matching functions were found
+         * \throw Inf::PBNI_IncorrectArgumentsException     If the argument types dont match up
+         * \throw Inf::PBNI_NullPointerException            If pbobject is Null
+         * \throw Inf::PBNI_PowerBuilderException           If the function doesnt return PBX_SUCCESS
+         * \throw Inf::PBNI_Exception                       If the Group or Class cannot be found
+         */
+        template <typename Ret = void, typename... Args>
+            requires (!std::is_pointer_v<Ret> && !std::is_reference_v<Ret> && !Helper::is_pb_array_v<Ret> && (!std::is_pointer_v<Args> && ...))
+        inline Ret InvokeFid(pbmethodID mid, Args&&... args)
+        {
+            if (IsNull())
+                throw PBNI_NullPointerException(class_id.data);
+
             PBCallInfo ci;
             m_Session->InitCallInfo(PBClass(m_Session), mid, &ci);
 
             // Argument Checking
             if (ci.pArgs->GetCount() != sizeof...(Args))
-                throw PBNI_IncorrectArgumentsException(class_id.data, method_name + L"(" + pbsig + L")");
+                throw PBNI_IncorrectArgumentsException(class_id.data, std::to_wstring(mid));
 
             pbint i = 0;
             ([&] {
                 Helper::PBValue value(m_Session, ci.pArgs->GetAt(i));
-                if (ci.pArgs->GetAt(i)->GetType() != Type<PBAny>::PBType && !value.Is<std::remove_reference_t<Args>>())
-                    throw PBNI_IncorrectArgumentsException(class_id.data, method_name + L"(" + pbsig + L")", i);
+                if (!value.Is<std::remove_reference_t<Args>>())
+                    throw PBNI_IncorrectArgumentsException(class_id.data, std::to_wstring(mid), i);
                 i++;
             }(), ...);
 
@@ -232,6 +305,8 @@ namespace Inf
                 return ret;
             }
         }
+
+
 
         /**
          * Sets a Field of the pbobjec to a Value.
@@ -342,6 +417,11 @@ namespace Inf
                 pbboolean is_null = false;
 
                 pbobject pb_object = m_Session->GetObjectField(m_Object, fid, is_null);
+
+                // TODO 
+                if (!is_null && m_Session->GetClass(pb_object) != Field::PBClass(m_Session))
+                    throw PBNI_IncorrectArgumentsException(class_id.data, field_name);
+
                 return { m_Session, is_null ? 0 : pb_object };
             }
             else
@@ -527,7 +607,6 @@ namespace Inf
 
             return cls;
         }
-
 
         // Visual studio always messes up the nice formatting here, idk if this does anything, but its my last hope
         inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBByte&     t) { return m_Session->SetByteField(m_Object, fid, t); }

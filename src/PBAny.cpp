@@ -22,7 +22,7 @@ Inf::PBAny::PBAny(IPB_Session* session, IPB_Value* value, bool acquire)
     {
         m_IsArray = true;
 
-        m_Value = PBArray<PBAny>(session, value, acquire);
+        m_Value = Helper::PBValue(session, value).Get<PBArray<PBAny>>(acquire);
         return;
     }
 

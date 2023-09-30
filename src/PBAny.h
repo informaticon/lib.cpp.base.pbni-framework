@@ -125,15 +125,18 @@ namespace Inf
                     return false;
             
                 using ItemType = T::_Item;
+
                 if constexpr (Helper::is_pb_object_v<ItemType>)
-                    return m_Type == AnyType::Object && m_Class == ItemType::PBClass(m_Session);
+                    return m_Type == AnyType::Object && Helper::IsPBBaseClass(m_Session, ItemType::PBClass(m_Session), m_Class);
                 else if constexpr (std::is_same_v<DynPBObject, ItemType>)
                     return m_Type == AnyType::Object;
+                else if constexpr (std::is_same_v<PBAny, ItemType>)
+                    return true;
                 else
                     return m_Type == (AnyType) Type<ItemType>::PBType;
             }
             else if constexpr (Helper::is_pb_object_v<T>)
-                return m_Type == AnyType::Object && m_Class == T::PBClass(m_Session);
+                return m_Type == AnyType::Object && Helper::IsPBBaseClass(m_Session, T::PBClass(m_Session), m_Class);
             else if constexpr (std::is_same_v<DynPBObject, T>)
                 return m_Type == AnyType::Object;
             else
@@ -213,12 +216,6 @@ namespace Inf
 
 
     private:
-        template <typename PBT, pblong... dims>
-            requires (sizeof...(dims) <= 3 && !std::is_reference_v<PBT> && !std::is_pointer_v<PBT>)
-        friend class PBArray;
-        template <Helper::FixedString class_id, pbgroup_type group_type>
-        friend class PBObject;
-
         std::any m_Value;
 
         AnyType m_Type = AnyType::Notype;

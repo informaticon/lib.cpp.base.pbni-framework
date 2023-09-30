@@ -78,13 +78,7 @@ namespace Inf
         }
 
     private:
-        friend class Helper::PBValue;
-        friend class PBAny;
-        template <typename PBT, pblong... dims>
-            requires (sizeof...(dims) <= 3 && !std::is_reference_v<PBT> && !std::is_pointer_v<PBT>)
-        friend class PBArray;
-        template <Helper::FixedString class_id, pbgroup_type group_type>
-        friend class PBObject;
+        friend Helper::PBValue;
 
         IPB_Session* m_Session;
         pbtime m_Time;
@@ -163,12 +157,6 @@ namespace Inf
         }
     private:
         friend class Helper::PBValue;
-        friend class PBAny;
-        template <typename PBT, pblong... dims>
-            requires (sizeof...(dims) <= 3 && !std::is_reference_v<PBT> && !std::is_pointer_v<PBT>)
-        friend class PBArray;
-        template <Helper::FixedString class_id, pbgroup_type group_type>
-        friend class PBObject;
 
         IPB_Session* m_Session;
         pbdate m_Date;
@@ -253,13 +241,6 @@ namespace Inf
         }
     private:
         friend class Helper::PBValue;
-        friend class PBAny;
-        template <typename PBT, pblong... dims>
-            requires (sizeof...(dims) <= 3 && !std::is_reference_v<PBT> && !std::is_pointer_v<PBT>)
-        friend class PBArray;
-        template <Helper::FixedString class_id, pbgroup_type group_type>
-        friend class PBObject;
-
 
         IPB_Session* m_Session;
         pbdatetime m_DateTime;

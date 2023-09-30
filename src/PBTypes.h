@@ -29,9 +29,7 @@ namespace Inf
          * \param argument_name     The name to put between type and []
          * \return                  The combined string
          */
-        // TODO const ref to argument_name
-        // TODO function still needed?
-        static inline std::wstring GetPBName(std::wstring argument_name) = delete;
+        static inline std::wstring GetPBName(const std::wstring& argument_name) = delete;
     };
 
 /// \cond typetemplates
@@ -54,7 +52,7 @@ namespace Inf
     {
         static constexpr wchar_t PBSignature = L'A';
         static constexpr pbvalue_type PBType = pbvalue_any;
-        static inline std::wstring GetPBName(std::wstring argument_name) { return L"any" + argument_name; }
+        static inline std::wstring GetPBName(const std::wstring& argument_name) { return L"any" + argument_name; }
     };
 #pragma endregion
 
@@ -64,7 +62,7 @@ namespace Inf
     {
         static constexpr wchar_t PBSignature = L'E';
         static constexpr pbvalue_type PBType = pbvalue_byte;
-        static inline std::wstring GetPBName(std::wstring argument_name) { return L"byte" + argument_name; }
+        static inline std::wstring GetPBName(const std::wstring& argument_name) { return L"byte" + argument_name; }
     };
 
     template<>
@@ -72,7 +70,7 @@ namespace Inf
     {
         static constexpr wchar_t PBSignature = L'B';
         static constexpr pbvalue_type PBType = pbvalue_boolean;
-        static inline std::wstring GetPBName(std::wstring argument_name) { return L"boolean" + argument_name; }
+        static inline std::wstring GetPBName(const std::wstring& argument_name) { return L"boolean" + argument_name; }
     };
 
     template<>
@@ -80,7 +78,7 @@ namespace Inf
     {
         static constexpr wchar_t PBSignature = L'H';
         static constexpr pbvalue_type PBType = pbvalue_char;
-        static inline std::wstring GetPBName(std::wstring argument_name) { return L"char" + argument_name; }
+        static inline std::wstring GetPBName(const std::wstring& argument_name) { return L"char" + argument_name; }
     };
 #pragma endregion
 
@@ -90,7 +88,7 @@ namespace Inf
     {
         static constexpr wchar_t PBSignature = L'I';
         static constexpr pbvalue_type PBType = pbvalue_int;
-        static inline std::wstring GetPBName(std::wstring argument_name) { return L"int" + argument_name; }
+        static inline std::wstring GetPBName(const std::wstring& argument_name) { return L"int" + argument_name; }
     };
 
     template<>
@@ -98,7 +96,7 @@ namespace Inf
     {
         static constexpr wchar_t PBSignature = L'N';
         static constexpr pbvalue_type PBType = pbvalue_uint;
-        static inline std::wstring GetPBName(std::wstring argument_name) { return L"uint" + argument_name; }
+        static inline std::wstring GetPBName(const std::wstring& argument_name) { return L"uint" + argument_name; }
     };
 
     template<>
@@ -106,7 +104,7 @@ namespace Inf
     {
         static constexpr wchar_t PBSignature = L'L';
         static constexpr pbvalue_type PBType = pbvalue_long;
-        static inline std::wstring GetPBName(std::wstring argument_name) { return L"long" + argument_name; }
+        static inline std::wstring GetPBName(const std::wstring& argument_name) { return L"long" + argument_name; }
     };
 
     template<>
@@ -114,7 +112,7 @@ namespace Inf
     {
         static constexpr wchar_t PBSignature = L'U';
         static constexpr pbvalue_type PBType = pbvalue_ulong;
-        static inline std::wstring GetPBName(std::wstring argument_name) { return L"ulong" + argument_name; }
+        static inline std::wstring GetPBName(const std::wstring& argument_name) { return L"ulong" + argument_name; }
     };
 
     template<>
@@ -122,7 +120,7 @@ namespace Inf
     {
         static constexpr wchar_t PBSignature = L'K';
         static constexpr pbvalue_type PBType = pbvalue_longlong;
-        static inline std::wstring GetPBName(std::wstring argument_name) { return L"longlong" + argument_name; }
+        static inline std::wstring GetPBName(const std::wstring& argument_name) { return L"longlong" + argument_name; }
     };
 #pragma endregion
 
@@ -132,7 +130,7 @@ namespace Inf
     {
         static constexpr wchar_t PBSignature = L'F';
         static constexpr pbvalue_type PBType = pbvalue_real;
-        static inline std::wstring GetPBName(std::wstring argument_name) { return L"real" + argument_name; }
+        static inline std::wstring GetPBName(const std::wstring& argument_name) { return L"real" + argument_name; }
     };
 
     template<>
@@ -140,7 +138,7 @@ namespace Inf
     {
         static constexpr wchar_t PBSignature = L'D';
         static constexpr pbvalue_type PBType = pbvalue_double;
-        static inline std::wstring GetPBName(std::wstring argument_name) { return L"double" + argument_name; }
+        static inline std::wstring GetPBName(const std::wstring& argument_name) { return L"double" + argument_name; }
     };
 
     template<>
@@ -148,7 +146,7 @@ namespace Inf
     {
         static constexpr wchar_t PBSignature = L'M';
         static constexpr pbvalue_type PBType = pbvalue_dec;
-        static inline std::wstring GetPBName(std::wstring argument_name) { return L"dec" + argument_name; }
+        static inline std::wstring GetPBName(const std::wstring& argument_name) { return L"dec" + argument_name; }
     };
 #pragma endregion
 
@@ -158,7 +156,7 @@ namespace Inf
     {
         static constexpr wchar_t PBSignature = L'T';
         static constexpr pbvalue_type PBType = pbvalue_time;
-        static inline std::wstring GetPBName(std::wstring argument_name) { return L"time" + argument_name; }
+        static inline std::wstring GetPBName(const std::wstring& argument_name) { return L"time" + argument_name; }
     };
 
     template<>
@@ -166,7 +164,7 @@ namespace Inf
     {
         static constexpr wchar_t PBSignature = L'Y';
         static constexpr pbvalue_type PBType = pbvalue_date;
-        static inline std::wstring GetPBName(std::wstring argument_name) { return L"date" + argument_name; }
+        static inline std::wstring GetPBName(const std::wstring& argument_name) { return L"date" + argument_name; }
     };
 
     template<>
@@ -174,7 +172,7 @@ namespace Inf
     {
         static constexpr wchar_t PBSignature = L'W';
         static constexpr pbvalue_type PBType = pbvalue_datetime;
-        static inline std::wstring GetPBName(std::wstring argument_name) { return L"datetime" + argument_name; }
+        static inline std::wstring GetPBName(const std::wstring& argument_name) { return L"datetime" + argument_name; }
     };
 #pragma endregion
 
@@ -184,7 +182,7 @@ namespace Inf
     {
         static constexpr wchar_t PBSignature = L'S';
         static constexpr pbvalue_type PBType = pbvalue_string;
-        static inline std::wstring GetPBName(std::wstring argument_name) { return L"string" + argument_name; }
+        static inline std::wstring GetPBName(const std::wstring& argument_name) { return L"string" + argument_name; }
     };
 
     template<>
@@ -192,7 +190,7 @@ namespace Inf
     {
         static constexpr wchar_t PBSignature = L'O';
         static constexpr pbvalue_type PBType = pbvalue_blob;
-        static inline std::wstring GetPBName(std::wstring argument_name) { return L"blob" + argument_name; }
+        static inline std::wstring GetPBName(const std::wstring& argument_name) { return L"blob" + argument_name; }
     };
 
     /**
@@ -203,7 +201,7 @@ namespace Inf
     struct Type<PBArray<T, dims...>> // <- Partial specialization
     {
         static inline std::wstring PBSignature = std::wstring(1, Type<T>::PBSignature) + L"[]";
-        static inline std::wstring GetPBName(std::wstring argument_name)
+        static inline std::wstring GetPBName(const std::wstring& argument_name)
         {
             if constexpr (sizeof...(dims) == 0)
             {
@@ -230,7 +228,7 @@ namespace Inf
     struct Type<PBArray<PBObject<class_id, group_type>, dims...>>
     {
         static inline std::wstring PBSignature = Type<PBObject<class_id, group_type>>::PBSignature + L"[]";
-        static inline std::wstring GetPBName(std::wstring argument_name)
+        static inline std::wstring GetPBName(const std::wstring& argument_name)
         {
             if constexpr (sizeof...(dims) == 0)
             {
@@ -249,14 +247,14 @@ namespace Inf
     struct Type<DynPBObject>
     {
         static inline std::wstring PBSignature = L"Cpowerobject.";
-        static inline std::wstring GetPBName(std::wstring argument_name) { return L"powerobject" + argument_name; }
+        static inline std::wstring GetPBName(const std::wstring& argument_name) { return L"powerobject" + argument_name; }
     };
 
     template <Helper::FixedString class_id, pbgroup_type group_type>
     struct Type<PBObject<class_id, group_type>>
     {
-        static inline std::wstring PBSignature = std::wstring(L"C") + DynPBObject::ClassName(class_id.data) + L".";
-        static inline std::wstring GetPBName(std::wstring argument_name) { return std::wstring(class_id.data) + argument_name; }
+        static inline std::wstring PBSignature = std::wstring(L"C") + DynPBObject::ExtractClassName(class_id.data) + L".";
+        static inline std::wstring GetPBName(const std::wstring& argument_name) { return std::wstring(class_id.data) + argument_name; }
     };
 
 #pragma endregion

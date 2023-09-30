@@ -402,8 +402,7 @@ namespace Inf
         }
 
     private:
-        friend struct Helper::PBValue;
-        friend PBAny;
+        friend Helper::PBValue;
 
         IPB_Session* m_Session;
         pbarray m_Array;

@@ -103,9 +103,9 @@ namespace Inf
         */
         template <typename Ret = void, typename... Args>
             requires (!std::is_pointer_v<Ret> && !std::is_reference_v<Ret> && !Helper::is_pb_array_v<Ret> && (!std::is_pointer_v<Args> && ...))
-        inline Ret CallSig(const std::wstring& method_name, const std::wstring& pbsig, Args... args) // TODO &&?
+        inline Ret CallSig(const std::wstring& method_name, const std::wstring& pbsig, Args... args)
         {
-            return InvokeSig<Ret, Args&...>(method_name, PBRT_FUNCTION, pbsig, args...);
+            return InvokeSig<Ret, Args...>(method_name, PBRT_FUNCTION, pbsig, args...);
         }
 
         /**
@@ -121,7 +121,7 @@ namespace Inf
             requires (!std::is_pointer_v<Ret> && !std::is_reference_v<Ret> && !Helper::is_pb_array_v<Ret> && (!std::is_pointer_v<Args> && ...))
         inline Ret CallMatching(const std::wstring& method_name, const std::wstring& arg_types, Args... args)
         {
-            return InvokeMatching<Ret, Args&...>(method_name, PBRT_FUNCTION, arg_types, args...);
+            return InvokeMatching<Ret, Args...>(method_name, PBRT_FUNCTION, arg_types, args...);
         }
 
 
@@ -161,7 +161,7 @@ namespace Inf
                     }(), ...);
             }
 
-            return InvokeSig<Ret, Args&...>(method_name, pbrt, pbsig, args...);
+            return InvokeSig<Ret, Args...>(method_name, pbrt, pbsig, args...);
         }
 
         /**
@@ -193,7 +193,7 @@ namespace Inf
             if (mid == kUndefinedMethodID)
                 throw PBNI_InvalidFieldException(GetClassName(), method_name + L"(" + arg_types + L")", L"Method");
 
-            return InvokeFid<Ret, Args&...>(mid, args...);
+            return InvokeFid<Ret, Args...>(mid, args...);
         }
 
         /**
@@ -215,7 +215,7 @@ namespace Inf
          */
         template <typename Ret = void, typename... Args>
             requires (!std::is_pointer_v<Ret> && !std::is_reference_v<Ret> && !Helper::is_pb_array_v<Ret> && (!std::is_pointer_v<Args> && ...))
-        inline Ret InvokeSig(const std::wstring& method_name, PBRoutineType pbrt, const std::wstring& pbsig, Args&&... args)
+        inline Ret InvokeSig(const std::wstring& method_name, PBRoutineType pbrt, const std::wstring& pbsig, Args... args)
         {
             if (IsNull())
                 throw PBNI_NullPointerException(GetClassName());
@@ -225,7 +225,7 @@ namespace Inf
             if (mid == kUndefinedMethodID)
                 throw PBNI_InvalidFieldException(GetClassName(), method_name + L"(" + pbsig + L")", L"Method");
 
-            return InvokeFid<Ret, Args&...>(mid, args...);
+            return InvokeFid<Ret, Args...>(mid, args...);
         }
 
         /**
@@ -245,7 +245,7 @@ namespace Inf
          */
         template <typename Ret = void, typename... Args>
             requires (!std::is_pointer_v<Ret> && !std::is_reference_v<Ret> && !Helper::is_pb_array_v<Ret> && (!std::is_pointer_v<Args> && ...))
-        inline Ret InvokeFid(pbmethodID mid, Args&&... args)
+        inline Ret InvokeFid(pbmethodID mid, Args... args)
         {
             if (IsNull())
                 throw PBNI_NullPointerException(GetClassName());
@@ -497,8 +497,7 @@ namespace Inf
 
                 pbobject pb_object = m_Session->GetObjectField(m_Object, fid, is_null);
 
-                // TODO 
-                if (!is_null && m_Session->GetClass(pb_object) != Field::PBClass(m_Session))
+                if (!is_null && !Helper::IsPBBaseClass(m_Session, Field::PBClass(m_Session), m_Session->GetClass(pb_object))) 
                     throw PBNI_IncorrectArgumentsException(GetClassName(), field_name);
 
                 return { m_Session, is_null ? 0 : pb_object };
@@ -536,28 +535,6 @@ namespace Inf
         }
 
         /**
-         * Get the Group name extracted from the class_id.
-         *
-         * \return  Group name
-         */
-        static std::wstring GroupName(const std::wstring& className)
-        {
-            // TODO caching?
-            return ExtractGroupName(className);
-        }
-
-        /**
-         * Get the Class name extracted from the class_id.
-         *
-         * \return  Class name
-         */
-        static std::wstring ClassName(const std::wstring& className)
-        {
-            // TODO caching?
-            return ExtractClassName(className);
-        }
-
-        /**
          * Get the Class Name of this objects class
          *
          * \return  Class name
@@ -573,21 +550,6 @@ namespace Inf
             m_Session->ReleaseString(name);
             return className;
         }
-
-        /**
-         * This conversion operator is currently the only way of getting the pbobject out.
-         *
-         * \return  The pbobject used for PowerBuilder functions
-         */
-        operator pbobject() const
-        {
-            return m_Object;
-        }
-    private:
-
-        IPB_Session* m_Session;
-        pbobject m_Object = 0;
-        pbclass m_Class = 0;
 
         /**
          * Only used in Inf::PBObject<>::GroupName() to initialize a static variable.
@@ -626,6 +588,21 @@ namespace Inf
         }
 
         /**
+         * This conversion operator is currently the only way of getting the pbobject out.
+         *
+         * \return  The pbobject used for PowerBuilder functions
+         */
+        operator pbobject() const
+        {
+            return m_Object;
+        }
+    private:
+
+        IPB_Session* m_Session;
+        pbobject m_Object = 0;
+        pbclass m_Class = 0;
+
+        /**
          * Only used in Inf::PBObject<>::PBClass(m_Session) to initialize a static variable.
          *
          * \return  The pbclass found using Group and Class Name
@@ -634,23 +611,23 @@ namespace Inf
          */
         static pbclass FindClass(IPB_Session* session, const std::wstring& className, pbgroup_type groupType)
         {
-            pbgroup group = session->FindGroup(GroupName(className).c_str(), groupType);
+            pbgroup group = session->FindGroup(ExtractGroupName(className).c_str(), groupType);
             if (!group)
             {
                 throw PBNI_Exception({
                     { L"Error", L"Unable to find group" },
-                    { L"Group", GroupName(className) },
+                    { L"Group", ExtractGroupName(className) },
                     { L"ID", className },
                     });
             }
 
-            pbclass cls = session->FindClass(group, ClassName(className).c_str());
+            pbclass cls = session->FindClass(group, ExtractClassName(className).c_str());
             if (!cls)
             {
                 throw PBNI_Exception({
                     { L"Error", L"Unable to find class" },
-                    { L"Group", GroupName(className) },
-                    { L"Class", ClassName(className) },
+                    { L"Group", ExtractGroupName(className) },
+                    { L"Class", ExtractClassName(className) },
                     { L"ID", className },
                     });
             }
@@ -763,4 +740,6 @@ namespace Inf
     using PBWindow = PBObject<class_id, pbgroup_window>;
     template <Helper::FixedString class_id>
     using PBDataWindow = PBObject<class_id, pbgroup_datawindow>;
+    template <Helper::FixedString class_id>
+    using PBFunction = PBObject<class_id, pbgroup_function>;
 }

@@ -219,7 +219,7 @@ namespace Inf
             if (IsNull())
                 throw PBNI_NullPointerException(class_id.data);
 
-            pbmethodID mid = m_Session->GetMethodID(PBClass(m_Session), method_name.c_str(), pbrt, pbsig.c_str());
+            pbmethodID mid = m_Session->GetMethodID(PBClass(m_Session), method_name.c_str(), pbrt, pbsig.c_str(), 0);
 
             if (mid == kUndefinedMethodID)
                 throw PBNI_InvalidFieldException(class_id.data, method_name + L"(" + pbsig + L")", L"Method");

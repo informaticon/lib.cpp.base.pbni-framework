@@ -45,7 +45,7 @@ namespace Inf
          */
         virtual const char* what() const noexcept override
         {
-            m_What = ConvertString<std::string>( (*m_KeyValueStore.begin()).second );
+            m_What = ConvertString<std::string>(m_KeyValueStore.at(L"Error"));
             return m_What.c_str();
         }
 

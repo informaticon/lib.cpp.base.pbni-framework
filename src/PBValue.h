@@ -104,7 +104,7 @@ namespace Inf
                 }
                 else
                 {
-                    return m_Value->GetType() == Type<T>::PBType;
+                    return m_Value->GetType() == pbvalue_any || m_Value->GetType() == Type<T>::PBType;
                 }
             }
 

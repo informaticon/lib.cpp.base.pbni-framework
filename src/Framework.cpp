@@ -1,5 +1,7 @@
 #include "Framework.h"
 
+#include <fstream>
+
 #include "ClassDescription.h"
 
 
@@ -57,7 +59,40 @@ PBXRESULT Inf::PBNI_Class::Invoke(IPB_Session* session, pbobject obj, pbmethodID
     }
     catch (const std::exception& ex)
     {
-        m_Session->ThrowException(ConvertException(m_Session, ex));
+        try
+        {
+            m_Session->ThrowException(ConvertException(m_Session, ex));
+        }
+        catch (const std::exception& ex2)
+        {
+#ifndef NDEBUG
+            // Last ditch effort
+
+            const auto logError = [](std::wofstream& log, const std::exception& e)
+            {
+                const PBNI_Exception* pbniEx = dynamic_cast<const PBNI_Exception*>(&e);
+                if (pbniEx)
+                {
+                    log << L"  PBNI Exception:\n";
+                    for (const auto& [key, value] : pbniEx->GetKeyValues())
+                    {
+                        log << L"    " << key << L": " << value << '\n';
+                    }
+                }
+                else
+                    log << L"  " << e.what() << L'\n';
+            };
+
+
+            std::wofstream log("pbni.log", std::fstream::app);
+            log << "Errored:\n";
+            logError(log, ex2);
+
+            log << "While trying to catch:\n";
+            logError(log, ex);
+#endif
+            throw;
+        }
     }
     
     // Need to return success even after ThrowException otherwise it will throw system error

@@ -153,7 +153,7 @@ namespace Inf
                     throw PBNI_IncorrectArgumentsException(object->GetPBName(), m_Description, i);
             
                 i++;
-                }(), ...);
+            }(), ...);
 
             // Gathering arguments
             i = 0;

@@ -112,6 +112,7 @@ namespace Inf
 
         /**
          * Simple helper function that calls InvokeMatching in the background, for more info read the InvokeMatching documentation.
+         * This can't be used to invoke a non-public function.
          * 
          * \throw Inf::PBNI_InvalidFieldException           If no matching functions were found
          * \throw Inf::PBNI_IncorrectArgumentsException     If the argument types dont match up
@@ -168,6 +169,7 @@ namespace Inf
 
         /**
          * Invokes a Function of a pbobject with known argument types. The return type doesn't matter.
+         * This can't be used to invoke a non-public function.
          *
          * \param method_name   The name of the Function to invoke
          * \param pbrt          The Type of the Function (Function or Event)
@@ -222,7 +224,7 @@ namespace Inf
             if (IsNull())
                 throw PBNI_NullPointerException(GetClassName());
 
-            pbmethodID mid = m_Session->GetMethodID(m_Class, method_name.c_str(), pbrt, pbsig.c_str());
+            pbmethodID mid = m_Session->GetMethodID(m_Class, method_name.c_str(), pbrt, pbsig.c_str(), false);
 
             if (mid == kUndefinedMethodID)
                 throw PBNI_InvalidFieldException(GetClassName(), method_name + L"(" + pbsig + L")", L"Method");

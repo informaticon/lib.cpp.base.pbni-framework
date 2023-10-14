@@ -4,27 +4,27 @@
 Inf::PBAny::PBAny(IPB_Session* session, IPB_Value* value, bool acquire)
     : m_Session(session)
 {
-    if (!value || value->IsNull())
-    {
-        m_Type = AnyType::Null;
-        return;
-    }
-
     if (value->IsObject())
     {
         m_Class = value->GetClass();
         m_Type = AnyType::Object;
     }
     else
-        m_Type = (AnyType)value->GetType();
+        m_Type = (AnyType) value->GetType();
 
     if (value->IsArray())
     {
         m_IsArray = true;
 
-        m_Value = Helper::PBValue(session, value).Get<PBArray<PBAny>>(acquire);
+        if (!value->IsNull())
+            m_Value = Helper::PBValue(session, value).Get<PBArray<PBAny>>(acquire);
+
         return;
     }
+
+
+    if (value->IsNull())
+        return;
 
     if (value->IsObject())
     {

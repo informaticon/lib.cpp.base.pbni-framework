@@ -159,6 +159,12 @@ namespace Inf
                 pbobject obj = m_Session->GetObjectArrayItem(m_Array, &pos, is_null);
                 return { m_Session, is_null ? 0 : obj };
             }
+            else if constexpr (std::is_same_v<Item, PBAny>)
+            {
+                IPB_Value* val = m_Session->AcquireArrayItemValue(m_Array, &pos);
+                m_Session->SetArrayItemValue(m_Array, &pos, val); // Copy back, because Acquiring steals the value
+                return { m_Session, val, true };
+            }
             else
             {
                 return GetImpl(Type<Item>(), &pos);
@@ -294,6 +300,12 @@ namespace Inf
                 pbboolean is_null = false;
                 pbobject obj = m_Session->GetObjectArrayItem(m_Array, pos.data(), is_null);
                 return { m_Session, is_null ? 0 : obj };
+            }
+            else if constexpr (std::is_same_v<Item, PBAny>)
+            {
+                IPB_Value* val = m_Session->AcquireArrayItemValue(m_Array, pos);
+                m_Session->SetArrayItemValue(m_Array, pos, val); // Copy back, because Acquiring steals the value
+                return { m_Session, val, true };
             }
             else
             {

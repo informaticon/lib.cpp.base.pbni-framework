@@ -590,22 +590,7 @@ namespace Inf
         }
 
         /**
-         * This conversion operator is currently the only way of getting the pbobject out.
-         *
-         * \return  The pbobject used for PowerBuilder functions
-         */
-        operator pbobject() const
-        {
-            return m_Object;
-        }
-    private:
-
-        IPB_Session* m_Session;
-        pbobject m_Object = 0;
-        pbclass m_Class = 0;
-
-        /**
-         * Only used in Inf::PBObject<>::PBClass(m_Session) to initialize a static variable.
+         * Finds a Class using a className in the form of group.class or just class
          *
          * \return  The pbclass found using Group and Class Name
          *
@@ -636,6 +621,21 @@ namespace Inf
 
             return cls;
         }
+
+        /**
+         * This conversion operator is currently the only way of getting the pbobject out.
+         *
+         * \return  The pbobject used for PowerBuilder functions
+         */
+        operator pbobject() const
+        {
+            return m_Object;
+        }
+    private:
+
+        IPB_Session* m_Session;
+        pbobject m_Object = 0;
+        pbclass m_Class = 0;
 
         // Visual studio always messes up the nice formatting here, idk if this does anything, but its my last hope
         inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBByte&     t) { return m_Session->SetByteField(m_Object, fid, t); }

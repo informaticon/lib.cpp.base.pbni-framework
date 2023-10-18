@@ -304,6 +304,12 @@ namespace Inf
 
                 throw PBNI_PowerBuilderException(L"IPB_Session::InvokeObjectFunction", res);
             }
+            if (m_Session->HasExceptionThrown())
+            {
+                m_Session->FreeCallInfo(&ci);
+
+                throw PBNI_ExceptionThrown();
+            }
 
             // Apply references
             i = 0;

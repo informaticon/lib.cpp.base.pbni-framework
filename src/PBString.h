@@ -101,13 +101,7 @@ namespace Inf
             return m_String;
         }
     private:
-        friend class Helper::PBValue;
-        friend class PBAny;
-        template <typename PBT, pblong... dims>
-            requires (sizeof...(dims) <= 3 && !std::is_reference_v<PBT> && !std::is_pointer_v<PBT>)
-        friend class PBArray;
-        template <Helper::FixedString class_id, pbgroup_type group_type>
-        friend class PBObject;
+        friend Helper::PBValue;
 
         IPB_Session* m_Session;
         pbstring m_String;
@@ -132,22 +126,21 @@ namespace Inf
      *
      * \tparam ToStr    The Type to be converted to
      */
-    template <typename ToStr, typename... FromStr> ToStr ConvertString(FromStr... str) = delete;
+    template <typename ToStr, typename... FromStr> ToStr ConvertString(const FromStr&... str) = delete;
 
-    // TODO Stop uneccessary copying from happening
-    template<> std::wstring ConvertString<>(const char* str, size_t size, PBString::StringEncoding encoding);
-    template<> std::wstring ConvertString<>(const char* str, PBString::StringEncoding encoding);
-    template<> std::wstring ConvertString<>(const std::string_view str, PBString::StringEncoding encoding);
-    template<> std::wstring ConvertString<>(const std::string str, PBString::StringEncoding encoding);
-    template<> std::string ConvertString<>(const wchar_t* wstr, size_t size, PBString::StringEncoding encoding);
-    template<> std::string ConvertString<>(const wchar_t* wstr, PBString::StringEncoding encoding);
-    template<> std::string ConvertString<>(const std::wstring wstr, PBString::StringEncoding encoding);
+    template<> std::wstring ConvertString<>(const char* const& str, const size_t& size, const PBString::StringEncoding& encoding);
+    template<> std::wstring ConvertString<>(const char* const& str, const PBString::StringEncoding& encoding);
+    template<> std::wstring ConvertString<>(const std::string_view& str, const PBString::StringEncoding& encoding);
+    template<> std::wstring ConvertString<>(const std::string& str, const PBString::StringEncoding& encoding);
+    template<> std::string  ConvertString<>(const wchar_t* const& wstr, const size_t& size, const PBString::StringEncoding& encoding);
+    template<> std::string  ConvertString<>(const wchar_t* const& wstr, const PBString::StringEncoding& encoding);
+    template<> std::string  ConvertString<>(const std::wstring& wstr, const PBString::StringEncoding& encoding);
 
-    template<> std::wstring ConvertString<>(const char* str, size_t size);
-    template<> std::wstring ConvertString<>(const char* str);
-    template<> std::wstring ConvertString<>(const std::string_view str);
-    template<> std::wstring ConvertString<>(const std::string str);
-    template<> std::string ConvertString<>(const wchar_t* wstr, size_t size);
-    template<> std::string ConvertString<>(const wchar_t* wstr);
-    template<> std::string ConvertString<>(const std::wstring wstr);
-}
+    template<> inline std::wstring ConvertString<>(const char* const& str, const size_t& size)     { return ConvertString<std::wstring>(str, size, PBString::ANSI); }
+    template<> inline std::wstring ConvertString<>(const char* const& str)                         { return ConvertString<std::wstring>(str, PBString::ANSI); }
+    template<> inline std::wstring ConvertString<>(const std::string_view& str)                    { return ConvertString<std::wstring>(str, PBString::ANSI); }
+    template<> inline std::wstring ConvertString<>(const std::string& str)                         { return ConvertString<std::wstring>(str, PBString::ANSI); }
+    template<> inline std::string  ConvertString<>(const wchar_t* const& wstr, const size_t& size) { return ConvertString<std::string >(wstr, size, PBString::ANSI); }
+    template<> inline std::string  ConvertString<>(const wchar_t* const& wstr)                     { return ConvertString<std::string >(wstr, PBString::ANSI); }
+    template<> inline std::string  ConvertString<>(const std::wstring& wstr)                       { return ConvertString<std::string >(wstr, PBString::ANSI); }
+ }

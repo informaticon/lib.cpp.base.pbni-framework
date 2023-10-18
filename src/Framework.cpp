@@ -57,12 +57,18 @@ PBXRESULT Inf::PBNI_Class::Invoke(IPB_Session* session, pbobject obj, pbmethodID
         
         return PBX_E_INVALID_METHOD_ID;
     }
+    catch (const PBNI_ExceptionThrown&)
+    {
+        // Exception already known to powerbuilder, this is just a quick exit
+    }
     catch (const std::exception& ex)
     {
         try
         {
             m_Session->ThrowException(ConvertException(m_Session, ex));
         }
+        catch (const PBNI_ExceptionThrown&)
+        { }
         catch (const std::exception& ex2)
         {
 #ifndef NDEBUG

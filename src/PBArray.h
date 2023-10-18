@@ -99,6 +99,14 @@ namespace Inf
             }
 
         }
+        
+        /**
+         * Copy constructor
+         */
+        template <typename o_Item, pblong... o_dims>
+        PBArray(const PBArray<o_Item, o_dims...>& other)
+            : m_Session(other.m_Session), m_Array(other.m_Array), m_AcquiredValue(other.m_AcquiredValue), m_ArrayInfo(other.m_ArrayInfo)
+        { }
 
     #pragma region UnboundedArray_Functions
         /**
@@ -117,21 +125,22 @@ namespace Inf
         {
             AssertInside(pos, false);
 
-            if (t.IsNull())
-            {
-                m_Session->SetArrayItemToNull(m_Array, &pos);
-            }
-            else
+            // Reset the item in the array, because PBAny arrays dont like changing datatype
+            m_Session->SetArrayItemToNull(m_Array, &pos);
+
+            if (!t.IsNull())
             {
                 PBXRESULT res;
-                if constexpr (Helper::is_pb_object_v<Item>)
+                if constexpr (std::is_base_of_v<DynPBObject, Item>)
+                    res = m_Session->SetObjectArrayItem(m_Array, &pos, t);
+                else if constexpr (std::is_same_v<Item, PBAny>)
                 {
-                    res = m_Session->SetObjectArrayItem(m_Array, &pos, t.m_Object);
+                    IPB_Value* value = m_Session->AcquireArrayItemValue(m_Array, &pos);
+                    res = t.ToValue(value);
+                    m_Session->SetArrayItemValue(m_Array, &pos, value);
                 }
                 else
-                {
                     res = SetImpl(&pos, t);
-                }
 
                 if (res != PBX_SUCCESS)
                     throw PBNI_PowerBuilderException(L"IPB_Session::Set<Type>ArrayItem for " + Type<Item>::GetPBName(L""), res);
@@ -153,11 +162,17 @@ namespace Inf
         {
             AssertInside(pos);
 
-            if constexpr (Helper::is_pb_object_v<Item>)
+            if constexpr (std::is_base_of_v<DynPBObject, Item>)
             {
                 pbboolean is_null = false;
                 pbobject obj = m_Session->GetObjectArrayItem(m_Array, &pos, is_null);
                 return { m_Session, is_null ? 0 : obj };
+            }
+            else if constexpr (std::is_same_v<Item, PBAny>)
+            {
+                IPB_Value* val = m_Session->AcquireArrayItemValue(m_Array, &pos);
+                m_Session->SetArrayItemValue(m_Array, &pos, val); // Copy back, because Acquiring steals the value
+                return { m_Session, val, true };
             }
             else
             {
@@ -253,21 +268,22 @@ namespace Inf
         {
             AssertInside(pos);
 
-            if (t.IsNull())
-            {
-                m_Session->SetArrayItemToNull(m_Array, pos.data());
-            }
-            else
+            // Reset the item in the array, because PBAny arrays dont like changing datatype
+            m_Session->SetArrayItemToNull(m_Array, pos.data());
+
+            if (!t.IsNull())
             {
                 PBXRESULT res;
-                if constexpr (Helper::is_pb_object_v<Item>)
+                if constexpr (std::is_base_of_v<DynPBObject, Item>)
+                    res = m_Session->SetObjectArrayItem(m_Array, pos.data(), t);
+                else if constexpr (std::is_same_v<Item, PBAny>)
                 {
-                    res = m_Session->SetObjectArrayItem(m_Array, pos.data(), t.m_Object);
+                    IPB_Value* value = m_Session->AcquireArrayItemValue(m_Array, pos.data());
+                    t.ToValue(value);
+                    m_Session->SetArrayItemValue(m_Array, pos.data(), value);
                 }
                 else
-                {
                     res = SetImpl(pos.data(), t);
-                }
 
                 if (res != PBX_SUCCESS)
                     throw PBNI_PowerBuilderException(L"IPB_Session::Set<Type>ArrayItem for " + Type<Item>::GetPBName(L""), res);
@@ -289,11 +305,17 @@ namespace Inf
         {
             AssertInside(pos);
 
-            if constexpr (Helper::is_pb_object_v<Item>)
+            if constexpr (std::is_base_of_v<DynPBObject, Item>)
             {
                 pbboolean is_null = false;
                 pbobject obj = m_Session->GetObjectArrayItem(m_Array, pos.data(), is_null);
                 return { m_Session, is_null ? 0 : obj };
+            }
+            else if constexpr (std::is_same_v<Item, PBAny>)
+            {
+                IPB_Value* val = m_Session->AcquireArrayItemValue(m_Array, pos.data());
+                m_Session->SetArrayItemValue(m_Array, pos.data(), val); // Copy back, because Acquiring steals the value
+                return { m_Session, val, true };
             }
             else
             {
@@ -402,8 +424,10 @@ namespace Inf
         }
 
     private:
-        friend struct Helper::PBValue;
-        friend PBAny;
+        friend Helper::PBValue;
+        template <typename o_Item, pblong... o_dims>
+            requires (sizeof...(o_dims) <= 3 && !std::is_reference_v<o_Item> && !std::is_pointer_v<o_Item>)
+        friend class PBArray;
 
         IPB_Session* m_Session;
         pbarray m_Array;
@@ -486,7 +510,7 @@ namespace Inf
         }
 
         inline PBXRESULT SetImpl(pblong* dim, const PBByte&       t) { return m_Session->SetByteArrayItem(m_Array, dim, t); }
-        inline PBXRESULT SetImpl(pblong* dim, const PBBoolean&    t) { return m_Session->SetCharArrayItem(m_Array, dim, t); }
+        inline PBXRESULT SetImpl(pblong* dim, const PBBoolean&    t) { return m_Session->SetBoolArrayItem(m_Array, dim, t); }
         inline PBXRESULT SetImpl(pblong* dim, const PBChar&       t) { return m_Session->SetCharArrayItem(m_Array, dim, t); }
         inline PBXRESULT SetImpl(pblong* dim, const PBInt&        t) { return m_Session->SetIntArrayItem(m_Array, dim, t); }
         inline PBXRESULT SetImpl(pblong* dim, const PBUint&       t) { return m_Session->SetUintArrayItem(m_Array, dim, t); }
@@ -495,12 +519,12 @@ namespace Inf
         inline PBXRESULT SetImpl(pblong* dim, const PBLongLong&   t) { return m_Session->SetLongLongArrayItem(m_Array, dim, t); }
         inline PBXRESULT SetImpl(pblong* dim, const PBReal&       t) { return m_Session->SetRealArrayItem(m_Array, dim, t); }
         inline PBXRESULT SetImpl(pblong* dim, const PBDouble&     t) { return m_Session->SetDoubleArrayItem(m_Array, dim, t); }
-        inline PBXRESULT SetImpl(pblong* dim, const PBDecimal&    t) { return m_Session->SetDecArrayItem(m_Array, dim, t.m_Decimal); }
-        inline PBXRESULT SetImpl(pblong* dim, const PBTime&       t) { return m_Session->SetTimeArrayItem(m_Array, dim, t.m_Time); }
-        inline PBXRESULT SetImpl(pblong* dim, const PBDate&       t) { return m_Session->SetDateArrayItem(m_Array, dim, t.m_Date); }
-        inline PBXRESULT SetImpl(pblong* dim, const PBDateTime&   t) { return m_Session->SetDateTimeArrayItem(m_Array, dim, t.m_DateTime); }
-        inline PBXRESULT SetImpl(pblong* dim, const PBString&     t) { return m_Session->SetPBStringArrayItem(m_Array, dim, t.m_String); }
-        inline PBXRESULT SetImpl(pblong* dim, const PBBlob&       t) { return m_Session->SetBlobArrayItem(m_Array, dim, t.m_Blob); }
+        inline PBXRESULT SetImpl(pblong* dim, const PBDecimal&    t) { return m_Session->SetDecArrayItem(m_Array, dim, t); }
+        inline PBXRESULT SetImpl(pblong* dim, const PBTime&       t) { return m_Session->SetTimeArrayItem(m_Array, dim, t); }
+        inline PBXRESULT SetImpl(pblong* dim, const PBDate&       t) { return m_Session->SetDateArrayItem(m_Array, dim, t); }
+        inline PBXRESULT SetImpl(pblong* dim, const PBDateTime&   t) { return m_Session->SetDateTimeArrayItem(m_Array, dim, t); }
+        inline PBXRESULT SetImpl(pblong* dim, const PBString&     t) { return m_Session->SetPBStringArrayItem(m_Array, dim, t); }
+        inline PBXRESULT SetImpl(pblong* dim, const PBBlob&       t) { return m_Session->SetBlobArrayItem(m_Array, dim, t); }
 
         inline PBByte     GetImpl(Type<PBByte    >, pblong* dim) const { pbboolean is_null = false; pbbyte pb_byte           = m_Session->GetByteArrayItem(m_Array, dim, is_null);       return is_null ? PBByte()       : PBByte(pb_byte); }
         inline PBBoolean  GetImpl(Type<PBBoolean >, pblong* dim) const { pbboolean is_null = false; pbboolean pb_boolean     = m_Session->GetCharArrayItem(m_Array, dim, is_null);       return is_null ? PBBoolean()    : PBBoolean(pb_boolean); }

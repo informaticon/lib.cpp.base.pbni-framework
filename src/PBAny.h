@@ -23,6 +23,7 @@ namespace Inf
             Dec = pbvalue_dec,
             String = pbvalue_string,
             Boolean = pbvalue_boolean,
+            Any = pbvalue_any,
             Uint = pbvalue_uint,
             Ulong = pbvalue_ulong,
             Blob = pbvalue_blob,
@@ -30,7 +31,7 @@ namespace Inf
             Time = pbvalue_time,
             DateTime = pbvalue_datetime,
             Char = pbvalue_char,
-            Longlong = pbvalue_longlong,
+            LongLong = pbvalue_longlong,
             Byte = pbvalue_byte,
         
             Object = 201
@@ -120,15 +121,24 @@ namespace Inf
             {
                 if (!m_IsArray)
                     return false;
+                if (m_Type == AnyType::Any)
+                    return true;
             
                 using ItemType = T::_Item;
+
                 if constexpr (Helper::is_pb_object_v<ItemType>)
-                    return m_Type == AnyType::Object && m_Class == ItemType::PBClass(m_Session);
+                    return m_Type == AnyType::Object && Helper::IsPBBaseClass(m_Session, ItemType::PBClass(m_Session), m_Class);
+                else if constexpr (std::is_same_v<DynPBObject, ItemType>)
+                    return m_Type == AnyType::Object;
+                else if constexpr (std::is_same_v<PBAny, ItemType>)
+                    return true;
                 else
                     return m_Type == (AnyType) Type<ItemType>::PBType;
             }
             else if constexpr (Helper::is_pb_object_v<T>)
-                return m_Type == AnyType::Object && m_Class == T::PBClass(m_Session);
+                return m_Type == AnyType::Object && Helper::IsPBBaseClass(m_Session, T::PBClass(m_Session), m_Class);
+            else if constexpr (std::is_same_v<DynPBObject, T>)
+                return m_Type == AnyType::Object;
             else
                 return m_Type == (AnyType) Type<T>::PBType;
         }
@@ -136,19 +146,29 @@ namespace Inf
         /**
          * This Function Retrieves the specified Type from an IPB_Value.
          *
-         * \param acquire   Whether or not to take ownership of the type, only relevant for complex types. The Type will free itself
          * \return          The returned Type
          */
         template <typename T>
         inline T Get()
         {
             if (!Is<T>())
-                throw Inf::PBNI_Exception(L"Tried to cast a PBAny to the wrong Type");
+                throw PBNI_Exception(L"Tried to cast a PBAny to the wrong Type", {
+                    { L"From", std::to_wstring(m_Type) },
+                    { L"To", ConvertString<std::wstring>(typeid(T).name()) }
+                });
             
             if constexpr (Helper::is_pb_array_v<T>)
-                return { m_Session, IsNull() ? 0 : (pbarray) std::any_cast<PBArray<PBAny>>(m_Value) };
+            {
+                if (IsNull())
+                    return { m_Session, 0 };
+                else
+                    // Direct copy, so that we keep the AcquiredValue
+                    return std::any_cast<PBArray<PBAny>>(m_Value);
+            }
             else if constexpr (Helper::is_pb_object_v<T>)
-                return { m_Session, IsNull() ? 0 : (pbobject) std::any_cast<PBObject<L"">>(m_Value) };
+                return { m_Session, IsNull() ? 0 : (pbobject) std::any_cast<DynPBObject>(m_Value) };
+            else if constexpr (std::is_same_v<DynPBObject, T>)
+                return std::any_cast<DynPBObject>(m_Value);
             else
             {
                 if (IsNull())
@@ -179,7 +199,7 @@ namespace Inf
                 if (t.IsNull())
                     m_Value.reset();
                 else
-                    m_Value = PBArray<PBAny>(m_Session, (pbarray) t);
+                    m_Value = PBArray<PBAny>(t);
             }
             else if constexpr (Helper::is_pb_object_v<T>)
             {
@@ -187,7 +207,15 @@ namespace Inf
                 if (t.IsNull())
                     m_Value.reset();
                 else
-                    m_Value = PBObject<L"">(m_Session, t);
+                    m_Value = (DynPBObject&) t;
+            }
+            else if constexpr (std::is_same_v<DynPBObject, T>)
+            {
+                m_Type = AnyType::Object;
+                if (t.IsNull())
+                    m_Value.reset();
+                else
+                    m_Value = t;
             }
             else
             {
@@ -201,12 +229,6 @@ namespace Inf
 
 
     private:
-        template <typename PBT, pblong... dims>
-            requires (sizeof...(dims) <= 3 && !std::is_reference_v<PBT> && !std::is_pointer_v<PBT>)
-        friend class PBArray;
-        template <Helper::FixedString class_id, pbgroup_type group_type>
-        friend class PBObject;
-
         std::any m_Value;
 
         AnyType m_Type = AnyType::Notype;

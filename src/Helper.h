@@ -28,6 +28,8 @@ namespace Inf
 
     class PBAny;
 
+    class DynPBObject;
+
     template <Helper::FixedString class_id, pbgroup_type group_type>
     class PBObject;
 
@@ -55,5 +57,18 @@ namespace Inf
 
         template <typename T>
         inline constexpr bool is_pb_array_v = is_pb_array<T>::value;
+
+        inline bool IsPBBaseClass(IPB_Session* session, pbclass base, pbclass cls) {
+            if (cls == base)
+                return true;
+            
+            while (cls = session->GetSuperClass(cls))
+            {
+                if (cls == base)
+                    return true;
+            }
+            
+            return false;
+        }
     };
 }

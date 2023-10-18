@@ -53,13 +53,16 @@ namespace Inf
                     {
                         if constexpr (T::_dims.size() == 0)
                         {
-                            is_correct = info->arrayType == info->UnboundedArray && info->itemGroup != 0;
+                            is_correct =
+                                info->arrayType == info->UnboundedArray &&
+                                info->itemGroup != 0;
+                                // Helper::IsPBBaseClass(m_Session, T::_Item::PBClass(m_Session), (pbclass) info->valueType);
                         }
                         else
                         {
-                            is_correct = \
-                                info->arrayType == info->BoundedArray && \
-                                info->itemGroup != 0 && \
+                            is_correct = 
+                                info->arrayType == info->BoundedArray &&
+                                info->itemGroup != 0 &&
                                 info->numDimensions == T::_dims.size();
 
                             for (uint8_t i = 0; i < T::_dims.size(); i++)
@@ -68,7 +71,6 @@ namespace Inf
                     }
                     else
                     {
-
                         if constexpr (T::_dims.size() == 0)
                         {
                             is_correct = info->arrayType == info->UnboundedArray && info->valueType == Type<ItemType>::PBType;
@@ -95,11 +97,11 @@ namespace Inf
                     if (m_Value->IsNull())
                         return true;
 
-                    pbclass cls = m_Value->GetClass();
-                    if (m_Session->GetClassName(cls) == std::wstring(L"powerobject"))
-                        return true;
-
-                    return cls == T::PBClass(m_Session);
+                    return Helper::IsPBBaseClass(m_Session, T::PBClass(m_Session), m_Value->GetClass());
+                }
+                else if constexpr (std::is_same_v<DynPBObject, T>)
+                {
+                    return m_Value->IsObject();
                 }
                 else
                 {
@@ -120,6 +122,8 @@ namespace Inf
                     return { m_Session, m_Value, acquire };
                 else if constexpr (Helper::is_pb_object_v<T>)
                     return { m_Session, m_Value->GetObject() };
+                else if constexpr (std::is_same_v<T, DynPBObject>)
+                    return { m_Session, m_Value->GetObject(), m_Value->GetClass() };
                 else if constexpr (std::is_same_v<T, PBAny>)
                     return { m_Session, m_Value, acquire };
                 else
@@ -141,6 +145,8 @@ namespace Inf
                     return m_Value->SetArray(t);
                 else if constexpr (Helper::is_pb_object_v<T>)
                     return m_Value->SetObject(t);
+                else if constexpr (std::is_same_v<T, DynPBObject>)
+                    return m_Value->SetObject(t);
                 else if constexpr (std::is_same_v<T, PBAny>)
                     return t.ToValue(m_Value);
                 else
@@ -148,12 +154,6 @@ namespace Inf
             }
 
         private:
-            template <typename PBT, pblong... dims>
-                requires (sizeof...(dims) <= 3 && !std::is_reference_v<PBT> && !std::is_pointer_v<PBT>)
-            friend class PBArray;
-            template <Helper::FixedString class_id, pbgroup_type group_type>
-            friend class PBObject;
-
             IPB_Session* m_Session;
             IPB_Value* m_Value;
 

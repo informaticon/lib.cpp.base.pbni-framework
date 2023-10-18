@@ -11,6 +11,11 @@
 namespace Inf
 {
     /**
+     * Used when an exception is thrown by a function called by powerbuilder.
+     */
+    class PBNI_ExceptionThrown : public std::exception { };
+
+    /**
      * Use this class to throw Verbose Exceptions that can be handled by PowerBuilder.
      * This class automatically generates a StackTrace.
      */

@@ -3,3 +3,7 @@ build/**
 
 .vscode/**
 doxygen/**
+
+out
+test/pb/build
+test/pb/lib.pbni.base.framework-tester.dll

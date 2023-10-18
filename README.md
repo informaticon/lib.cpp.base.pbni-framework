@@ -30,3 +30,16 @@ To generate and view the documentation locally, run `make` and `make serve`.
 This will create and open a Web documentation on `localhost:8000`. Alternatively you can open docs/index.md in your browser.
 
 If you want regenerate the documentation for Github, you have to run `make doxygen` and `make doxybook-git` before committing.
+
+
+## Tests
+Build the test dll by running
+```ps1
+cmake -S .\test\cpp\ -B build --preset vcpkg
+cmake --build build --target install
+```
+
+Run tests by doing
+```ps1
+make -C test/pb tests
+```

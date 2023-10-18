@@ -6,59 +6,83 @@
 
 namespace Inf
 {
-
-    /**
-     * Wrapper for pbobject type. If the Group and Classnames are the same (most of the times), the ID of the Class is just the Class name.
-     * If the Group and Class names are different, the ID is both combined with a dot (L"group.class"). This is only the case for nested Types.
-     *
-     * \tparam class_id     ID of Group and Class
-     * \tparam group_type   The Group Type used by PowerBuilder (struct, userobject, ...)
-     */
-    template <Helper::FixedString class_id, pbgroup_type group_type = pbgroup_userobject>
-    class PBObject
+    class DynPBObject
     {
     public:
-        static constexpr Helper::FixedString _class_id = class_id;
-        static constexpr pbgroup_type _group_type = group_type;
+        /**
+         * Creates a new Wrapper for an already existing object.
+         * Will be Null if obj is 0.
+         *
+         * \param session       Current Session
+         * \param obj           pbobject or 0
+         * \param className     Name of the PowerBuilder Class, can be ""
+         * \param groupType     Group type of the object
+         */
+        DynPBObject(IPB_Session* session, pbobject obj, pbclass cls = 0)
+            : m_Session(session), m_Object(obj)
+        {
+            m_Class = cls;
+            if (!IsNull())
+            {
+                session->AddGlobalRef(m_Object);
+
+                if (!m_Class)
+                    m_Class = m_Session->GetClass(m_Object);
+            }
+        }
 
         /**
          * Creates a new Wrapper for an already existing object.
          * Will be Null if obj is 0.
          *
          * \param session   Current Session
-         * \param obj       pbobject or 0
+         * \param className     Name of the PowerBuilder Class, can be ""
+         * \param groupType     Group type of the object
+         *
+         * \throw Inf::PBNI_Exception   If the Group or Class cannot be found
          */
-        PBObject(IPB_Session* session, pbobject obj)
-            : m_Session(session), m_Object(obj)
-        {
-            if (!IsNull())
-                session->AddLocalRef(m_Object);
-        }
+        DynPBObject(IPB_Session* session, pbobject obj, std::wstring className, pbgroup_type groupType)
+            : DynPBObject(session, FindClass(session, className, groupType))
+        { }
+        
+        /**
+         * Will create a new object of the correct Class.
+         *
+         * \param session   Current Session
+         * \param className     Name of the PowerBuilder Class, can be ""
+         * \param groupType     Group type of the object
+         *
+         * \throw Inf::PBNI_Exception   If the Group or Class cannot be found
+         */
+        DynPBObject(IPB_Session* session, std::wstring className, pbgroup_type groupType)
+            : DynPBObject(session, FindClass(session, className, groupType))
+        { }
 
         /**
          * Will create a new object of the correct Class.
          *
          * \param session   Current Session
+         * \param className     Name of the PowerBuilder Class, can be ""
+         * \param groupType     Group type of the object
          *
          * \throw Inf::PBNI_Exception   If the Group or Class cannot be found
          */
-        PBObject(IPB_Session* session)
-            : m_Session(session)
-        {
-            m_Object = m_Session->NewObject(PBClass(m_Session));
-            // We need to add a local ref, so we can return an object returned of an invoked function
-            session->AddLocalRef(m_Object);
-        }
+        DynPBObject(IPB_Session* session, pbclass cls)
+            : DynPBObject(session, session->NewObject(cls), cls)
+        { }
 
         /**
-         * The ability to cast any Class to any other Class.
-         *
-         * \param other     Object to cast
+         * Copy constructor
          */
-        template <Helper::FixedString other_class_id, pbgroup_type other_group_type>
-        PBObject(const PBObject<other_class_id, other_group_type>& other)
-            : m_Session(other.m_Session), m_Object(other.m_Object)
+        DynPBObject(const DynPBObject& other)
+            : DynPBObject(other.m_Session, other.m_Object, other.m_Class)
         { }
+
+        ~DynPBObject()
+        {
+            if (m_Object)
+                m_Session->RemoveGlobalRef(m_Object);
+        }
 
         /**
          * Returns the C++ pointer to the Native class of this object.
@@ -104,7 +128,7 @@ namespace Inf
             requires (!std::is_pointer_v<Ret> && !std::is_reference_v<Ret> && !Helper::is_pb_array_v<Ret> && (!std::is_pointer_v<Args> && ...))
         inline Ret CallSig(const std::wstring& method_name, const std::wstring& pbsig, Args... args)
         {
-            return InvokeSig<Ret, Args&...>(method_name, PBRT_FUNCTION, pbsig, args...);
+            return InvokeSig<Ret, Args...>(method_name, PBRT_FUNCTION, pbsig, args...);
         }
 
         /**
@@ -121,7 +145,7 @@ namespace Inf
             requires (!std::is_pointer_v<Ret> && !std::is_reference_v<Ret> && !Helper::is_pb_array_v<Ret> && (!std::is_pointer_v<Args> && ...))
         inline Ret CallMatching(const std::wstring& method_name, const std::wstring& arg_types, Args... args)
         {
-            return InvokeMatching<Ret, Args&...>(method_name, PBRT_FUNCTION, arg_types, args...);
+            return InvokeMatching<Ret, Args...>(method_name, PBRT_FUNCTION, arg_types, args...);
         }
 
 
@@ -161,7 +185,7 @@ namespace Inf
                     }(), ...);
             }
 
-            return InvokeSig<Ret, Args&...>(method_name, pbrt, pbsig, args...);
+            return InvokeSig<Ret, Args...>(method_name, pbrt, pbsig, args...);
         }
 
         /**
@@ -187,14 +211,14 @@ namespace Inf
         inline Ret InvokeMatching(const std::wstring& method_name, PBRoutineType pbrt, const std::wstring& arg_types, Args&&... args)
         {
             if (IsNull())
-                throw PBNI_NullPointerException(class_id.data);
+                throw PBNI_NullPointerException(GetClassName());
 
-            pbmethodID mid = m_Session->FindMatchingFunction(PBClass(m_Session), method_name.c_str(), pbrt, arg_types.c_str());
+            pbmethodID mid = m_Session->FindMatchingFunction(m_Class, method_name.c_str(), pbrt, arg_types.c_str());
 
             if (mid == kUndefinedMethodID)
-                throw PBNI_InvalidFieldException(class_id.data, method_name + L"(" + arg_types + L")", L"Method");
+                throw PBNI_InvalidFieldException(GetClassName(), method_name + L"(" + arg_types + L")", L"Method");
 
-            return InvokeFid<Ret, Args&...>(mid, args...);
+            return InvokeFid<Ret, Args...>(mid, args...);
         }
 
         /**
@@ -216,17 +240,17 @@ namespace Inf
          */
         template <typename Ret = void, typename... Args>
             requires (!std::is_pointer_v<Ret> && !std::is_reference_v<Ret> && !Helper::is_pb_array_v<Ret> && (!std::is_pointer_v<Args> && ...))
-        inline Ret InvokeSig(const std::wstring& method_name, PBRoutineType pbrt, const std::wstring& pbsig, Args&&... args)
+        inline Ret InvokeSig(const std::wstring& method_name, PBRoutineType pbrt, const std::wstring& pbsig, Args... args)
         {
             if (IsNull())
-                throw PBNI_NullPointerException(class_id.data);
+                throw PBNI_NullPointerException(GetClassName());
 
-            pbmethodID mid = m_Session->GetMethodID(PBClass(m_Session), method_name.c_str(), pbrt, pbsig.c_str(), false);
+            pbmethodID mid = m_Session->GetMethodID(m_Class, method_name.c_str(), pbrt, pbsig.c_str(), false);
 
             if (mid == kUndefinedMethodID)
-                throw PBNI_InvalidFieldException(class_id.data, method_name + L"(" + pbsig + L")", L"Method");
+                throw PBNI_InvalidFieldException(GetClassName(), method_name + L"(" + pbsig + L")", L"Method");
 
-            return InvokeFid<Ret, Args&...>(mid, args...);
+            return InvokeFid<Ret, Args...>(mid, args...);
         }
 
         /**
@@ -246,23 +270,23 @@ namespace Inf
          */
         template <typename Ret = void, typename... Args>
             requires (!std::is_pointer_v<Ret> && !std::is_reference_v<Ret> && !Helper::is_pb_array_v<Ret> && (!std::is_pointer_v<Args> && ...))
-        inline Ret InvokeFid(pbmethodID mid, Args&&... args)
+        inline Ret InvokeFid(pbmethodID mid, Args... args)
         {
             if (IsNull())
-                throw PBNI_NullPointerException(class_id.data);
+                throw PBNI_NullPointerException(GetClassName());
 
             PBCallInfo ci;
-            m_Session->InitCallInfo(PBClass(m_Session), mid, &ci);
+            m_Session->InitCallInfo(m_Class, mid, &ci);
 
             // Argument Checking
             if (ci.pArgs->GetCount() != sizeof...(Args))
-                throw PBNI_IncorrectArgumentsException(class_id.data, std::to_wstring(mid));
+                throw PBNI_IncorrectArgumentsException(GetClassName(), std::to_wstring(mid));
 
             pbint i = 0;
             ([&] {
                 Helper::PBValue value(m_Session, ci.pArgs->GetAt(i));
                 if (!value.Is<std::remove_reference_t<Args>>())
-                    throw PBNI_IncorrectArgumentsException(class_id.data, std::to_wstring(mid), i);
+                    throw PBNI_IncorrectArgumentsException(GetClassName(), std::to_wstring(mid), i);
                 i++;
             }(), ...);
 
@@ -271,6 +295,7 @@ namespace Inf
             i = 0;
             (Helper::PBValue(m_Session, ci.pArgs->GetAt(i++)).Set<std::remove_reference_t<Args>>(args), ...);
 
+            // TODO TriggerEvent?
             PBXRESULT res = m_Session->InvokeObjectFunction(m_Object, mid, &ci);
 
             if (res != PBX_OK)
@@ -278,6 +303,12 @@ namespace Inf
                 m_Session->FreeCallInfo(&ci);
 
                 throw PBNI_PowerBuilderException(L"IPB_Session::InvokeObjectFunction", res);
+            }
+            if (m_Session->HasExceptionThrown())
+            {
+                m_Session->FreeCallInfo(&ci);
+
+                throw PBNI_ExceptionThrown();
             }
 
             // Apply references
@@ -311,6 +342,88 @@ namespace Inf
 
 
         /**
+         * Returns the ID of a Field.
+         *
+         * \param field_name    Name of the Field
+         * \return              Field ID
+         *
+         * \throw Inf::PBNI_InvalidFieldException   If no matching field was found
+         */
+        pbfieldID GetFieldId(const std::wstring& field_name) const
+        {
+            pbfieldID fid = m_Session->GetFieldID(m_Class, field_name.c_str());
+
+            if (fid == kUndefinedFieldID)
+                throw PBNI_InvalidFieldException(GetClassName(), field_name, L"Member variable");
+
+            return fid;
+        }
+
+        /**
+         * Returns whether a field is null
+         *
+         * \param field_name    Name of the field
+         * \return              Is null
+         *
+         * \throw Inf::PBNI_InvalidFieldException   If no matching field was found
+         * \throw Inf::PBNI_NullPointerException    If pbobject is Null
+         */
+        pbboolean IsFieldNull(const std::wstring& field_name) const
+        {
+            if (IsNull())
+                throw PBNI_NullPointerException(GetClassName());
+
+            pbfieldID fid = m_Session->GetFieldID(m_Class, field_name.c_str());
+
+            return m_Session->IsFieldNull(m_Object, fid);
+        }
+
+        /**
+         * Returns whether a field is an Object
+         *
+         * \param field_name    Name of the field
+         * \return              Is Object
+         *
+         * \throw Inf::PBNI_InvalidFieldException   If no matching field was found
+         */
+        pbboolean IsFieldObject(const std::wstring& field_name) const
+        {
+            pbfieldID fid = m_Session->GetFieldID(m_Class, field_name.c_str());
+
+            return m_Session->IsFieldObject(m_Class, fid);
+        }
+
+        /**
+         * Returns whether a field is an Array
+         *
+         * \param field_name    Name of the field
+         * \return              Is Array
+         *
+         * \throw Inf::PBNI_InvalidFieldException   If no matching field was found
+         */
+        pbboolean IsFieldArray(const std::wstring& field_name) const
+        {
+            pbfieldID fid = m_Session->GetFieldID(m_Class, field_name.c_str());
+
+            return m_Session->IsFieldArray(m_Class, fid);
+        }
+
+        /**
+         * Returns the type of a field
+         *
+         * \param field_name    Name of the field
+         * \return              Type of the field
+         *
+         * \throw Inf::PBNI_InvalidFieldException   If no matching field was found
+         */
+        pbuint GetFieldType(const std::wstring& field_name) const
+        {
+            pbfieldID fid = m_Session->GetFieldID(m_Class, field_name.c_str());
+
+            return m_Session->GetFieldType(m_Class, fid);
+        }
+
+        /**
          * Sets a Field of the pbobjec to a Value.
          *
          * \param field_name    The name of the PowerBuilder Field
@@ -333,46 +446,34 @@ namespace Inf
 
             if constexpr (Helper::is_pb_array_v<Field>)
             {
-                if (!m_Session->IsFieldArray(PBClass(m_Session), fid))
-                    throw PBNI_IncorrectArgumentsException(class_id.data, field_name);
+                if (!m_Session->IsFieldArray(m_Class, fid))
+                    throw PBNI_IncorrectArgumentsException(GetClassName(), field_name);
 
                 if (value.IsNull())
-                {
                     m_Session->SetFieldToNull(m_Object, fid);
-                }
                 else
-                {
                     result = m_Session->SetArrayField(m_Object, fid, value.m_Array);
-                }
             }
-            else if constexpr (Helper::is_pb_object_v<Field>)
+            else if constexpr (std::is_base_of_v<DynPBObject, Field>)
             {
-                if (!m_Session->IsFieldObject(PBClass(m_Session), fid))
-                    throw PBNI_IncorrectArgumentsException(class_id.data, field_name);
+                if (!m_Session->IsFieldObject(m_Class, fid))
+                    throw PBNI_IncorrectArgumentsException(GetClassName(), field_name);
 
                 if (value.IsNull())
-                {
                     m_Session->SetFieldToNull(m_Object, fid);
-                }
                 else
-                {
-                    result = m_Session->SetObjectField(m_Object, fid, value.m_Object);
-                }
+                    result = m_Session->SetObjectField(m_Object, fid, (pbobject) value);
             }
             else
             {
-                pbuint field_type = m_Session->GetFieldType(PBClass(m_Session), fid);
+                pbuint field_type = m_Session->GetFieldType(m_Class, fid);
                 if (field_type != Type<Field>::PBType && field_type != pbvalue_any)
-                    throw PBNI_IncorrectArgumentsException(class_id.data, field_name);
+                    throw PBNI_IncorrectArgumentsException(GetClassName(), field_name);
 
                 if (value.IsNull())
-                {
                     m_Session->SetFieldToNull(m_Object, fid);
-                }
                 else
-                {
                     result = SetFieldImpl(fid, value);
-                }
             }
 
             if (result != PBX_SUCCESS)
@@ -397,14 +498,10 @@ namespace Inf
         {
             pbfieldID fid = GetFieldId(field_name);
 
-            bool isarray = m_Session->IsFieldArray(PBClass(m_Session), fid);
-            bool isobject = m_Session->IsFieldObject(PBClass(m_Session), fid);
-            auto fieldtype = m_Session->GetFieldType(PBClass(m_Session), fid);
-
             if constexpr (Helper::is_pb_array_v<Field>)
                 {
-                if (!m_Session->IsFieldArray(PBClass(m_Session), fid))
-                    throw PBNI_IncorrectArgumentsException(class_id.data, field_name);
+                if (!m_Session->IsFieldArray(m_Class, fid))
+                    throw PBNI_IncorrectArgumentsException(GetClassName(), field_name);
 
                 pbboolean is_null = false;
 
@@ -413,24 +510,33 @@ namespace Inf
             }
             else if constexpr (Helper::is_pb_object_v<Field>)
             {
-                if (!m_Session->IsFieldObject(PBClass(m_Session), fid))
-                    throw PBNI_IncorrectArgumentsException(class_id.data, field_name);
+                if (!m_Session->IsFieldObject(m_Class, fid))
+                    throw PBNI_IncorrectArgumentsException(GetClassName(), field_name);
 
                 pbboolean is_null = false;
 
                 pbobject pb_object = m_Session->GetObjectField(m_Object, fid, is_null);
 
-                // TODO 
-                if (!is_null && m_Session->GetClass(pb_object) != Field::PBClass(m_Session))
-                    throw PBNI_IncorrectArgumentsException(class_id.data, field_name);
+                if (!is_null && !Helper::IsPBBaseClass(m_Session, Field::PBClass(m_Session), m_Session->GetClass(pb_object))) 
+                    throw PBNI_IncorrectArgumentsException(GetClassName(), field_name);
 
+                return { m_Session, is_null ? 0 : pb_object };
+            }
+            else if constexpr (std::is_same_v<DynPBObject, Field>)
+            {
+                if (!m_Session->IsFieldObject(m_Class, fid))
+                    throw PBNI_IncorrectArgumentsException(GetClassName(), field_name);
+
+                pbboolean is_null = false;
+
+                pbobject pb_object = m_Session->GetObjectField(m_Object, fid, is_null);
                 return { m_Session, is_null ? 0 : pb_object };
             }
             else
             {
-                pbuint field_type = m_Session->GetFieldType(PBClass(m_Session), fid);
+                pbuint field_type = m_Session->GetFieldType(m_Class, fid);
                 if (field_type != Type<Field>::PBType)
-                    throw PBNI_IncorrectArgumentsException(class_id.data, field_name);
+                    throw PBNI_IncorrectArgumentsException(GetClassName(), field_name);
 
                 return GetFieldImpl(Type<Field>(), fid);
             }
@@ -448,49 +554,89 @@ namespace Inf
         }
 
         /**
-         * Get the Group name extracted from the class_id.
-         *
-         * \return  Group name
-         */
-        static const std::wstring& GroupName()
-        {
-            static std::wstring s_GroupName = ExtractGroupName();
-            return s_GroupName;
-        }
-
-        /**
-         * Get the Class name extracted from the class_id.
+         * Get the Class Name of this objects class
          *
          * \return  Class name
          */
-        static const std::wstring& ClassName()
+        std::wstring GetClassName() const
         {
-            static std::wstring s_ClassName = ExtractClassName();
-            return s_ClassName;
+            if (!m_Class)
+                return L"NULL!";
+
+            LPCTSTR name = m_Session->GetClassName(m_Class);
+            std::wstring className(name);
+
+            m_Session->ReleaseString(name);
+            return className;
         }
 
         /**
-         * Get the pbclass extracted from the class_id.
+         * Only used in Inf::PBObject<>::GroupName() to initialize a static variable.
          *
-         * \return  pbclass
+         * \return  The Group Name extracted from class_id
+         */
+        static std::wstring ExtractGroupName(const std::wstring& className)
+        {
+            size_t i = className.find_first_of(L'.');
+
+            if (i == 0 || i == std::wstring::npos)
+                return className;
+
+            if (className.find_last_of(L'.') != i)
+                return L"";
+
+            return className.substr(0, i);
+        }
+
+        /**
+         * Only used in Inf::PBObject<>::ClassName() to initialize a static variable.
+         *
+         * \return  The Class Name extracted from class_id
+         */
+        static std::wstring ExtractClassName(const std::wstring& className)
+        {
+            size_t i = className.find_first_of(L'.');
+
+            if (i == std::wstring::npos)
+                return className;
+
+            if (className.find_last_of(L'.') != i)
+                return L"";
+
+            return className.substr(i + 1);
+        }
+
+        /**
+         * Finds a Class using a className in the form of group.class or just class
+         *
+         * \return  The pbclass found using Group and Class Name
          *
          * \throw Inf::PBNI_Exception   If the Group or Class cannot be found
          */
-        static pbclass PBClass(IPB_Session* session)
+        static pbclass FindClass(IPB_Session* session, const std::wstring& className, pbgroup_type groupType)
         {
-            // No caching because it kept randomly erroring.
-            return FindClass(session);
+            pbgroup group = session->FindGroup(ExtractGroupName(className).c_str(), groupType);
+            if (!group)
+            {
+                throw PBNI_Exception({
+                    { L"Error", L"Unable to find group" },
+                    { L"Group", ExtractGroupName(className) },
+                    { L"ID", className },
+                    });
+            }
 
-            //static pbclass s_Class;
-            //static IPB_Session* s_LastSession = nullptr;
+            pbclass cls = session->FindClass(group, ExtractClassName(className).c_str());
+            if (!cls)
+            {
+                throw PBNI_Exception({
+                    { L"Error", L"Unable to find class" },
+                    { L"Group", ExtractGroupName(className) },
+                    { L"Class", ExtractClassName(className) },
+                    { L"ID", className },
+                    });
+            }
 
-            //if (s_LastSession != session)
-            //{
-            //  s_Class = FindClass(session);
-            //  s_LastSession = session;
-            //}
-
-            //return s_Class;
+            return cls;
         }
 
         /**
@@ -503,112 +649,10 @@ namespace Inf
             return m_Object;
         }
     private:
-        friend struct Helper::PBValue;
-        friend struct PBAny;
-        template <typename T>
-        friend struct Type;
-        template <typename PBT, pblong... dims>
-            requires (sizeof...(dims) <= 3 && !std::is_reference_v<PBT> && !std::is_pointer_v<PBT>)
-        friend class PBArray;
-        template <Helper::FixedString, pbgroup_type>
-        friend class PBObject;
-
 
         IPB_Session* m_Session;
-        pbobject m_Object;
-
-        /**
-         * Returns the ID of a Field.
-         *
-         * \param field_name    Name of the Field
-         * \return              Field ID
-         *
-         * \throw Inf::PBNI_InvalidFieldException   If no matching field was found
-         * \throw Inf::PBNI_NullPointerException    If pbobject is Null
-         */
-        pbfieldID GetFieldId(const std::wstring& field_name) const
-        {
-            if (IsNull())
-                throw PBNI_NullPointerException(class_id.data);
-
-            pbfieldID fid = m_Session->GetFieldID(PBClass(m_Session), field_name.c_str());
-
-            if (fid == kUndefinedFieldID)
-                throw PBNI_InvalidFieldException(class_id.data, field_name, L"Member variable");
-
-            return fid;
-        }
-
-        /**
-         * Only used in Inf::PBObject<>::GroupName() to initialize a static variable.
-         *
-         * \return  The Group Name extracted from class_id
-         */
-        static std::wstring ExtractGroupName()
-        {
-            std::wstring id(class_id.data);
-            size_t i = id.find_first_of(L'.');
-
-            if (i == 0 || i == std::wstring::npos)
-                return id;
-
-            if (id.find_last_of(L'.') != i)
-                return L"";
-
-            return id.substr(0, i);
-        }
-
-        /**
-         * Only used in Inf::PBObject<>::ClassName() to initialize a static variable.
-         *
-         * \return  The Class Name extracted from class_id
-         */
-        static std::wstring ExtractClassName()
-        {
-            std::wstring id(class_id.data);
-            size_t i = id.find_first_of(L'.');
-
-            if (i == std::wstring::npos)
-                return id;
-
-            if (id.find_last_of(L'.') != i)
-                return L"";
-
-            return id.substr(i + 1);
-        }
-
-        /**
-         * Only used in Inf::PBObject<>::PBClass(m_Session) to initialize a static variable.
-         *
-         * \return  The pbclass found using Group and Class Name
-         *
-         * \throw Inf::PBNI_Exception   If the Group or Class cannot be found
-         */
-        static pbclass FindClass(IPB_Session* session)
-        {
-            pbgroup group = session->FindGroup(GroupName().c_str(), group_type);
-            if (!group)
-            {
-                throw PBNI_Exception({
-                    { L"Error", L"Unable to find group" },
-                    { L"Group", GroupName() },
-                    { L"ID", class_id.data },
-                    });
-            }
-
-            pbclass cls = session->FindClass(group, ClassName().c_str());
-            if (!cls)
-            {
-                throw PBNI_Exception({
-                    { L"Error", L"Unable to find class" },
-                    { L"Group", GroupName() },
-                    { L"Class", ClassName() },
-                    { L"ID", class_id.data },
-                    });
-            }
-
-            return cls;
-        }
+        pbobject m_Object = 0;
+        pbclass m_Class = 0;
 
         // Visual studio always messes up the nice formatting here, idk if this does anything, but its my last hope
         inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBByte&     t) { return m_Session->SetByteField(m_Object, fid, t); }
@@ -621,12 +665,12 @@ namespace Inf
         inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBLongLong& t) { return m_Session->SetLongLongField(m_Object, fid, t); }
         inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBReal&     t) { return m_Session->SetRealField(m_Object, fid, t); }
         inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBDouble&   t) { return m_Session->SetDoubleField(m_Object, fid, t); }
-        inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBDecimal&  t) { return m_Session->SetDecField(m_Object, fid, t.m_Decimal); }
-        inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBTime&     t) { return m_Session->SetTimeField(m_Object, fid, t.m_Time); }
-        inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBDate&     t) { return m_Session->SetDateField(m_Object, fid, t.m_Date); }
-        inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBDateTime& t) { return m_Session->SetDateTimeField(m_Object, fid, t.m_DateTime); }
-        inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBString&   t) { return m_Session->SetPBStringField(m_Object, fid, t.m_String); }
-        inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBBlob&     t) { return m_Session->SetBlobField(m_Object, fid, t.m_Blob); }
+        inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBDecimal&  t) { return m_Session->SetDecField(m_Object, fid, t); }
+        inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBTime&     t) { return m_Session->SetTimeField(m_Object, fid, t); }
+        inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBDate&     t) { return m_Session->SetDateField(m_Object, fid, t); }
+        inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBDateTime& t) { return m_Session->SetDateTimeField(m_Object, fid, t); }
+        inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBString&   t) { return m_Session->SetPBStringField(m_Object, fid, t); }
+        inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBBlob&     t) { return m_Session->SetBlobField(m_Object, fid, t); }
         inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBAny&      t) { pbboolean is_null; return t.ToValue(m_Session->GetPBAnyField(m_Object, fid, is_null)); }
 
         inline PBByte       GetFieldImpl(Type<PBByte>,     pbfieldID fid) const { pbboolean is_null = false; pbbyte pb_byte         = m_Session->GetByteField(m_Object, fid, is_null);     return is_null ? PBByte()       : PBByte(pb_byte); }
@@ -646,7 +690,80 @@ namespace Inf
         inline PBString     GetFieldImpl(Type<PBString>,   pbfieldID fid) const { pbboolean is_null = false; pbstring pb_string     = m_Session->GetStringField(m_Object, fid, is_null);   return { m_Session, is_null ? 0 : pb_string }; }
         inline PBBlob       GetFieldImpl(Type<PBBlob>,     pbfieldID fid) const { pbboolean is_null = false; pbblob pb_blob         = m_Session->GetBlobField(m_Object, fid, is_null);     return { m_Session, is_null ? 0 : pb_blob }; }
         inline PBAny        GetFieldImpl(Type<PBAny>,      pbfieldID fid) const { pbboolean is_null = false; IPB_Value* pb_any      = m_Session->GetPBAnyField(m_Object, fid, is_null);    return { m_Session, is_null ? 0 : pb_any, false }; }
-        // clang-format on
+    };
+
+    /**
+     * Wrapper for pbobject type. If the Group and Classnames are the same (most of the times), the ID of the Class is just the Class name.
+     * If the Group and Class names are different, the ID is both combined with a dot (L"group.class"). This is only the case for nested Types.
+     *
+     * \tparam class_id     ID of Group and Class
+     * \tparam group_type   The Group Type used by PowerBuilder (struct, userobject, ...)
+     */
+    template <Helper::FixedString class_id, pbgroup_type group_type = pbgroup_userobject>
+    class PBObject : public DynPBObject
+    {
+    public:
+        static constexpr Helper::FixedString _class_id = class_id;
+        static constexpr pbgroup_type _group_type = group_type;
+
+        /**
+         * Creates a new Wrapper for an already existing object.
+         * Will be Null if obj is 0.
+         *
+         * \param session   Current Session
+         * \param obj       pbobject or 0
+         */
+        PBObject(IPB_Session* session, pbobject obj)
+            : DynPBObject(session, obj)
+        { }
+
+        /**
+         * Will create a new object of the correct Class.
+         *
+         * \param session   Current Session
+         *
+         * \throw Inf::PBNI_Exception   If the Group or Class cannot be found
+         */
+        PBObject(IPB_Session* session)
+            : DynPBObject(session, class_id.data, group_type)
+        { }
+
+        /**
+         * Copy constructor
+         */
+        PBObject(const DynPBObject& other)
+            : DynPBObject(other.m_Session, other.m_Object, class_id.data, group_type)
+        {
+            if (other.m_Class && Helper::IsPBBaseClass(m_Session, m_Class, other.m_Class))
+                throw PBNI_Exception(L"Tried to cast an Object to a Class which is not its base", {
+                    { L"From", m_Session->GetClassName(other.m_Class) },
+                    { L"To", class_id.data },
+                });
+        }
+
+        /**
+         * Get the pbclass extracted from the class_id.
+         *
+         * \return  pbclass
+         *
+         * \throw Inf::PBNI_Exception   If the Group or Class cannot be found
+         */
+        static pbclass PBClass(IPB_Session* session)
+        {
+            // No caching because it kept randomly erroring.
+            return FindClass(session, class_id.data, group_type);
+
+            //static pbclass s_Class;
+            //static IPB_Session* s_LastSession = nullptr;
+
+            //if (s_LastSession != session)
+            //{
+            //  s_Class = FindClass(session);
+            //  s_LastSession = session;
+            //}
+
+            //return s_Class;
+        }
     };
 
     template <Helper::FixedString class_id>
@@ -655,4 +772,6 @@ namespace Inf
     using PBWindow = PBObject<class_id, pbgroup_window>;
     template <Helper::FixedString class_id>
     using PBDataWindow = PBObject<class_id, pbgroup_datawindow>;
+    template <Helper::FixedString class_id>
+    using PBFunction = PBObject<class_id, pbgroup_function>;
 }

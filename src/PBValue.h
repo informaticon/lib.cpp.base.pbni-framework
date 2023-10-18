@@ -138,7 +138,7 @@ namespace Inf
             inline PBXRESULT Set(const T& t)
             {
                 if (t.IsNull())
-                    return m_Value->SetToNull();
+                    return PBX_OK;
 
                 if constexpr (Helper::is_pb_array_v<T>)
                     return m_Value->SetArray(t);

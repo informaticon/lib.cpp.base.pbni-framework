@@ -23,6 +23,7 @@ namespace Inf
             Dec = pbvalue_dec,
             String = pbvalue_string,
             Boolean = pbvalue_boolean,
+            Any = pbvalue_any,
             Uint = pbvalue_uint,
             Ulong = pbvalue_ulong,
             Blob = pbvalue_blob,
@@ -120,6 +121,8 @@ namespace Inf
             {
                 if (!m_IsArray)
                     return false;
+                if (m_Type == AnyType::Any)
+                    return true;
             
                 using ItemType = T::_Item;
 
@@ -149,10 +152,19 @@ namespace Inf
         inline T Get()
         {
             if (!Is<T>())
-                throw Inf::PBNI_Exception(L"Tried to cast a PBAny to the wrong Type");
+                throw PBNI_Exception(L"Tried to cast a PBAny to the wrong Type", {
+                    { L"From", std::to_wstring(m_Type) },
+                    { L"To", ConvertString<std::wstring>(typeid(T).name()) }
+                });
             
             if constexpr (Helper::is_pb_array_v<T>)
-                return { m_Session, IsNull() ? 0 : (pbarray) std::any_cast<PBArray<PBAny>>(m_Value) };
+            {
+                if (IsNull())
+                    return { m_Session, 0 };
+                else
+                    // Direct copy, so that we keep the AcquiredValue
+                    return std::any_cast<PBArray<PBAny>>(m_Value);
+            }
             else if constexpr (Helper::is_pb_object_v<T>)
                 return { m_Session, IsNull() ? 0 : (pbobject) std::any_cast<DynPBObject>(m_Value) };
             else if constexpr (std::is_same_v<DynPBObject, T>)
@@ -187,7 +199,7 @@ namespace Inf
                 if (t.IsNull())
                     m_Value.reset();
                 else
-                    m_Value = PBArray<PBAny>(m_Session, (pbarray) t);
+                    m_Value = PBArray<PBAny>(t);
             }
             else if constexpr (Helper::is_pb_object_v<T>)
             {
@@ -195,7 +207,7 @@ namespace Inf
                 if (t.IsNull())
                     m_Value.reset();
                 else
-                    m_Value = DynPBObject(m_Session, (pbobject) t);
+                    m_Value = (DynPBObject&) t;
             }
             else if constexpr (std::is_same_v<DynPBObject, T>)
             {

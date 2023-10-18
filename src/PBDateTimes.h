@@ -156,7 +156,7 @@ namespace Inf
             return m_Date;
         }
     private:
-        friend class Helper::PBValue;
+        friend Helper::PBValue;
 
         IPB_Session* m_Session;
         pbdate m_Date;
@@ -240,7 +240,7 @@ namespace Inf
             return m_DateTime;
         }
     private:
-        friend class Helper::PBValue;
+        friend Helper::PBValue;
 
         IPB_Session* m_Session;
         pbdatetime m_DateTime;

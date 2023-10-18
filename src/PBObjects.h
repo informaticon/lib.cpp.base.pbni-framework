@@ -32,6 +32,20 @@ namespace Inf
         }
 
         /**
+         * Creates a new Wrapper for an already existing object.
+         * Will be Null if obj is 0.
+         *
+         * \param session   Current Session
+         * \param className     Name of the PowerBuilder Class, can be ""
+         * \param groupType     Group type of the object
+         *
+         * \throw Inf::PBNI_Exception   If the Group or Class cannot be found
+         */
+        DynPBObject(IPB_Session* session, pbobject obj, std::wstring className, pbgroup_type groupType)
+            : DynPBObject(session, FindClass(session, className, groupType))
+        { }
+        
+        /**
          * Will create a new object of the correct Class.
          *
          * \param session   Current Session
@@ -55,6 +69,13 @@ namespace Inf
          */
         DynPBObject(IPB_Session* session, pbclass cls)
             : DynPBObject(session, session->NewObject(cls), cls)
+        { }
+
+        /**
+         * Copy constructor
+         */
+        DynPBObject(const DynPBObject& other)
+            : DynPBObject(other.m_Session, other.m_Object, other.m_Class)
         { }
 
         ~DynPBObject()
@@ -274,6 +295,7 @@ namespace Inf
             i = 0;
             (Helper::PBValue(m_Session, ci.pArgs->GetAt(i++)).Set<std::remove_reference_t<Args>>(args), ...);
 
+            // TODO TriggerEvent?
             PBXRESULT res = m_Session->InvokeObjectFunction(m_Object, mid, &ci);
 
             if (res != PBX_OK)
@@ -422,27 +444,19 @@ namespace Inf
                     throw PBNI_IncorrectArgumentsException(GetClassName(), field_name);
 
                 if (value.IsNull())
-                {
                     m_Session->SetFieldToNull(m_Object, fid);
-                }
                 else
-                {
                     result = m_Session->SetArrayField(m_Object, fid, value.m_Array);
-                }
             }
-            else if constexpr (Helper::is_pb_object_v<Field>)
+            else if constexpr (std::is_base_of_v<DynPBObject, Field>)
             {
                 if (!m_Session->IsFieldObject(m_Class, fid))
                     throw PBNI_IncorrectArgumentsException(GetClassName(), field_name);
 
                 if (value.IsNull())
-                {
                     m_Session->SetFieldToNull(m_Object, fid);
-                }
                 else
-                {
-                    result = m_Session->SetObjectField(m_Object, fid, value.m_Object);
-                }
+                    result = m_Session->SetObjectField(m_Object, fid, (pbobject) value);
             }
             else
             {
@@ -451,13 +465,9 @@ namespace Inf
                     throw PBNI_IncorrectArgumentsException(GetClassName(), field_name);
 
                 if (value.IsNull())
-                {
                     m_Session->SetFieldToNull(m_Object, fid);
-                }
                 else
-                {
                     result = SetFieldImpl(fid, value);
-                }
             }
 
             if (result != PBX_SUCCESS)
@@ -515,7 +525,6 @@ namespace Inf
 
                 pbobject pb_object = m_Session->GetObjectField(m_Object, fid, is_null);
                 return { m_Session, is_null ? 0 : pb_object };
-
             }
             else
             {
@@ -712,6 +721,15 @@ namespace Inf
         PBObject(IPB_Session* session)
             : DynPBObject(session, class_id.data, group_type)
         { }
+
+        /**
+         * Copy constructor
+         */
+        PBObject(const DynPBObject& other)
+            : DynPBObject(other.m_Session, other.m_Object, class_id.data, group_type)
+        {
+            // TODO possible runtime check for parent / base class
+        }
 
         /**
          * Get the pbclass extracted from the class_id.

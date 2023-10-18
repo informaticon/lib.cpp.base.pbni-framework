@@ -55,7 +55,8 @@ namespace Inf
                         {
                             is_correct =
                                 info->arrayType == info->UnboundedArray &&
-                                Helper::IsPBBaseClass(m_Session, T::_Item::PBClass(m_Session), info->valueType);
+                                info->itemGroup != 0;
+                                // Helper::IsPBBaseClass(m_Session, T::_Item::PBClass(m_Session), (pbclass) info->valueType);
                         }
                         else
                         {
@@ -138,7 +139,7 @@ namespace Inf
             inline PBXRESULT Set(const T& t)
             {
                 if (t.IsNull())
-                    return PBX_OK;
+                    return m_Value->SetToNull();
 
                 if constexpr (Helper::is_pb_array_v<T>)
                     return m_Value->SetArray(t);

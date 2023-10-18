@@ -734,7 +734,11 @@ namespace Inf
         PBObject(const DynPBObject& other)
             : DynPBObject(other.m_Session, other.m_Object, class_id.data, group_type)
         {
-            // TODO possible runtime check for parent / base class
+            if (other.m_Class && Helper::IsPBBaseClass(m_Session, m_Class, other.m_Class))
+                throw PBNI_Exception(L"Tried to cast an Object to a Class which is not its base", {
+                    { L"From", m_Session->GetClassName(other.m_Class) },
+                    { L"To", class_id.data },
+                });
         }
 
         /**

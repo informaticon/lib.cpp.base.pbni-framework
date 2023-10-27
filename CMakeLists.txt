@@ -132,6 +132,8 @@ else()
 	)
 endif()
 
+get_target_property(pbniIncludes libPBNIFramework INCLUDE_DIRECTORIES)
+
 target_include_directories(libPBNIFramework
 INTERFACE
 	${CMAKE_CURRENT_SOURCE_DIR}/src
@@ -143,3 +145,5 @@ PUBLIC
 	Boost::utility
 	Boost::multiprecision
 )
+
+install(TARGETS libPBNIFramework)

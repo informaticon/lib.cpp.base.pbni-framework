@@ -85,7 +85,7 @@ if (MINGW)
 endif()
 
 
-target_precompile_headers(libPBNIFramework PUBLIC ${headers})
+# target_precompile_headers(libPBNIFramework PUBLIC ${headers})
 
 target_compile_features(libPBNIFramework PUBLIC cxx_std_20)
 

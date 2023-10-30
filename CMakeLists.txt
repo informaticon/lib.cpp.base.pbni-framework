@@ -144,13 +144,31 @@ PUBLIC
 	Boost::multiprecision
 )
 
-get_cmake_property(_variableNames VARIABLES)
-list (SORT _variableNames)
-foreach (_variableName ${_variableNames})
-	message(STATUS "${_variableName}=${${_variableName}}")
-endforeach()
+
+# VCPKG stuff
+include(GNUInstallDirs)
 
 install(TARGETS libPBNIFramework
-PUBLIC_HEADER
-	DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/myproj
+EXPORT libPBNIFramework_targets
+        ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+        LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+        RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+)
+
+install(FILES headers DESTINATION include)
+
+install(EXPORT libPBNIFramework_targets
+        FILE libPBNIFramework-targets.cmake
+        NAMESPACE libPBNIFramework::
+        DESTINATION share/libPBNIFramework
+)
+
+file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/libPBNIFramework-config.cmake"
+	"include(CMakeFindDependencyMacro)\n"
+	"find_dependency(Boost CONFIG REQUIRED)\n"
+	"include(\"\${CMAKE_CURRENT_LIST_DIR}/libPBNIFramework-targets.cmake\")\n"
+)
+
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/libPBNIFramework-config.cmake"
+	DESTINATION share/libPBNIFramework
 )

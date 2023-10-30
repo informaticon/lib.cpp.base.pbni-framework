@@ -138,10 +138,8 @@ INTERFACE
 
 PUBLIC
 	${PBNI_INCLUDE_DIR}
-
-	# Header only libraries
-	Boost::utility
-	Boost::multiprecision
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>   # for headers when building
+	$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>  # for client in install mode
 )
 
 

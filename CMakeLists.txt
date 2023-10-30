@@ -132,8 +132,6 @@ else()
 	)
 endif()
 
-get_target_property(pbniIncludes libPBNIFramework INCLUDE_DIRECTORIES)
-
 target_include_directories(libPBNIFramework
 INTERFACE
 	${CMAKE_CURRENT_SOURCE_DIR}/src
@@ -146,4 +144,13 @@ PUBLIC
 	Boost::multiprecision
 )
 
-install(TARGETS libPBNIFramework)
+get_cmake_property(_variableNames VARIABLES)
+list (SORT _variableNames)
+foreach (_variableName ${_variableNames})
+	message(STATUS "${_variableName}=${${_variableName}}")
+endforeach()
+
+install(TARGETS libPBNIFramework
+PUBLIC_HEADER
+	DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/myproj
+)

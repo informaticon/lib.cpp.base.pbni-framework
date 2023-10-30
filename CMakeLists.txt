@@ -155,7 +155,7 @@ install(FILES ${headers} DESTINATION include)
 
 install(EXPORT libPBNIFramework_targets
         FILE libPBNIFramework-targets.cmake
-        NAMESPACE libPBNIFramework::
+	NAMESPACE Inf::
         DESTINATION share/libPBNIFramework
 )
 

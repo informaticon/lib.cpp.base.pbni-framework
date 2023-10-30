@@ -161,7 +161,7 @@ install(EXPORT libPBNIFramework_targets
 
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/libPBNIFramework-config.cmake"
 	"include(CMakeFindDependencyMacro)\n"
-	"find_dependency(Boost CONFIG REQUIRED stacktrace_windbg)\n"
+	"find_dependency(Boost REQUIRED)\n"
 	"include(\"\${CMAKE_CURRENT_LIST_DIR}/libPBNIFramework-targets.cmake\")\n"
 )
 

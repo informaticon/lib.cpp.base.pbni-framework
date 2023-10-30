@@ -133,9 +133,6 @@ else()
 endif()
 
 target_include_directories(libPBNIFramework
-INTERFACE
-	${CMAKE_CURRENT_SOURCE_DIR}/src
-
 PUBLIC
 	${PBNI_INCLUDE_DIR}
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>   # for headers when building

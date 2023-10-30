@@ -150,7 +150,7 @@ EXPORT libPBNIFramework_targets
         RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
 )
 
-install(FILES headers DESTINATION include)
+install(FILES ${headers} DESTINATION include)
 
 install(EXPORT libPBNIFramework_targets
         FILE libPBNIFramework-targets.cmake

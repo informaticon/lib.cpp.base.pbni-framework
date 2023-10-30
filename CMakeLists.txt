@@ -21,15 +21,15 @@ endif()
 
 
 set(pbni_include
-	extern/pbni/include/barray.h
-	extern/pbni/include/bctxif.h
-	extern/pbni/include/bevtid.h
-	extern/pbni/include/bext.h
-	extern/pbni/include/bfield.h
-	extern/pbni/include/bni.h
-	extern/pbni/include/bnimd.h
-	extern/pbni/include/brsa.h
-	extern/pbni/include/btraits.h
+	extern/pbni/include/pbarray.h
+	extern/pbni/include/pbctxif.h
+	extern/pbni/include/pbevtid.h
+	extern/pbni/include/pbext.h
+	extern/pbni/include/pbfield.h
+	extern/pbni/include/pbni.h
+	extern/pbni/include/pbnimd.h
+	extern/pbni/include/pbrsa.h
+	extern/pbni/include/pbtraits.h
 )
 
 set(src

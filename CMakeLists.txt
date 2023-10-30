@@ -137,9 +137,9 @@ else()
 endif()
 
 set(build_pbni_include ${pbni_include})
-list(TRANSFORM build_pbni_include PREPEND ${CMAKE_CURRENT_SOURCE_DIR})
+list(TRANSFORM build_pbni_include PREPEND "${CMAKE_CURRENT_SOURCE_DIR}")
 set(install_pbni_include ${pbni_include})
-list(TRANSFORM install_pbni_include PREPEND ${CMAKE_INSTALL_INCLUDEDIR})
+list(TRANSFORM install_pbni_include PREPEND "${CMAKE_INSTALL_INCLUDEDIR}")
 
 message(${install_pbni_include})
 target_include_directories(libPBNIFramework

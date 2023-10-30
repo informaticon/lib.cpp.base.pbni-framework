@@ -5,12 +5,6 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.18)
 #                    Options                     #
 ##################################################
 
-if (MINGW)
-	set(PBNI_INCLUDE_DIR "~/.local/include/pbni" CACHE PATH "PowerBuilder Native Interface header files location")
-else()
-	set(PBNI_INCLUDE_DIR "C:/Program Files (x86)/Appeon/PowerBuilder 17.0/SDK/PBNI/include" CACHE PATH "PowerBuilder Native Interface header files location")
-endif()
-
 option(PBNI_USE_STATIC_RUNTIME  "Whether to set the MTD option when building" OFF)
 
 ##################################################
@@ -24,6 +18,19 @@ if(NOT CMAKE_SIZEOF_VOID_P EQUAL 4)
 	message(FATAL_ERROR "Powerbuilder runs on 32 bits, choose a 32 bit plattform using '-A Win32'")
 endif()
 
+
+
+set(pbni_include
+	extern/pbni/include/barray.h
+	extern/pbni/include/bctxif.h
+	extern/pbni/include/bevtid.h
+	extern/pbni/include/bext.h
+	extern/pbni/include/bfield.h
+	extern/pbni/include/bni.h
+	extern/pbni/include/bnimd.h
+	extern/pbni/include/brsa.h
+	extern/pbni/include/btraits.h
+)
 
 set(src
 	src/Framework.cpp
@@ -134,7 +141,7 @@ endif()
 
 target_include_directories(libPBNIFramework
 PUBLIC
-	${PBNI_INCLUDE_DIR}
+	${pbni_include}
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>   # for headers when building
 	$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>  # for client in install mode
 )
@@ -151,12 +158,12 @@ EXPORT libPBNIFramework_targets
         RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
 )
 
-install(FILES ${headers} DESTINATION include)
+install(FILES ${headers} ${pbni_include} DESTINATION include)
 
 install(EXPORT libPBNIFramework_targets
         FILE libPBNIFramework-targets.cmake
 	NAMESPACE Inf::
-        DESTINATION share/libPBNIFramework
+        DESTINATION share/pbni-framework
 )
 
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/libPBNIFramework-config.cmake"
@@ -166,5 +173,5 @@ file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/libPBNIFramework-config.cmake"
 )
 
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/libPBNIFramework-config.cmake"
-	DESTINATION share/libPBNIFramework
+	DESTINATION share/pbni-framework
 )

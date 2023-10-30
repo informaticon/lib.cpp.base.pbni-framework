@@ -72,7 +72,6 @@ add_library(libPBNIFramework OBJECT
 	${src}
 	${descriptions}
 	${types}
-	${pbni_include}
 )
 source_group("Source Files" FILES ${src})
 source_group("Source Files/Descriptions" FILES ${descriptions})
@@ -132,18 +131,16 @@ else()
 	)
 
 	target_link_libraries(libPBNIFramework
-	INTERFACE
-		${PBNI_LIBRARY}
-		
 	PUBLIC
 		Boost::stacktrace_windbg
 	)
 endif()
 
+message($<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/${pbni_include}>)
 target_include_directories(libPBNIFramework
 PUBLIC
-	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>   # for headers when building
-	$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>  # for client in install mode
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/${pbni_include}>
+	$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/${pbni_include}>
 )
 
 

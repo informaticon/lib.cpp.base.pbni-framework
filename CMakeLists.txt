@@ -72,6 +72,7 @@ add_library(libPBNIFramework OBJECT
 	${src}
 	${descriptions}
 	${types}
+	${pbni_include}
 )
 source_group("Source Files" FILES ${src})
 source_group("Source Files/Descriptions" FILES ${descriptions})
@@ -141,7 +142,6 @@ endif()
 
 target_include_directories(libPBNIFramework
 PUBLIC
-	${pbni_include}
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>   # for headers when building
 	$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>  # for client in install mode
 )

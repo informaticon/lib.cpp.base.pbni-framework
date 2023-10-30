@@ -161,7 +161,7 @@ install(FILES ${headers} ${pbni_include} DESTINATION include)
 install(EXPORT libPBNIFramework_targets
         FILE libPBNIFramework-targets.cmake
 	NAMESPACE Inf::
-        DESTINATION share/pbni-framework
+        DESTINATION share/libPBNIFramework
 )
 
 file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/libPBNIFramework-config.cmake"
@@ -171,5 +171,5 @@ file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/libPBNIFramework-config.cmake"
 )
 
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/libPBNIFramework-config.cmake"
-	DESTINATION share/pbni-framework
+	DESTINATION share/libPBNIFramework
 )

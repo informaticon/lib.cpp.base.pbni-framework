@@ -1,5 +1,7 @@
 #include "PBAny.h"
 
+#include "PBObjects.h"
+
 
 Inf::PBAny::PBAny(IPB_Session* session, IPB_Value* value, bool acquire)
     : m_Session(session)

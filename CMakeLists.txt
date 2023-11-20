@@ -55,7 +55,7 @@ list(APPEND headers ${descriptions})
 list(APPEND headers ${types})
 list(FILTER headers INCLUDE REGEX "\.h$")
 
-add_library(libPBNIFramework OBJECT
+add_library(pbni-framework OBJECT
 	${src}
 	${descriptions}
 	${types}
@@ -72,13 +72,13 @@ if (MINGW)
 endif()
 
 
-# target_precompile_headers(libPBNIFramework PUBLIC ${headers})
+# target_precompile_headers(pbni-framework PUBLIC ${headers})
 
-target_compile_features(libPBNIFramework PUBLIC cxx_std_20)
+target_compile_features(pbni-framework PUBLIC cxx_std_20)
 
 if (NOT MINGW)
 	# To be able to use __VA_OPT__
-	target_compile_options(libPBNIFramework PUBLIC /Zc:preprocessor)
+	target_compile_options(pbni-framework PUBLIC /Zc:preprocessor)
 
 	if(PBNI_USE_STATIC_RUNTIME) 
 		cmake_policy(GET CMP0091 CMP0091_Value)
@@ -86,14 +86,14 @@ if (NOT MINGW)
 			message(FATAL_ERROR "To be able to Statically link the Runtime, you need to set the CMP0091 option to NEW!")
 		endif()
 
-		set_target_properties(libPBNIFramework
+		set_target_properties(pbni-framework
 		PROPERTIES 
 			MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
 		)
 	endif()
 endif()
 
-target_compile_definitions(libPBNIFramework
+target_compile_definitions(pbni-framework
 PUBLIC
 	-DUNICODE
 	-D_UNICODE
@@ -107,7 +107,7 @@ if (MINGW)
 		stacktrace_backtrace
 	)
 
-	target_link_libraries(libPBNIFramework
+	target_link_libraries(pbni-framework
 	PUBLIC
 		Boost::stacktrace_backtrace
 	)
@@ -117,13 +117,13 @@ else()
 		stacktrace_windbg
 	)
 
-	target_link_libraries(libPBNIFramework
+	target_link_libraries(pbni-framework
 	PUBLIC
 		Boost::stacktrace_windbg
 	)
 endif()
 
-target_include_directories(libPBNIFramework
+target_include_directories(pbni-framework
 PUBLIC
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
 	$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
@@ -135,29 +135,29 @@ PRIVATE
 # VCPKG stuff
 include(GNUInstallDirs)
 
-install(TARGETS libPBNIFramework
-EXPORT libPBNIFramework_targets
+install(TARGETS pbni-framework
+EXPORT pbni-framework_targets
 	OBJECTS DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-        ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-        LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-        RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+	ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+	LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+	RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
 )
 
-install(DIRECTORY extern/pbni/include/pbni DESTINATION include/pbni)
-install(FILES ${headers} DESTINATION include/)
+install(DIRECTORY extern/pbni/include/pbni DESTINATION include)
+install(FILES ${headers} DESTINATION include/pbni-framework)
 
-install(EXPORT libPBNIFramework_targets
-        FILE libPBNIFramework-targets.cmake
+install(EXPORT pbni-framework_targets
+        FILE pbni-framework-targets.cmake
 	NAMESPACE Inf::
-        DESTINATION share/libPBNIFramework
+        DESTINATION share/pbni-framework
 )
 
-file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/libPBNIFramework-config.cmake"
+file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/pbni-framework-config.cmake"
 	"include(CMakeFindDependencyMacro)\n"
 	"find_dependency(Boost REQUIRED stacktrace_windbg)\n"
-	"include(\"\${CMAKE_CURRENT_LIST_DIR}/libPBNIFramework-targets.cmake\")\n"
+	"include(\"\${CMAKE_CURRENT_LIST_DIR}/pbni-framework-targets.cmake\")\n"
 )
 
-install(FILES "${CMAKE_CURRENT_BINARY_DIR}/libPBNIFramework-config.cmake"
-	DESTINATION share/libPBNIFramework
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/pbni-framework-config.cmake"
+	DESTINATION share/pbni-framework
 )

@@ -19,19 +19,6 @@ if(NOT CMAKE_SIZEOF_VOID_P EQUAL 4)
 endif()
 
 
-
-set(pbni_include
-	extern/pbni/include/pbarray.h
-	extern/pbni/include/pbctxif.h
-	extern/pbni/include/pbevtid.h
-	extern/pbni/include/pbext.h
-	extern/pbni/include/pbfield.h
-	extern/pbni/include/pbni.h
-	extern/pbni/include/pbnimd.h
-	extern/pbni/include/pbrsa.h
-	extern/pbni/include/pbtraits.h
-)
-
 set(src
 	src/Framework.cpp
 	src/Framework.h
@@ -156,7 +143,8 @@ EXPORT libPBNIFramework_targets
         RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
 )
 
-install(FILES ${headers} ${pbni_include} DESTINATION include)
+install(DIRECTORY extern/pbni/include/pbni DESTINATION include/pbni)
+install(FILES ${headers} DESTINATION include/)
 
 install(EXPORT libPBNIFramework_targets
         FILE libPBNIFramework-targets.cmake

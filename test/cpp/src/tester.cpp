@@ -1,5 +1,7 @@
 #include "tester.h"
 
+#include <ClassDescription.h>
+
 INF_REGISTER_CLASS(Inf::FrameworkTester, L"u_pbni_framework_tester");
 
 // TODO remove?

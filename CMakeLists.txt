@@ -147,17 +147,17 @@ install(DIRECTORY extern/pbni/include/pbni DESTINATION include)
 install(FILES ${headers} DESTINATION include/PBNIFramework)
 
 install(EXPORT PBNIFramework_targets
-        FILE PBNIFramework-targets.cmake
+        FILE PBNIFrameworkTargets.cmake
 	NAMESPACE Inf::
         DESTINATION share/pbni-framework
 )
 
-file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/PBNIFramework-config.cmake"
+file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/PBNIFrameworkConfig.cmake"
 	"include(CMakeFindDependencyMacro)\n"
 	"find_dependency(Boost REQUIRED stacktrace_windbg)\n"
-	"include(\"\${CMAKE_CURRENT_LIST_DIR}/PBNIFramework-targets.cmake\")\n"
+	"include(\"\${CMAKE_CURRENT_LIST_DIR}/PBNIFrameworkTargets.cmake\")\n"
 )
 
-install(FILES "${CMAKE_CURRENT_BINARY_DIR}/PBNIFramework-config.cmake"
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/PBNIFrameworkConfig.cmake"
 	DESTINATION share/pbni-framework
 )

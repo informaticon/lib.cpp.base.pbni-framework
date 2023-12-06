@@ -11,7 +11,7 @@ option(PBNI_USE_STATIC_RUNTIME  "Whether to set the MTD option when building" OF
 #                 PBNI Framework                 #
 ##################################################
 
-project(lib.cpp.base.pbni-framework VERSION 1.0.0 LANGUAGES CXX)
+project(lib.cpp.base.pbni-framework LANGUAGES CXX)
 
 # Check for 32 bit
 if(NOT CMAKE_SIZEOF_VOID_P EQUAL 4)

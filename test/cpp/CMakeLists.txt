@@ -13,7 +13,7 @@ set(A3_LIB_PATH "${CMAKE_SOURCE_DIR}/../pb" CACHE PATH "Location of A3, is used 
 #              libFrameworkTester                #
 ##################################################
 
-project(lib.pbni.base.framework-tester VERSION 1.0.0 LANGUAGES CXX)
+project(lib.pbni.base.framework-tester LANGUAGES CXX)
 
 add_library(libFrameworkTester SHARED
 	src/tester.h
@@ -38,9 +38,3 @@ target_link_libraries(libFrameworkTester
 PRIVATE
 	inf::pbni-framework
 )
-
-get_target_property(INCLUDES libFrameworkTester INCLUDE_DIRECTORIES)
-message("INCLUDES ${INCLUDES}")
-
-get_target_property(INCLUDES inf::pbni-framework INCLUDE_DIRECTORIES)
-message("INCLUDES ${INCLUDES}")

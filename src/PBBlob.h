@@ -1,6 +1,7 @@
 #pragma once
 
 #include <type_traits>
+#include <vector>
 #include <stdint.h>
 
 #include "PBString.h"

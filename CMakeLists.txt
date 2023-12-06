@@ -5,19 +5,13 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.18)
 #                    Options                     #
 ##################################################
 
-if (MINGW)
-	set(PBNI_INCLUDE_DIR "~/.local/include/pbni" CACHE PATH "PowerBuilder Native Interface header files location")
-else()
-	set(PBNI_INCLUDE_DIR "C:/Program Files (x86)/Appeon/PowerBuilder 17.0/SDK/PBNI/include" CACHE PATH "PowerBuilder Native Interface header files location")
-endif()
-
 option(PBNI_USE_STATIC_RUNTIME  "Whether to set the MTD option when building" OFF)
 
 ##################################################
 #                 PBNI Framework                 #
 ##################################################
 
-project(lib.cpp.base.pbni-framework VERSION 1.0.0 LANGUAGES CXX)
+project(lib.cpp.base.pbni-framework LANGUAGES CXX)
 
 # Check for 32 bit
 if(NOT CMAKE_SIZEOF_VOID_P EQUAL 4)
@@ -61,11 +55,13 @@ list(APPEND headers ${descriptions})
 list(APPEND headers ${types})
 list(FILTER headers INCLUDE REGEX "\.h$")
 
-add_library(libPBNIFramework OBJECT
+add_library(pbni-framework OBJECT
 	${src}
 	${descriptions}
 	${types}
 )
+add_library(inf::pbni-framework ALIAS pbni-framework)
+
 source_group("Source Files" FILES ${src})
 source_group("Source Files/Descriptions" FILES ${descriptions})
 source_group("Source Files/Types" FILES ${types})
@@ -78,13 +74,13 @@ if (MINGW)
 endif()
 
 
-target_precompile_headers(libPBNIFramework PUBLIC ${headers})
+target_precompile_headers(pbni-framework PUBLIC ${headers})
 
-target_compile_features(libPBNIFramework PUBLIC cxx_std_20)
+target_compile_features(pbni-framework PUBLIC cxx_std_20)
 
 if (NOT MINGW)
 	# To be able to use __VA_OPT__
-	target_compile_options(libPBNIFramework PUBLIC /Zc:preprocessor)
+	target_compile_options(pbni-framework PUBLIC /Zc:preprocessor)
 
 	if(PBNI_USE_STATIC_RUNTIME) 
 		cmake_policy(GET CMP0091 CMP0091_Value)
@@ -92,14 +88,14 @@ if (NOT MINGW)
 			message(FATAL_ERROR "To be able to Statically link the Runtime, you need to set the CMP0091 option to NEW!")
 		endif()
 
-		set_target_properties(libPBNIFramework
+		set_target_properties(pbni-framework
 		PROPERTIES 
 			MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
 		)
 	endif()
 endif()
 
-target_compile_definitions(libPBNIFramework
+target_compile_definitions(pbni-framework
 PUBLIC
 	-DUNICODE
 	-D_UNICODE
@@ -113,7 +109,7 @@ if (MINGW)
 		stacktrace_backtrace
 	)
 
-	target_link_libraries(libPBNIFramework
+	target_link_libraries(pbni-framework
 	PUBLIC
 		Boost::stacktrace_backtrace
 	)
@@ -123,27 +119,55 @@ else()
 		stacktrace_windbg
 	)
 
-	target_link_libraries(libPBNIFramework
-	INTERFACE
-		${PBNI_LIBRARY}
-		
+	target_link_libraries(pbni-framework
 	PUBLIC
 		Boost::stacktrace_windbg
 	)
 endif()
 
-get_target_property(pbniIncludes libPBNIFramework INCLUDE_DIRECTORIES)
+if(NOT INF_VCPKG_INSTALL)
+	target_include_directories(pbni-framework
+	INTERFACE
+		"${CMAKE_CURRENT_SOURCE_DIR}/src"
+	PUBLIC
+		"${CMAKE_CURRENT_SOURCE_DIR}/extern/pbni/include"
+	)
 
-target_include_directories(libPBNIFramework
-INTERFACE
-	${CMAKE_CURRENT_SOURCE_DIR}/src
+else()
+	target_include_directories(pbni-framework
+	PUBLIC
+		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+		$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+	PRIVATE
+		"extern/pbni/include"
+	)
 
-PUBLIC
-	${PBNI_INCLUDE_DIR}
+	include(GNUInstallDirs)
 
-	# Header only libraries
-	Boost::utility
-	Boost::multiprecision
-)
+	install(TARGETS pbni-framework
+	EXPORT pbni-framework_targets
+		OBJECTS DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+		ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+		LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+		RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+	)
 
-install(TARGETS libPBNIFramework)
+	install(DIRECTORY extern/pbni/include/pbni DESTINATION include)
+	install(FILES ${headers} DESTINATION include/PBNIFramework)
+
+	install(EXPORT pbni-framework_targets
+		FILE pbni-framework-targets.cmake
+		NAMESPACE inf::
+		DESTINATION share/pbni-framework
+	)
+
+	file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/pbni-framework-config.cmake"
+		"include(CMakeFindDependencyMacro)\n"
+		"find_dependency(Boost REQUIRED stacktrace_windbg)\n"
+		"include(\"\${CMAKE_CURRENT_LIST_DIR}/pbni-framework-targets.cmake\")\n"
+	)
+
+	install(FILES "${CMAKE_CURRENT_BINARY_DIR}/pbni-framework-config.cmake"
+		DESTINATION share/pbni-framework
+	)
+endif()

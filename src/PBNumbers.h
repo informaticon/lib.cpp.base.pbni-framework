@@ -7,7 +7,7 @@
 #include <boost/type_traits/has_nothrow_constructor.hpp>
 #include <boost/type_traits/has_nothrow_copy.hpp>
 
-#include <pbext.h>
+#include <pbni/pbext.h>
 
 #include "Errors.h"
 

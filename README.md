@@ -15,7 +15,9 @@ vcpkg install --triplet=x86-windows-static `
 ```
 
 ## Example Usage
-Check out [this repository](https://github.com/informaticon/div.cpp.base.pbni-framework-usage-example) for a documented example. Or [this one](https://github.com/informaticon/lib.pbni.base.tse) for an actual usage. 
+To get a predone CMake environment use [this template](https://github.com/informaticon/div.cpp.base.pbni-extension-template).  
+Check out [this repository](https://github.com/informaticon/div.cpp.base.pbni-framework-usage-example) for a documented example. Or [this one](https://github.com/informaticon/lib.pbni.base.string-utils) for an actual usage. 
+> **_TODO:_** Update usage-example
 
 
 ## Documentation

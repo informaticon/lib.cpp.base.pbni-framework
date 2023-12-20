@@ -1,4 +1,4 @@
-# PBNI Framework - PowerBuilder Variables
+# PowerBuilder DataTypes
 ---
 
 
@@ -12,14 +12,15 @@ In PowerBuilder, even primitive Types can be Null, and if you use `Inf::PB<Type>
 Inf::PBInt i(10);
 Inf::PBReal r(6.75f);
 
-r.IsNull();
-
-Inf::PBDouble d = i + r;
-
-pbdouble cpp_d = d;
+pbdouble cpp_d = 0;
+if (!r.IsNull())
+{
+    Inf::PBDouble d = i + r;
+    pbdouble cpp_d = d;
+}
 ```
 You can use the ``Inf::PB<Type>``s directly for basically everything, but I suggest you copy them over to a C++ variable, then you don't need to worry about the Values being null.
-When comparing Primitive types to C++ types, you should cast the variable into the C Type:
+When comparing Primitive types to C++ types, you need to cast the variable into the C Type:
 ```cpp
 Inf::PBInt i(22);
 
@@ -29,7 +30,7 @@ if ((pbint) i > 10) {
 ```
 
 #### Complex
-Everything, that isn't a Number, Boolean, Char or Byte, is a complex Type (except Decimal, which is complex). The Values of the complex types are owned by PowerBuilder and the provided `Inf::PB<Type>`s are just Wrappers to the PowerBuilder Objects. These types can also be Null, so make sure to check.
+Everything, that isn't a Number, Boolean, Char or Byte, is a complex Type (Only exception: Decimal is a number, but complex). The Values of the complex types are owned by PowerBuilder and the provided `Inf::PB<Type>`s are just Wrappers to the PowerBuilder Objects. These types can also be Null, so make sure to check.
 
 ```cpp
 // Creates a Null Time
@@ -43,6 +44,7 @@ std::wstring wstr = str.GetWString();
 ```
 
 Most of the Types are straightforward. It starts getting a bit more complicated with Arrays and Objects.
+
 #### Arrays
 Array are a Class Template. These are the arguments:
 

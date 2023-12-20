@@ -14,7 +14,7 @@ Under the hood, the Framework gathers the Argument and Return Types of the Metho
 
 ### Documentation
   - [Quickstart](quick-start.md)
-  - [PowerBuilder Variables in the PBNI Framework](variables.md)
+  - [PowerBuilder DataTypes](variables.md)
   - [Exception Handling](errors.md)
   - [External Libraries](libraries.md)
   - [Doxygen Documentation](https://github.com/informaticon/lib.cpp.base.pbni-framework/tree/main/docs/doxygen)

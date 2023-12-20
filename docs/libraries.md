@@ -1,16 +1,25 @@
 # External Libraries
 ---
 
-## Using VCPKG
-
-The PBNI Framework uses VCPKG as its package manager, so the simplest way to add external libraries, is to just install some library using
-```ps
-vcpkg install --triplet=x86-windows-static library-name
+## vcpkg Manifest
+We use vcpkg as a package manager, so you can just add the dependency in `vcpkg.json`:
+```json
+{
+	...
+	"dependencies": ]
+		"poco",
+		...
+	],
+	"overrides": [
+		{ "name": "poco", "version": "1.12.4" }
+		...
+	]
+}
 ```
-The x86-windows-static triplet is used so that the external library is directly built into the final dll, this way we don't have to provide additional dlls.
-After installing, vcpkg should tell you the package name, this will be in the CMake File.
+The `overrides` part is not necessary, but if you remove it vcpkg will always use the newest version, which makes it hard to get reproducible builds.
 
-After installing the package, you need to add it to the `CMakeLists.txt` file. To do this, go to the very bottom of the file, where you should see a `target_link_libraries` option. Before that open, import the package using `find_package`, and then add the packages name to the `target_link_library` option. Heres an example of how to add Pocos JSON Parser. 
+
+After installing the package, you need to add it to the `CMakeLists.txt` file. To do this, go to the very bottom of the file, where you should see a `target_link_libraries` option. Before that line, import the package using `find_package`, and then add the packages name to the `target_link_library` option. Heres an example of how to add Pocos JSON Parser. 
 ```cmake
 find_package(Poco REQUIRED JSON)
 
@@ -31,8 +40,6 @@ If you want to add a local library, you need 2 things, a static `.lib` file. and
 Once you've gathered your required files. Create a Subfolder in the `extern/` folder and setup your folders like so:
 ```
 ├── extern/
-│   ├── lib.cpp.base.pbni-framework/
-│   │   └── ...
 │   ├── your.library.name/
 │   │   ├── lib/
 │   │   │   └── your-library.lib

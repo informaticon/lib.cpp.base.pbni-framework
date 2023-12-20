@@ -14,11 +14,22 @@ vcpkg install --triplet=x86-windows-static `
 	boost-algorithm
 ```
 
-## Example Usage
-Check out [this repository](https://github.com/informaticon/div.cpp.base.pbni-framework-usage-example) for a documented example. Or [this one](https://github.com/informaticon/lib.pbni.base.tse) for an actual usage. 
+## Usage
+If you are creating a new Project, use the [template](https://github.com/informaticon/div.cpp.base.pbni-extension-template)
+
+To check how you create Classes and export Functions, check out one of the Repos currently using the PBNI Framework:
+ - [lib.pbni.base.tse](https://github.com/informaticon/lib.pbni.base.tse)
+ - [lib.pbni.base.string-utils](https://github.com/informaticon/lib.pbni.base.string-utils)
+ - [lib.pbni.base.pepper](https://github.com/informaticon/lib.pbni.base.pepper)
+ - [lib.pbni.base.mail-client](https://github.com/informaticon/lib.pbni.base.mail-client)
+ - [lib.pbni.base.libcurl](https://github.com/informaticon/lib.pbni.base.libcurl)
+ - [lib.pbni.base.serializer](https://github.com/informaticon/lib.pbni.base.serializer)
+ - [lib.pbni.base.graphics-utils](https://github.com/informaticon/lib.pbni.base.graphics-utils)
 
 
 ## Documentation
+The docs are also on [Slab](https://slab.informaticon.com/posts/lib-cpp-base-pbni-framework-viyzp8mr)
+
 This repository uses Doxygen and MKDocs for documentation.
 You may need to have the following software to build/view the documentation:
 * [Doxygen](https://www.doxygen.nl) (on Windows: `choco install doxygen`)

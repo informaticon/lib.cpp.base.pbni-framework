@@ -46,8 +46,8 @@ If you want regenerate the documentation for Github, you have to run `make doxyg
 ## Tests
 Build the test dll by running
 ```ps1
-cmake -S .\test\cpp\ -B build --preset vcpkg
-cmake --build build --target install
+cmake -S .\test\cpp\ -B .\test\cpp\build --preset vcpkg
+cmake --build .\test\cpp\build --target install
 ```
 
 Run tests by doing

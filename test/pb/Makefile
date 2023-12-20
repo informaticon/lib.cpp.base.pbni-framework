@@ -4,7 +4,7 @@ SHELL=cmd.exe
 build:
 	if not exist build mkdir build
 	
-	pbc170 /f /m n /d test.pbt
+	pbc220 /f /m n /d test.pbt
 	
 	move /Y *.pbd build
 	move /Y *.exe build

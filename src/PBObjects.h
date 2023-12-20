@@ -618,22 +618,20 @@ namespace Inf
             pbgroup group = session->FindGroup(ExtractGroupName(className).c_str(), groupType);
             if (!group)
             {
-                throw PBNI_Exception({
-                    { L"Error", L"Unable to find group" },
+                throw PBNI_Exception(L"Unable to find group", {
                     { L"Group", ExtractGroupName(className) },
                     { L"ID", className },
-                    });
+                });
             }
 
             pbclass cls = session->FindClass(group, ExtractClassName(className).c_str());
             if (!cls)
             {
-                throw PBNI_Exception({
-                    { L"Error", L"Unable to find class" },
+                throw PBNI_Exception(L"Unable to find class", {
                     { L"Group", ExtractGroupName(className) },
                     { L"Class", ExtractClassName(className) },
                     { L"ID", className },
-                    });
+                });
             }
 
             return cls;

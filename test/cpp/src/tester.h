@@ -76,6 +76,8 @@ namespace Inf
         // TODO bounded array
         // TODO copy complex variables to member variable
 
+        void Throw(PBString message, PBArray<PBString> keys, PBArray<PBString> values);
+
     private:
         template <typename T>
         void SetArrayHelper(pbarray any_arr, PBAny any_val)

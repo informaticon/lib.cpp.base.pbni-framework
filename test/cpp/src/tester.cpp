@@ -308,3 +308,14 @@ Inf::PBAny Inf::FrameworkTester::GetArrayArray(PBArray<PBAny> x)
 {
     return { m_Session, x.Get(1).Get<PBArray<PBAny>>() };
 }
+
+INF_REGISTER_FUNC(Throw, L"of_throw", L"as_message", L"as_keys", L"as_values");
+void Inf::FrameworkTester::Throw(PBString message, PBArray<PBString> keys, PBArray<PBString> values)
+{
+    std::map<std::wstring, std::wstring> store;
+    for (pblong i = 1; i <= keys.Size(); i++) {
+        store[keys.Get(i).GetWString()] = values.Get(i).GetWString();
+    }
+
+    throw PBNI_Exception(message.GetWString(), store);
+}

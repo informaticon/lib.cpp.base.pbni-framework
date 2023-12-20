@@ -11,7 +11,7 @@
 namespace Inf
 {
     /**
-     * Used when an exception is thrown by a function called by powerbuilder.
+     * Used by PBObject::Invoke if the invoked PowerBuilder function throws an Exception
      */
     class PBNI_ExceptionThrown : public std::exception { };
 
@@ -22,25 +22,19 @@ namespace Inf
     class PBNI_Exception : public std::exception
     {
     public:
-        PBNI_Exception(const std::wstring& err_msg)
-            : PBNI_Exception({ { L"Error", err_msg } })
+        PBNI_Exception(const std::wstring& message)
+            : PBNI_Exception(message, {})
         { }
 
-        PBNI_Exception(const std::wstring& errMsg, const std::map<std::wstring, std::wstring>& keyValues)
-            : PBNI_Exception(keyValues)
+        PBNI_Exception(const std::wstring& message, const std::map<std::wstring, std::wstring>& keyValues)
+            : m_Message(message), m_KeyValueStore(keyValues)
         {
-            m_KeyValueStore[L"Error"] = errMsg;
-        }
-
-        PBNI_Exception(const std::map<std::wstring, std::wstring>& keyValues)
-            : m_KeyValueStore(keyValues)
-        {
-#if NDEBUG
-            m_KeyValueStore.insert({ L"Stacktrace", L"Use the debug library to get Stacktraces from C++"});
-#else
-            boost::stacktrace::stacktrace st;
-            m_KeyValueStore.insert({ L"Stacktrace", ConvertString<std::wstring>(boost::stacktrace::to_string(st)) });
-#endif
+            #if NDEBUG
+                m_KeyValueStore.insert({ L"Stacktrace", L"Use the debug library to get Stacktraces from C++"});
+            #else
+                boost::stacktrace::stacktrace st;
+                m_KeyValueStore.insert({ L"Stacktrace", ConvertString<std::wstring>(boost::stacktrace::to_string(st)) });
+            #endif
         }
 
         /**
@@ -48,9 +42,9 @@ namespace Inf
          * 
          * \return The First error
          */
-        virtual const char* what() const noexcept override
+        const char* what() const noexcept override
         {
-            m_What = ConvertString<std::string>(m_KeyValueStore.at(L"Error"));
+            m_What = ConvertString<std::string>(m_Message);
             return m_What.c_str();
         }
 
@@ -59,9 +53,19 @@ namespace Inf
          * 
          * \return KeyValues
          */
-        virtual const std::map<std::wstring, std::wstring>& GetKeyValues() const
+        const std::map<std::wstring, std::wstring>& GetKeyValues() const
         {
             return m_KeyValueStore;
+        }
+
+        /**
+         * Method to retrieve the pushed KeyValues.
+         * 
+         * \return KeyValues
+         */
+        const std::wstring& GetMessage() const
+        {
+            return m_Message;
         }
 
         /**
@@ -69,7 +73,7 @@ namespace Inf
          * 
          * \return Type or empty string
          */
-        virtual const std::wstring& GetNestAs() const
+        const std::wstring& GetNestAs() const
         {
             return m_NestedType;
         }
@@ -80,7 +84,7 @@ namespace Inf
          * \param key       Key To add
          * \param value     Value to add as key
          */
-        virtual PBNI_Exception& Push(std::wstring key, std::wstring value)
+        PBNI_Exception& Push(std::wstring key, std::wstring value)
         {
             m_KeyValueStore.insert({ key, value });
             return *this;
@@ -98,8 +102,10 @@ namespace Inf
         }
     private:
         mutable std::string m_What;
-        std::wstring m_NestedType;
+
+        std::wstring m_Message;
         std::map<std::wstring, std::wstring> m_KeyValueStore;
+        std::wstring m_NestedType;
     };
 
     /**
@@ -109,8 +115,7 @@ namespace Inf
     {
     public:
         PBNI_IndexOutOfBoundsException(pblong pos, pblong size)
-            : PBNI_Exception({
-                    { L"Error", L"Accesssing an index out of bounds in an Unbounded PBArray" },
+            : PBNI_Exception(L"Accesssing an index out of bounds in an Unbounded PBArray", {
                     { L"Position", std::to_wstring(pos) },
                     { L"Bounds", L"1 to " + std::to_wstring(size) }
                 })
@@ -118,8 +123,7 @@ namespace Inf
 
         template <int N>
         PBNI_IndexOutOfBoundsException(std::array<pblong, N> pos, std::array<std::pair<pblong, pblong>, N> bounds, pbbyte dim)
-            : PBNI_Exception({
-                    { L"Error", L"Accesssing an index out of bounds in a Bounded PBArray" },
+            : PBNI_Exception(L"Accesssing an index out of bounds in a Bounded PBArray", {
                     { L"Dimension", std::to_wstring(dim) }
                 })
         {
@@ -148,8 +152,7 @@ namespace Inf
     {
     public:
         PBNI_NullPointerException(std::wstring type)
-            : PBNI_Exception({
-                    { L"Error", L"Tried to access a PowerBuilder value that is Null" },
+            : PBNI_Exception(L"Tried to access a PowerBuilder value that is Null", {
                     { L"Type", type }
                 })
         { }
@@ -162,8 +165,7 @@ namespace Inf
     {
     public:
         PBNI_InvalidFieldException(std::wstring type, std::wstring field, std::wstring field_type)
-            : PBNI_Exception({
-                    { L"Error", L"Tried to acces an Invalid Field" },
+            : PBNI_Exception(L"Tried to acces an Invalid Field", {
                     { L"Type", type },
                     { L"Field", field },
                     { L"Field Type", field_type }
@@ -180,8 +182,7 @@ namespace Inf
     {
     public:
         PBNI_IncorrectArgumentsException(std::wstring class_name, std::wstring method_name)
-            : PBNI_Exception({
-                    { L"Error", L"Tried to call a PowerBuilder Method with wrong Arguments" },
+            : PBNI_Exception(L"Tried to call a PowerBuilder Method with wrong Arguments", {
                     { L"Class", class_name },
                     { L"Method", method_name }
                 })
@@ -201,8 +202,7 @@ namespace Inf
     {
     public:
         PBNI_PowerBuilderException(std::wstring method_name, PBXRESULT res)
-            : PBNI_Exception({
-                    { L"Error", L"Failed to call PowerBuilder Method" },
+            : PBNI_Exception(L"Failed to call PowerBuilder Method", {
                     { L"Method", method_name },
                     { L"Result", std::to_wstring(res) }
                 })

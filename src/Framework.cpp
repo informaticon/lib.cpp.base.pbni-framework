@@ -13,7 +13,7 @@ Inf::PBObject<L"u_exf_ex"> Inf::ConvertException(IPB_Session* session, const std
     if (pbniEx)
     {
         auto& keyValueStore = pbniEx->GetKeyValues();
-        auto pbErrorData = pbException.Call<PBObject<L"u_exf_error_data">>(L"of_init", PBString(session, keyValueStore.at(L"Error")));
+        auto pbErrorData = pbException.Call<PBObject<L"u_exf_error_data">>(L"of_init", PBString(session, pbniEx->GetMessage()));
 
         for (auto& [key, value] : keyValueStore)
         {

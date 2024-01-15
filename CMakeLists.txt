@@ -74,7 +74,8 @@ if (MINGW)
 endif()
 
 
-target_precompile_headers(pbni-framework PUBLIC ${headers})
+message(${headers})
+# target_precompile_headers(pbni-framework PUBLIC ${headers})
 
 target_compile_features(pbni-framework PUBLIC cxx_std_20)
 

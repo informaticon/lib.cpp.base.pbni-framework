@@ -74,9 +74,6 @@ if (MINGW)
 endif()
 
 
-set(pch_headers ${headers})
-list(TRANSFORM pch_headers REPLACE "^src/" "PBNIFramework/")
-set_target_properties(pbni-framework PROPERTIES POSSIBLE_PRECOMPILE_HEADERS ${pch_headers})
 # target_precompile_headers(pbni-framework PUBLIC ${headers})
 
 target_compile_features(pbni-framework PUBLIC cxx_std_20)
@@ -164,9 +161,12 @@ else()
 		DESTINATION share/pbni-framework
 	)
 
+	set(pch_headers ${headers})
+	list(TRANSFORM pch_headers REPLACE "^src/" "PBNIFramework/")
 	file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/pbni-framework-config.cmake"
 		"include(CMakeFindDependencyMacro)\n"
 		"find_dependency(Boost REQUIRED stacktrace_windbg)\n"
+		"set(PBNI_FRAMEWORK_HEADERS \"${pch_headers}\" CACHE INTERNAL \"All headers of PBNI-Framework\")\n"
 		"include(\"\${CMAKE_CURRENT_LIST_DIR}/pbni-framework-targets.cmake\")\n"
 	)
 

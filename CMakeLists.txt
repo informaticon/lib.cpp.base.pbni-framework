@@ -161,12 +161,10 @@ else()
 
 	set(precompile_headers ${headers})
 	list(TRANSFORM precompile_headers REPLACE "^src/(.+)$" "<PBNIFramework/\\1>")
-
-	target_precompile_headers(pbni-framework PUBLIC ${precompile_headers})
-
 	file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/pbni-framework-config.cmake"
 		"include(CMakeFindDependencyMacro)\n"
 		"find_dependency(Boost REQUIRED stacktrace_windbg)\n"
+		"set(PBNI_FRAMEWORK_HEADERS \"${precompile_headers}\" CACHE INTERNAL \"All headers of PBNI-Framework\")\n"
 		"include(\"\${CMAKE_CURRENT_LIST_DIR}/pbni-framework-targets.cmake\")\n"
 	)
 

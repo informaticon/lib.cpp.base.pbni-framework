@@ -6,9 +6,9 @@
     "boost-multiprecision"
   ],
   "overrides": [
-    {"name": "boost-stacktrace", "version": "1.83.0"},
-    {"name": "boost-utility", "version": "1.83.0"},
-    {"name": "boost-multiprecision", "version": "1.83.0"}
+    { "name": "boost-stacktrace", "version": "1.83.0" },
+    { "name": "boost-utility", "version": "1.83.0" },
+    { "name": "boost-multiprecision", "version": "1.83.0" }
   ],
   "builtin-baseline": "8eb57355a4ffb410a2e94c07b4dca2dffbee8e50"
 }

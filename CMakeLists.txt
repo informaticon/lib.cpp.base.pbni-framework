@@ -76,7 +76,7 @@ endif()
 
 set(pch_headers ${headers})
 list(TRANSFORM pch_headers REPLACE "^src/" "PBNIFramework/")
-set(PBNI_FRAMEWORK_HEADERS ${pch_headers} CACHE INTERNAL "All headers of PBNI-Framework" )
+set_target_properties(pbni-framework PROPERTIES POSSIBLE_PRECOMPILE_HEADERS ${pch_headers})
 # target_precompile_headers(pbni-framework PUBLIC ${headers})
 
 target_compile_features(pbni-framework PUBLIC cxx_std_20)

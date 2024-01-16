@@ -74,7 +74,9 @@ if (MINGW)
 endif()
 
 
-message(${headers})
+set(pch_headers ${headers})
+list(TRANSFORM pch_headers REPLACE "^src/" "PBNIFramework/")
+set(PBNI_FRAMEWORK_HEADERS ${pch_headers} CACHE INTERNAL "All headers of PBNI-Framework" )
 # target_precompile_headers(pbni-framework PUBLIC ${headers})
 
 target_compile_features(pbni-framework PUBLIC cxx_std_20)

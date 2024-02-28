@@ -13,7 +13,7 @@
  * \param cls   The Class Type to use
  * \param name  A WString containing the Name to be used by PowerBuilder (Must be the same as GetPBName)
  */
-#define INF_REGISTER_CLASS(cls, name) typedef cls Inf_PBNI_Class; static std::wstring s_PBNI_ClassName = name; static Inf::ClassDescription<cls> class_description(name)
+#define INF_REGISTER_CLASS(cls, name)  using Inf_PBNI_Class = cls; static std::wstring s_PBNI_ClassName = name; static Inf::ClassDescription<cls> class_description(name)
 
 namespace Inf
 {

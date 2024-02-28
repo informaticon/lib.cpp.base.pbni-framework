@@ -36,9 +36,9 @@ namespace Inf
          * \param session   Current Session
          * \param str       String to copy
          */
-        PBString(IPB_Session* session, const std::string& str, StringEncoding encoding = ANSI);
-        PBString(IPB_Session* session, const std::string_view& str, StringEncoding encoding = ANSI);
-        PBString(IPB_Session* session, const char* str, StringEncoding encoding = ANSI);
+        PBString(IPB_Session* session, const std::string& str, StringEncoding encoding = UTF8);
+        PBString(IPB_Session* session, const std::string_view& str, StringEncoding encoding = UTF8);
+        PBString(IPB_Session* session, const char* str, StringEncoding encoding = UTF8);
         /**
          * Creates a new pbstring and writes the WString to it.
          *
@@ -54,7 +54,7 @@ namespace Inf
          * 
          * \throw PBNI_NullPointerException     If String is Null
          */
-        std::string GetString(StringEncoding encoding = ANSI) const;
+        std::string GetString(StringEncoding encoding = UTF8) const;
         /**
          * Gets the String from Poerbuilder.
          * 
@@ -68,7 +68,7 @@ namespace Inf
          * 
          * \param str   The String to copy
          */
-        void SetString(const std::string& str, StringEncoding encoding = ANSI);
+        void SetString(const std::string& str, StringEncoding encoding = UTF8);
         /**
          * Copies the WString to PowerBuilder.
          *
@@ -136,11 +136,11 @@ namespace Inf
     template<> std::string  ConvertString<>(const wchar_t* const& wstr, const PBString::StringEncoding& encoding);
     template<> std::string  ConvertString<>(const std::wstring& wstr, const PBString::StringEncoding& encoding);
 
-    template<> inline std::wstring ConvertString<>(const char* const& str, const size_t& size)     { return ConvertString<std::wstring>(str, size, PBString::ANSI); }
-    template<> inline std::wstring ConvertString<>(const char* const& str)                         { return ConvertString<std::wstring>(str, PBString::ANSI); }
-    template<> inline std::wstring ConvertString<>(const std::string_view& str)                    { return ConvertString<std::wstring>(str, PBString::ANSI); }
-    template<> inline std::wstring ConvertString<>(const std::string& str)                         { return ConvertString<std::wstring>(str, PBString::ANSI); }
-    template<> inline std::string  ConvertString<>(const wchar_t* const& wstr, const size_t& size) { return ConvertString<std::string >(wstr, size, PBString::ANSI); }
-    template<> inline std::string  ConvertString<>(const wchar_t* const& wstr)                     { return ConvertString<std::string >(wstr, PBString::ANSI); }
-    template<> inline std::string  ConvertString<>(const std::wstring& wstr)                       { return ConvertString<std::string >(wstr, PBString::ANSI); }
+    template<> inline std::wstring ConvertString<>(const char* const& str, const size_t& size)     { return ConvertString<std::wstring>(str, size, PBString::UTF8); }
+    template<> inline std::wstring ConvertString<>(const char* const& str)                         { return ConvertString<std::wstring>(str, PBString::UTF8); }
+    template<> inline std::wstring ConvertString<>(const std::string_view& str)                    { return ConvertString<std::wstring>(str, PBString::UTF8); }
+    template<> inline std::wstring ConvertString<>(const std::string& str)                         { return ConvertString<std::wstring>(str, PBString::UTF8); }
+    template<> inline std::string  ConvertString<>(const wchar_t* const& wstr, const size_t& size) { return ConvertString<std::string >(wstr, size, PBString::UTF8); }
+    template<> inline std::string  ConvertString<>(const wchar_t* const& wstr)                     { return ConvertString<std::string >(wstr, PBString::UTF8); }
+    template<> inline std::string  ConvertString<>(const std::wstring& wstr)                       { return ConvertString<std::string >(wstr, PBString::UTF8); }
  }

@@ -14,6 +14,7 @@ Under the hood, the Framework gathers the Argument and Return Types of the Metho
 
 ### Documentation
   - [Quickstart](quick-start.md)
+  - [PowerBuilder](powerbuilder.md)
   - [PowerBuilder DataTypes](variables.md)
   - [Exception Handling](errors.md)
   - [External Libraries](libraries.md)

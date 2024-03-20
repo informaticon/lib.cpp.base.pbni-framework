@@ -103,6 +103,10 @@ namespace Inf
                 {
                     return m_Value->IsObject();
                 }
+                else if constexpr (Helper::is_pb_enum_v<T>)
+                {
+                    return m_Value->IsEnum();
+                }
                 else
                 {
                     return m_Value->GetType() == pbvalue_any || m_Value->GetType() == Type<T>::PBType;
@@ -122,9 +126,13 @@ namespace Inf
                     return { m_Session, m_Value, acquire };
                 else if constexpr (Helper::is_pb_object_v<T>)
                     return { m_Session, m_Value->GetObject() };
-                else if constexpr (std::is_same_v<T, DynPBObject>)
+                else if constexpr (std::is_same_v<DynPBObject, T>)
                     return { m_Session, m_Value->GetObject(), m_Value->GetClass() };
-                else if constexpr (std::is_same_v<T, PBAny>)
+                else if constexpr (Helper::is_pb_enum_v<T>)
+                {
+                    return { m_Session, m_Value->GetLong() };
+                }
+                else if constexpr (std::is_same_v<PBAny, T>)
                     return { m_Session, m_Value, acquire };
                 else
                     return GetImpl(Type<T>(), acquire);
@@ -145,9 +153,11 @@ namespace Inf
                     return m_Value->SetArray(t);
                 else if constexpr (Helper::is_pb_object_v<T>)
                     return m_Value->SetObject(t);
-                else if constexpr (std::is_same_v<T, DynPBObject>)
+                else if constexpr (std::is_same_v<DynPBObject, T>)
                     return m_Value->SetObject(t);
-                else if constexpr (std::is_same_v<T, PBAny>)
+                else if constexpr (Helper::is_pb_enum_v<T>)
+                    return m_Value->SetLong(t);
+                else if constexpr (std::is_same_v<PBAny, T>)
                     return t.ToValue(m_Value);
                 else
                     return SetImpl(t);

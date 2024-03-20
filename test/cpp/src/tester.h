@@ -4,6 +4,8 @@
 
 namespace Inf
 {
+    using Encoding = PBEnum<L"encoding">;
+
     class FrameworkTester : public PBNI_Class
     {
     public:
@@ -57,6 +59,12 @@ namespace Inf
         DynPBObject    GetPBObject  (DynPBObject    x) { return x; }
         // Can't return Array
         // PBArray<PBAny> GetPBArray   (PBArray<PBAny> x) { return x; }
+
+        void CheckEnum(Encoding x) 
+        {
+            if (x.GetValueName() != L"encodingansi")
+                throw PBNI_Exception(L"Not implemented");
+        }
 
         // Any
         void SetAny(PBAny& x, PBAny y);

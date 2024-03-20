@@ -79,7 +79,9 @@ namespace Inf
      * This is the derived class, it needs to be Templated to be able to store the Function Pointer.
      */
     template <typename Cls, typename Ret, typename... Args>
-        requires (std::is_base_of_v<PBNI_Class, Cls> && !std::is_pointer_v<Ret> && !std::is_reference_v<Ret> && !Helper::is_pb_array_v<Ret> && (!std::is_pointer_v<Args> && ...))
+        requires (std::is_base_of_v<PBNI_Class, Cls>
+                  && !std::is_pointer_v<Ret> && !std::is_reference_v<Ret> && (!std::is_pointer_v<Args> && ...)
+                  && !Helper::is_pb_array_v<Ret>)
     class MethodDescription : public IMethodDescription
     {
     public:

@@ -202,7 +202,7 @@ const pbint kUnicodeEnabled = 0;
 
 PBXEXPORT inline long PBXCALL PBX_GetVersion()
 {
-     return MAKELONG(kPBVMVersion, kUnicodeEnabled) ;
+    return MAKELONG(kPBVMVersion, kUnicodeEnabled) ;
 };
 
 }

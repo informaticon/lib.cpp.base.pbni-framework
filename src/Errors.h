@@ -174,6 +174,27 @@ namespace Inf
     };
 
     /**
+     * This Exception gets thrown if you try to read an Enum that doesn't exist
+     */
+    class PBNI_InvalidEnumException : public PBNI_Exception
+    {
+    public:
+        PBNI_InvalidEnumException(std::wstring type, std::wstring value)
+            : PBNI_Exception(L"Tried to acces an Invalid Enum", {
+                    { L"Type", type },
+                    { L"Value", value }
+                })
+        { }
+
+        PBNI_InvalidEnumException(std::wstring type, pblong value)
+            : PBNI_Exception(L"Tried to acces an Invalid Enum", {
+                    { L"Type", type },
+                    { L"Value ID", std::to_wstring(value) }
+                })
+        { }
+    };
+
+    /**
      * This exception gets thrown, when PowerBuilder invokes a function inside the Framework,
      * but it doesnt give the right Arguments. Or when you try to Invoke a PowerBuilder function
      * and dont give the right Arguments.

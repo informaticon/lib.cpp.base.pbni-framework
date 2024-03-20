@@ -5,8 +5,8 @@
 #include "MethodDescription.h"
 
 /**
- * This Macro is just there for convenienve.
- * Use it to register a Class to the PBNI Franework.
+ * This Macro is just there for convenience.
+ * Use it to register a Class to the PBNI Framework.
  * Make sure that every function you register to this class is in the same File.
  * Don't use this inside a header File.
  *

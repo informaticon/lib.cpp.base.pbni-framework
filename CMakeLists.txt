@@ -44,6 +44,7 @@ set(types
 	src/PBNumbers.h
 	src/PBNumbers.cpp
 	src/PBObjects.h
+	src/PBEnums.h
 	src/PBString.cpp
 	src/PBString.h
 	src/PBAny.cpp

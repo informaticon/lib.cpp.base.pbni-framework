@@ -1,6 +1,7 @@
 #include "PBAny.h"
 
 #include "PBObjects.h"
+#include "PBEnums.h"
 
 
 Inf::PBAny::PBAny(IPB_Session* session, IPB_Value* value, bool acquire)
@@ -11,6 +12,8 @@ Inf::PBAny::PBAny(IPB_Session* session, IPB_Value* value, bool acquire)
         m_Class = value->GetClass();
         m_Type = AnyType::Object;
     }
+    else if (value->IsEnum())
+        m_Type = AnyType::Enum;
     else
         m_Type = (AnyType) value->GetType();
 
@@ -31,6 +34,12 @@ Inf::PBAny::PBAny(IPB_Session* session, IPB_Value* value, bool acquire)
     if (value->IsObject())
     {
         m_Value = DynPBObject(session, value->GetObject());
+        return;
+    }
+
+    if (value->IsEnum())
+    {
+        m_Value = value->GetLong();
         return;
     }
 
@@ -96,6 +105,7 @@ PBXRESULT Inf::PBAny::ToValue(IPB_Value* value) const
             case Type<PBBlob    >::PBType: m_Session->AddBlobArgument    (&ci, std::any_cast<PBBlob    >(m_Value)); break;
 
             case AnyType::Object: m_Session->AddObjectArgument(&ci, std::any_cast<DynPBObject>(m_Value)); break;
+            case AnyType::Enum:   m_Session->AddLongArgument  (&ci, std::any_cast<pblong     >(m_Value)); break;
         }
     }
 

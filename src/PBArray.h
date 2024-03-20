@@ -133,6 +133,8 @@ namespace Inf
                 PBXRESULT res;
                 if constexpr (std::is_base_of_v<DynPBObject, Item>)
                     res = m_Session->SetObjectArrayItem(m_Array, &pos, t);
+                else if constexpr (Helper::is_pb_enum_v<Item>)
+                    res = m_Session->SetLongArrayItem(m_Array, &pos, t);
                 else if constexpr (std::is_same_v<Item, PBAny>)
                 {
                     IPB_Value* value = m_Session->AcquireArrayItemValue(m_Array, &pos);
@@ -167,6 +169,12 @@ namespace Inf
                 pbboolean is_null = false;
                 pbobject obj = m_Session->GetObjectArrayItem(m_Array, &pos, is_null);
                 return { m_Session, is_null ? 0 : obj };
+            }
+            else if constexpr (Helper::is_pb_enum_v<Item>)
+            {
+                pbboolean is_null = false;
+                pblong value = m_Session->GetLongArrayItem(m_Array, &pos, is_null);
+                return { m_Session, is_null ? -1 : value };
             }
             else if constexpr (std::is_same_v<Item, PBAny>)
             {

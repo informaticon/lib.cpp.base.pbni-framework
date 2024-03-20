@@ -33,6 +33,9 @@ namespace Inf
     template <Helper::FixedString class_id, pbgroup_type group_type>
     class PBObject;
 
+    template <Helper::FixedString name>
+    class PBEnum;
+
     template <typename Item, pblong... dims>
         requires (sizeof...(dims) <= 3 && !std::is_reference_v<Item> && !std::is_pointer_v<Item>)
     class PBArray;
@@ -47,6 +50,16 @@ namespace Inf
 
         template <typename T>
         inline constexpr bool is_pb_object_v = is_pb_object<T>::value;
+
+
+        template <typename T>
+        struct is_pb_enum : public std::false_type {};
+
+        template <Helper::FixedString name>
+        struct is_pb_enum<PBEnum<name>> : public std::true_type {};
+
+        template <typename T>
+        inline constexpr bool is_pb_enum_v = is_pb_enum<T>::value;
 
 
         template <typename>

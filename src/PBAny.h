@@ -34,7 +34,8 @@ namespace Inf
             LongLong = pbvalue_longlong,
             Byte = pbvalue_byte,
         
-            Object = 201
+            Object = 201,
+            Enum = 202
         };
 
         /**
@@ -139,6 +140,8 @@ namespace Inf
                 return m_Type == AnyType::Object && Helper::IsPBBaseClass(m_Session, T::PBClass(m_Session), m_Class);
             else if constexpr (std::is_same_v<DynPBObject, T>)
                 return m_Type == AnyType::Object;
+            else if constexpr (Helper::is_pb_enum_v<T>)
+                return m_Type == AnyType::Enum;
             else
                 return m_Type == (AnyType) Type<T>::PBType;
         }
@@ -169,6 +172,8 @@ namespace Inf
                 return { m_Session, IsNull() ? 0 : (pbobject) std::any_cast<DynPBObject>(m_Value) };
             else if constexpr (std::is_same_v<DynPBObject, T>)
                 return std::any_cast<DynPBObject>(m_Value);
+            else if constexpr (Helper::is_pb_enum_v<T>)
+                return { m_Session, IsNull() ? -1 : std::any_cast<pblong>(m_Value) };
             else
             {
                 if (IsNull())
@@ -201,7 +206,7 @@ namespace Inf
                 else
                     m_Value = PBArray<PBAny>(t);
             }
-            else if constexpr (Helper::is_pb_object_v<T>)
+            else if constexpr (std::is_base_of_v<DynPBObject, T>)
             {
                 m_Type = AnyType::Object;
                 if (t.IsNull())
@@ -209,13 +214,13 @@ namespace Inf
                 else
                     m_Value = (DynPBObject&) t;
             }
-            else if constexpr (std::is_same_v<DynPBObject, T>)
+            else if constexpr (Helper::is_pb_enum_v<T>)
             {
-                m_Type = AnyType::Object;
+                m_Type = AnyType::Enum;
                 if (t.IsNull())
                     m_Value.reset();
                 else
-                    m_Value = t;
+                    m_Value = (pblong) t;
             }
             else
             {

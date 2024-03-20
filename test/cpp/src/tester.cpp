@@ -44,6 +44,9 @@ INF_REGISTER_FUNC(GetPBString  , L"of_get", L"aa_x");
 INF_REGISTER_FUNC(GetPBBlob    , L"of_get", L"aa_x");
 INF_REGISTER_FUNC(GetPBObject  , L"of_get", L"aa_x");
 
+INF_REGISTER_FUNC(CheckEnum    , L"of_enum", L"ae_encodingansi");
+
+
 INF_REGISTER_FUNC(SetAny, L"of_set_any", L"aa_to", L"aa_from");
 void Inf::FrameworkTester::SetAny(PBAny& x, PBAny y)
 {
@@ -71,6 +74,7 @@ void Inf::FrameworkTester::SetAny(PBAny& x, PBAny y)
     case Type<PBString  >::PBType: x = PBAny(m_Session, y.Get<PBString  >()); break;
     case Type<PBBlob    >::PBType: x = PBAny(m_Session, y.Get<PBBlob    >()); break;
     case PBAny::Object: x = PBAny(m_Session, y.Get<DynPBObject>()); break;
+    case PBAny::Enum:   x = PBAny(m_Session, y.Get<Encoding   >()); break;
     default: throw PBNI_Exception(L"Not implemented");
     }
 }
@@ -101,6 +105,7 @@ Inf::PBAny Inf::FrameworkTester::GetAny(PBAny x)
     case Type<PBString  >::PBType: return PBAny(m_Session, x.Get<PBString  >());
     case Type<PBBlob    >::PBType: return PBAny(m_Session, x.Get<PBBlob    >());
     case PBAny::Object: return PBAny(m_Session, x.Get<DynPBObject>());
+    case PBAny::Enum  : return PBAny(m_Session, x.Get<Encoding>());
     default: throw PBNI_Exception(L"Not implemented");
     }
 
@@ -130,6 +135,7 @@ void Inf::FrameworkTester::SetField(PBObject<L"u_pbni_test_object">& x, PBAny y)
     case Type<PBBlob    >::PBType: x.SetField(L"ibl_test", y.Get<PBBlob    >()); break;
 
     case PBAny::Object: x.SetField(L"iu_test", y.Get<DynPBObject>()); break;
+    case PBAny::Enum:   x.SetField(L"ie_test", y.Get<Encoding   >()); break;
     default: throw PBNI_Exception(L"Not implemented");
     }
 }
@@ -156,6 +162,7 @@ Inf::PBAny Inf::FrameworkTester::GetField(PBObject<L"u_pbni_test_object"> x, PBI
     case 15: return PBAny(m_Session, x.GetField<PBString   >(L"is_test" ));
     case 16: return PBAny(m_Session, x.GetField<PBBlob     >(L"ibl_test"));
     case 17: return PBAny(m_Session, x.GetField<DynPBObject>(L"iu_test" ));
+    case 18: return PBAny(m_Session, x.GetField<Encoding   >(L"ie_test" ));
     default: throw PBNI_Exception(L"Not implemented");
     }
 }
@@ -183,6 +190,7 @@ void Inf::FrameworkTester::SetterField(PBObject<L"u_pbni_test_object">& x, PBAny
     case Type<PBBlob    >::PBType: x.Call(L"of_set_ibl", y.Get<PBBlob    >()); break;
 
     case PBAny::Object: x.SetField(L"iu_test", y.Get<DynPBObject>()); break;
+    case PBAny::Enum:   x.SetField(L"ie_test", y.Get<Encoding   >()); break;
     default: throw PBNI_Exception(L"Not implemented");
     }
 }
@@ -209,6 +217,7 @@ Inf::PBAny Inf::FrameworkTester::GetterField(PBObject<L"u_pbni_test_object"> x, 
     case 15: return PBAny(m_Session, x.Call<PBString   >(L"of_get_is" ));
     case 16: return PBAny(m_Session, x.Call<PBBlob     >(L"of_get_ibl"));
     case 17: return PBAny(m_Session, x.Call<DynPBObject>(L"of_get_iu" ));
+    case 18: return PBAny(m_Session, x.Call<Encoding   >(L"of_get_ie" ));
     default: throw PBNI_Exception(L"Not implemented");
     }
 }
@@ -235,6 +244,7 @@ void Inf::FrameworkTester::GetterRefField(PBObject<L"u_pbni_test_object"> x, PBI
     case 15: x.Call<void, PBAny&>(L"of_get_is" , z); break;
     case 16: x.Call<void, PBAny&>(L"of_get_ibl", z); break;
     case 17: x.Call<void, PBAny&>(L"of_get_iu" , z); break;
+    case 18: x.Call<void, PBAny&>(L"of_get_ie" , z); break;
     default: throw PBNI_Exception(L"Not implemented");
     }
 }
@@ -267,9 +277,8 @@ void Inf::FrameworkTester::SetArray(PBArray<PBAny>& x, PBAny y)
     case Type<PBDateTime>::PBType: SetArrayHelper<PBDateTime >(x, y); break;
     case Type<PBString  >::PBType: SetArrayHelper<PBString   >(x, y); break;
     case Type<PBBlob    >::PBType: SetArrayHelper<PBBlob     >(x, y); break;
-    case PBAny::Object: 
-        x.Set(1, { m_Session, y.Get<DynPBObject>() });
-        break;
+    case PBAny::Object: x.Set(1, { m_Session, y.Get<DynPBObject>() }); break;
+    case PBAny::Enum:   x.Set(1, { m_Session, y.Get<Encoding >()   }); break;
     default: throw PBNI_Exception(L"Not implemented");
     }
 }

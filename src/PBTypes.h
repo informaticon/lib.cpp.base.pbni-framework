@@ -4,6 +4,7 @@
 #include "PBDateTimes.h"
 #include "PBString.h"
 #include "PBBlob.h"
+#include "PBEnums.h"
 #include "Helper.h"
 
 
@@ -257,6 +258,13 @@ namespace Inf
         static inline std::wstring GetPBName(const std::wstring& argument_name) { return std::wstring(class_id.data) + argument_name; }
     };
 
+
+    template <Helper::FixedString name>
+    struct Type<PBEnum<name>>
+    {
+        static inline std::wstring PBSignature = std::wstring(L"C") + name.data + L".";
+        static inline std::wstring GetPBName(const std::wstring& argument_name) { return name.data + argument_name; }
+    };
 #pragma endregion
 /// \endcond
 }

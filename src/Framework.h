@@ -130,7 +130,9 @@ namespace Inf
         friend class ClassDescription;
 
         template <typename Cls, typename Ret, typename... Args>
-            requires (std::is_base_of_v<PBNI_Class, Cls> && !std::is_pointer_v<Ret> && !std::is_reference_v<Ret> && !Helper::is_pb_array_v<Ret> && (!std::is_pointer_v<Args> && ...))
+            requires (std::is_base_of_v<PBNI_Class, Cls>
+                    && !std::is_pointer_v<Ret> && !std::is_reference_v<Ret> && (!std::is_pointer_v<Args> && ...)
+                    && !Helper::is_pb_array_v<Ret>)
         friend class MethodDescription;
 
 

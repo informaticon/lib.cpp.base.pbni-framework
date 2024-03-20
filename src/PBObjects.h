@@ -464,6 +464,17 @@ namespace Inf
                 else
                     result = m_Session->SetObjectField(m_Object, fid, (pbobject) value);
             }
+            else if constexpr (Helper::is_pb_enum_v<Field>)
+            {
+                pbuint field_type = m_Session->GetFieldType(m_Class, fid);
+                if (field_type != Type<PBLong>::PBType && field_type != pbvalue_any)
+                    throw PBNI_IncorrectArgumentsException(GetClassName(), field_name);
+
+                if (value.IsNull())
+                    m_Session->SetFieldToNull(m_Object, fid);
+                else
+                    result = m_Session->SetLongField(m_Object, fid, value);
+            }
             else
             {
                 pbuint field_type = m_Session->GetFieldType(m_Class, fid);
@@ -508,7 +519,7 @@ namespace Inf
                 pbarray pb_array = m_Session->GetArrayField(m_Object, fid, is_null);
                 return { m_Session, is_null ? 0 : pb_array };
             }
-            else if constexpr (Helper::is_pb_object_v<Field>)
+            else if constexpr (std::is_base_of_v<DynPBObject, Field>)
             {
                 if (!m_Session->IsFieldObject(m_Class, fid))
                     throw PBNI_IncorrectArgumentsException(GetClassName(), field_name);
@@ -517,20 +528,24 @@ namespace Inf
 
                 pbobject pb_object = m_Session->GetObjectField(m_Object, fid, is_null);
 
-                if (!is_null && !Helper::IsPBBaseClass(m_Session, Field::PBClass(m_Session), m_Session->GetClass(pb_object))) 
-                    throw PBNI_IncorrectArgumentsException(GetClassName(), field_name);
+                if constexpr (Helper::is_pb_object_v<Field>)
+                {
+                    if (!is_null && !Helper::IsPBBaseClass(m_Session, Field::PBClass(m_Session), m_Session->GetClass(pb_object))) 
+                        throw PBNI_IncorrectArgumentsException(GetClassName(), field_name);
+                }
 
                 return { m_Session, is_null ? 0 : pb_object };
             }
-            else if constexpr (std::is_same_v<DynPBObject, Field>)
+            else if constexpr (Helper::is_pb_enum_v<Field>)
             {
-                if (!m_Session->IsFieldObject(m_Class, fid))
+                pbuint field_type = m_Session->GetFieldType(m_Class, fid);
+                if (field_type != Type<PBLong>::PBType && field_type != pbvalue_any)
                     throw PBNI_IncorrectArgumentsException(GetClassName(), field_name);
 
                 pbboolean is_null = false;
 
-                pbobject pb_object = m_Session->GetObjectField(m_Object, fid, is_null);
-                return { m_Session, is_null ? 0 : pb_object };
+                pblong value = m_Session->GetLongField(m_Object, fid, is_null);
+                return { m_Session, is_null ? -1 : value };
             }
             else
             {
@@ -544,13 +559,24 @@ namespace Inf
 
 
         /**
-         * Wheteher the pbobject is Null.
+         * Whether the pbobject is Null
          *
          * \return Is Null
          */
         bool IsNull() const
         {
             return !m_Object;
+        }
+        
+        /**
+         * Set the Object to Null
+         */
+        void SetNull()
+        {
+            if (m_Object)
+                m_Session->RemoveGlobalRef(m_Object);
+
+            m_Object = 0;
         }
 
         /**
@@ -644,6 +670,9 @@ namespace Inf
          */
         operator pbobject() const
         {
+            if (IsNull())
+                throw PBNI_NullPointerException(GetClassName());
+
             return m_Object;
         }
     private:

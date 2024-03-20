@@ -19,9 +19,8 @@ namespace Inf
          * \param groupType     Group type of the object
          */
         DynPBObject(IPB_Session* session, pbobject obj, pbclass cls = 0)
-            : m_Session(session), m_Object(obj)
+            : m_Session(session), m_Object(obj), m_Class(cls)
         {
-            m_Class = cls;
             if (!IsNull())
             {
                 session->AddGlobalRef(m_Object);
@@ -348,9 +347,13 @@ namespace Inf
          * \return              Field ID
          *
          * \throw Inf::PBNI_InvalidFieldException   If no matching field was found
+         * \throw Inf::PBNI_NullPointerException    If class is Null
          */
         pbfieldID GetFieldId(const std::wstring& field_name) const
         {
+            if (!m_Class)
+                throw PBNI_NullPointerException(GetClassName());
+
             pbfieldID fid = m_Session->GetFieldID(m_Class, field_name.c_str());
 
             if (fid == kUndefinedFieldID)
@@ -385,9 +388,13 @@ namespace Inf
          * \return              Is Object
          *
          * \throw Inf::PBNI_InvalidFieldException   If no matching field was found
+         * \throw Inf::PBNI_NullPointerException    If class is Null
          */
         pbboolean IsFieldObject(const std::wstring& field_name) const
         {
+            if (!m_Class)
+                throw PBNI_NullPointerException(GetClassName());
+
             pbfieldID fid = m_Session->GetFieldID(m_Class, field_name.c_str());
 
             return m_Session->IsFieldObject(m_Class, fid);
@@ -400,9 +407,13 @@ namespace Inf
          * \return              Is Array
          *
          * \throw Inf::PBNI_InvalidFieldException   If no matching field was found
+         * \throw Inf::PBNI_NullPointerException    If class is Null
          */
         pbboolean IsFieldArray(const std::wstring& field_name) const
         {
+            if (!m_Class)
+                throw PBNI_NullPointerException(GetClassName());
+
             pbfieldID fid = m_Session->GetFieldID(m_Class, field_name.c_str());
 
             return m_Session->IsFieldArray(m_Class, fid);
@@ -415,9 +426,13 @@ namespace Inf
          * \return              Type of the field
          *
          * \throw Inf::PBNI_InvalidFieldException   If no matching field was found
+         * \throw Inf::PBNI_NullPointerException    If class is Null
          */
         pbuint GetFieldType(const std::wstring& field_name) const
         {
+            if (!m_Class)
+                throw PBNI_NullPointerException(GetClassName());
+
             pbfieldID fid = m_Session->GetFieldID(m_Class, field_name.c_str());
 
             return m_Session->GetFieldType(m_Class, fid);
@@ -440,6 +455,9 @@ namespace Inf
         template <typename Field>
         inline void SetField(const std::wstring& field_name, const Field value)
         {
+            if (IsNull())
+                throw PBNI_NullPointerException(GetClassName());
+
             pbfieldID fid = GetFieldId(field_name);
 
             PBXRESULT   result = PBX_SUCCESS;
@@ -496,6 +514,9 @@ namespace Inf
         template <typename Field>
         inline Field GetField(const std::wstring& field_name) const
         {
+            if (IsNull())
+                throw PBNI_NullPointerException(GetClassName());
+
             pbfieldID fid = GetFieldId(field_name);
 
             if constexpr (Helper::is_pb_array_v<Field>)
@@ -713,7 +734,12 @@ namespace Inf
          */
         PBObject(IPB_Session* session, pbobject obj)
             : DynPBObject(session, obj)
-        { }
+        {
+            if (IsNull())
+            {
+                m_Class = FindClass(session, class_id.data, group_type);
+            }
+        }
 
         /**
          * Will create a new object of the correct Class.

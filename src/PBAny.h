@@ -165,10 +165,8 @@ namespace Inf
                     // Direct copy, so that we keep the AcquiredValue
                     return std::any_cast<PBArray<PBAny>>(m_Value);
             }
-            else if constexpr (Helper::is_pb_object_v<T>)
+            else if constexpr (std::is_base_of_v<DynPBObject, T>)
                 return { m_Session, IsNull() ? 0 : (pbobject) std::any_cast<DynPBObject>(m_Value) };
-            else if constexpr (std::is_same_v<DynPBObject, T>)
-                return std::any_cast<DynPBObject>(m_Value);
             else
             {
                 if (IsNull())

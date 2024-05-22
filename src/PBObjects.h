@@ -25,8 +25,11 @@ namespace Inf
             {
                 session->AddGlobalRef(m_Object);
 
+                pbclass obj_class = m_Session->GetClass(m_Object);
                 if (!m_Class)
-                    m_Class = m_Session->GetClass(m_Object);
+                    m_Class = obj_class;
+                else if (obj_class != m_Class)
+                    throw PBNI_Exception(L"PBObject Class mismatch");
             }
         }
 
@@ -93,7 +96,7 @@ namespace Inf
         IPBX_UserObject* GetNativeInterface()
         {
             if (!m_Session->IsNativeObject(m_Object))
-                throw Inf::PBNI_Exception(L"Not a Native Object");
+                throw PBNI_Exception(L"Not a Native Object");
 
             return m_Session->GetNativeInterface(m_Object);
         }
@@ -279,13 +282,19 @@ namespace Inf
 
             // Argument Checking
             if (ci.pArgs->GetCount() != sizeof...(Args))
+            {
+                m_Session->FreeCallInfo(&ci);
                 throw PBNI_IncorrectArgumentsException(GetClassName(), std::to_wstring(mid));
+            }
 
             pbint i = 0;
             ([&] {
                 Helper::PBValue value(m_Session, ci.pArgs->GetAt(i));
                 if (!value.Is<std::remove_reference_t<Args>>())
+                {
+                    m_Session->FreeCallInfo(&ci);
                     throw PBNI_IncorrectArgumentsException(GetClassName(), std::to_wstring(mid), i);
+                }
                 i++;
             }(), ...);
 
@@ -322,7 +331,7 @@ namespace Inf
                     }
                 }
                 i++;
-                }(), ...);
+            }(), ...);
 
             if constexpr (std::is_void_v<Ret>)
             {
@@ -520,7 +529,7 @@ namespace Inf
             pbfieldID fid = GetFieldId(field_name);
 
             if constexpr (Helper::is_pb_array_v<Field>)
-                {
+            {
                 if (!m_Session->IsFieldArray(m_Class, fid))
                     throw PBNI_IncorrectArgumentsException(GetClassName(), field_name);
 
@@ -559,7 +568,11 @@ namespace Inf
                 if (field_type != Type<Field>::PBType)
                     throw PBNI_IncorrectArgumentsException(GetClassName(), field_name);
 
-                return GetFieldImpl(Type<Field>(), fid);
+
+                MessageBox(NULL, L"pre", L"", MB_OK);
+                auto x = GetFieldImpl(Type<Field>(), fid);
+                MessageBox(NULL, L"post", L"", MB_OK);
+                return x;
             }
         };
 
@@ -733,12 +746,8 @@ namespace Inf
          * \param obj       pbobject or 0
          */
         PBObject(IPB_Session* session, pbobject obj)
-            : DynPBObject(session, obj)
+            : DynPBObject(session, obj, FindClass(session, class_id.data, group_type))
         {
-            if (IsNull())
-            {
-                m_Class = FindClass(session, class_id.data, group_type);
-            }
         }
 
         /**

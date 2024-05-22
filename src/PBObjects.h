@@ -569,10 +569,7 @@ namespace Inf
                     throw PBNI_IncorrectArgumentsException(GetClassName(), field_name);
 
 
-                MessageBox(NULL, L"pre", L"", MB_OK);
-                auto x = GetFieldImpl(Type<Field>(), fid);
-                MessageBox(NULL, L"post", L"", MB_OK);
-                return x;
+                return GetFieldImpl(Type<Field>(), fid);
             }
         };
 

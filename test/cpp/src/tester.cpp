@@ -137,6 +137,7 @@ void Inf::FrameworkTester::SetField(PBObject<L"u_pbni_test_object">& x, PBAny y)
 INF_REGISTER_FUNC(GetField, L"of_get_field", L"au_x", L"ai_y");
 Inf::PBAny Inf::FrameworkTester::GetField(PBObject<L"u_pbni_test_object"> x, PBInt y)
 {
+    MessageBox(NULL, L"get_field", std::to_wstring(y).c_str(), MB_OK);
     switch (y)
     {
     case  1: return PBAny(m_Session, x.GetField<PBByte     >(L"iby_test"));

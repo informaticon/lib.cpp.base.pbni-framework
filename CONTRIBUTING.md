@@ -12,5 +12,5 @@ Always write a clear log message for your commits.
 
 Please follow these coding convention:
 
-* We indent using tab characters (not spaces).
+* We indent using 4 spaces.
 * We always put spaces after list items and method parameters (1, 2, 3, not 1,2,3) and around operators (lu_i += 1, not lu_i+=1).

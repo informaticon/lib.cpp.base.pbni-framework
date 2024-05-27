@@ -5,7 +5,7 @@
 #include "ClassDescription.h"
 
 
-Inf::PBObject<L"u_exf_ex"> Inf::ConvertException(IPB_Session* session, const std::exception& ex)
+Inf::PBObject<L"u_exf_ex_pbni"> Inf::ConvertException(IPB_Session* session, const std::exception& ex)
 {
     PBObject<L"u_exf_ex_pbni"> pbException(session);
 
@@ -79,7 +79,7 @@ PBXRESULT Inf::PBNI_Class::Invoke(IPB_Session* session, pbobject obj, pbmethodID
                 const PBNI_Exception* pbniEx = dynamic_cast<const PBNI_Exception*>(&e);
                 if (pbniEx)
                 {
-                    log << L"  PBNI Exception:\n";
+                    log << L"  PBNI Exception: " << pbniEx->GetMessage() << '\n';
                     for (const auto& [key, value] : pbniEx->GetKeyValues())
                     {
                         log << L"    " << key << L": " << value << '\n';
@@ -93,9 +93,11 @@ PBXRESULT Inf::PBNI_Class::Invoke(IPB_Session* session, pbobject obj, pbmethodID
             std::wofstream log("pbni.log", std::fstream::app);
             log << "Errored:\n";
             logError(log, ex2);
+            log << "\n\n";
 
             log << "While trying to catch:\n";
             logError(log, ex);
+            log << "\n\n------------------------------------------------------------\n";
 #endif
             throw;
         }

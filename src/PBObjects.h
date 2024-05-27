@@ -26,10 +26,16 @@ namespace Inf
                 session->AddGlobalRef(m_Object);
 
                 pbclass obj_class = m_Session->GetClass(m_Object);
-                if (!m_Class)
+                if (m_Class)
+                {
+                    if (!Helper::IsPBBaseClass(m_Session, m_Class, obj_class))
+                        throw PBNI_Exception(L"Created a PBObject with an object that doesn't inherit from the Class", {
+                            { L"m_Class", m_Session->GetClassName(m_Class) },
+                            { L"obj_class", m_Session->GetClassName(obj_class) },
+                        });
+                }
+                else
                     m_Class = obj_class;
-                else if (obj_class != m_Class)
-                    throw PBNI_Exception(L"PBObject Class mismatch");
             }
         }
 
@@ -76,6 +82,21 @@ namespace Inf
         DynPBObject(const DynPBObject& other)
             : DynPBObject(other.m_Session, other.m_Object, other.m_Class)
         { }
+
+        DynPBObject& operator=(const DynPBObject& other)
+        {
+            if (this != &other)
+            {
+                if (m_Object)
+                    m_Session->RemoveGlobalRef(m_Object);
+
+                m_Object = other.m_Object;
+                m_Class = other.m_Class;
+                m_Session = other.m_Session;
+                m_Session->AddGlobalRef(m_Object);
+            }
+            return *this;
+        }
 
         ~DynPBObject()
         {
@@ -599,8 +620,6 @@ namespace Inf
         }
 
         /**
-         * Only used in Inf::PBObject<>::GroupName() to initialize a static variable.
-         *
          * \return  The Group Name extracted from class_id
          */
         static std::wstring ExtractGroupName(const std::wstring& className)
@@ -617,8 +636,6 @@ namespace Inf
         }
 
         /**
-         * Only used in Inf::PBObject<>::ClassName() to initialize a static variable.
-         *
          * \return  The Class Name extracted from class_id
          */
         static std::wstring ExtractClassName(const std::wstring& className)
@@ -643,13 +660,17 @@ namespace Inf
          */
         static pbclass FindClass(IPB_Session* session, const std::wstring& className, pbgroup_type groupType)
         {
-            pbgroup group = session->FindGroup(ExtractGroupName(className).c_str(), groupType);
+            std::wstring groupName = ExtractGroupName(className);
+            pbgroup group = session->FindGroup(groupName.c_str(), groupType);
             if (!group)
             {
-                throw PBNI_Exception(L"Unable to find group", {
-                    { L"Group", ExtractGroupName(className) },
-                    { L"ID", className },
-                });
+                if (groupName != className)
+                    throw PBNI_Exception(L"Unable to find group", {
+                        { L"Group", ExtractGroupName(className) },
+                        { L"ID", className },
+                    });
+
+                group = session->GetSystemGroup();
             }
 
             pbclass cls = session->FindClass(group, ExtractClassName(className).c_str());
@@ -675,6 +696,7 @@ namespace Inf
             return m_Object;
         }
     private:
+        friend PBObject;
 
         IPB_Session* m_Session;
         pbobject m_Object = 0;

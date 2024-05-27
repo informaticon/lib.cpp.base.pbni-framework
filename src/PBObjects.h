@@ -73,9 +73,6 @@ namespace Inf
             : DynPBObject(session, session->NewObject(cls), cls)
         { }
 
-        /**
-         * Copy constructor
-         */
         DynPBObject(const DynPBObject& other)
             : DynPBObject(other.m_Session, other.m_Object, other.m_Class)
         { }

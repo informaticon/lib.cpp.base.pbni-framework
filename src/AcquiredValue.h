@@ -19,12 +19,16 @@ namespace Inf::Helper
             : Session(session), Value(Session->AcquireValue(value))
         { }
 
+        AcquiredValue(const AcquiredValue& other) = delete;
+        AcquiredValue& operator=(const AcquiredValue& other) = delete;
+
         ~AcquiredValue()
         {
-            Session->ReleaseValue(Value);
+            if (Value)
+                Session->ReleaseValue(Value);
         }
 
         IPB_Session* Session;
-        IPB_Value* Value;
+        IPB_Value* Value = nullptr;
     };
 }

@@ -50,6 +50,12 @@ set(types
 	src/PBAny.h
 )
 
+set(pbni-helpers
+	extern/pbni/src/pbarray.cpp
+	extern/pbni/src/pbfuninv.cpp
+	extern/pbni/src/pbobject.cpp
+)
+
 set(headers ${src})
 list(APPEND headers ${descriptions})
 list(APPEND headers ${types})
@@ -59,6 +65,7 @@ add_library(pbni-framework OBJECT
 	${src}
 	${descriptions}
 	${types}
+	${pbni-helpers}
 )
 add_library(inf::pbni-framework ALIAS pbni-framework)
 

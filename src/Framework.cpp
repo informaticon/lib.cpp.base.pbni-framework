@@ -13,11 +13,14 @@ Inf::PBObject<L"u_exf_ex_pbni"> Inf::ConvertException(IPB_Session* session, cons
     if (pbniEx)
     {
         auto& keyValueStore = pbniEx->GetKeyValues();
-        auto pbErrorData = pbException.Call<PBObject<L"u_exf_error_data">>(L"of_init", PBString(session, pbniEx->GetMessage()));
+        auto pbErrorData =
+            pbException.Call<PBObject<L"u_exf_error_data">>(L"of_init", PBString(session, pbniEx->GetMessage()));
 
         for (auto& [key, value] : keyValueStore)
         {
-            pbErrorData.InvokeSig(L"of_push", PBRT_FUNCTION, L"Cu_exf_error_data.SA", PBString(session, key), PBString(session, value));
+            pbErrorData.InvokeSig(
+                L"of_push", PBRT_FUNCTION, L"Cu_exf_error_data.SA", PBString(session, key), PBString(session, value)
+            );
         }
 
         const std::wstring nestAs = pbniEx->GetNestAs();
@@ -27,15 +30,18 @@ Inf::PBObject<L"u_exf_ex_pbni"> Inf::ConvertException(IPB_Session* session, cons
             if (!nestedException.IsNull())
                 return nestedException;
 
-            return ConvertException(session, PBNI_Exception(L"Tried to Nest an exception as an invalid Type", {{ L"Type", nestAs }}));
+            return ConvertException(
+                session, PBNI_Exception(L"Tried to Nest an exception as an invalid Type", { { L"Type", nestAs } })
+            );
         }
     }
     else
     {
         const char* err_msg = ex.what();
-        pbException
-            .Call<PBObject<L"u_exf_error_data">>(L"of_init", PBString(session, err_msg))
-            .InvokeSig(L"of_push", PBRT_FUNCTION, L"Cu_exf_error_data.SA", PBString(session, L"Error"), PBString(session, err_msg));
+        pbException.Call<PBObject<L"u_exf_error_data">>(L"of_init", PBString(session, err_msg))
+            .InvokeSig(
+                L"of_push", PBRT_FUNCTION, L"Cu_exf_error_data.SA", PBString(session, L"Error"), PBString(session, err_msg)
+            );
     }
 
     return { session, pbException };
@@ -54,7 +60,7 @@ PBXRESULT Inf::PBNI_Class::Invoke(IPB_Session* session, pbobject obj, pbmethodID
             m_Session = session;
             return method->Invoke(this, session, ci);
         }
-        
+
         return PBX_E_INVALID_METHOD_ID;
     }
     catch (const PBNI_ExceptionThrown&)
@@ -69,11 +75,10 @@ PBXRESULT Inf::PBNI_Class::Invoke(IPB_Session* session, pbobject obj, pbmethodID
         }
         catch (const PBNI_ExceptionThrown&)
         { }
+#ifndef NDEBUG
         catch (const std::exception& ex2)
         {
-#ifndef NDEBUG
             // Last ditch effort
-
             const auto logError = [](std::wofstream& log, const std::exception& e)
             {
                 const PBNI_Exception* pbniEx = dynamic_cast<const PBNI_Exception*>(&e);
@@ -98,11 +103,12 @@ PBXRESULT Inf::PBNI_Class::Invoke(IPB_Session* session, pbobject obj, pbmethodID
             log << "While trying to catch:\n";
             logError(log, ex);
             log << "\n\n------------------------------------------------------------\n";
-#endif
+
             throw;
         }
+#endif
     }
-    
+
     // Need to return success even after ThrowException otherwise it will throw system error
     return PBX_SUCCESS;
 };
@@ -112,7 +118,7 @@ Inf::PBNI_Class* Inf::PBNI_Framework::CreateClass(std::wstring pb_class_name, IP
 {
     auto cls = m_Classes.find(pb_class_name);
 
-    if ( cls == m_Classes.end())
+    if (cls == m_Classes.end())
     {
         return nullptr;
     }
@@ -161,7 +167,8 @@ void Inf::PBNI_Framework::RegisterPBMethod(std::wstring pb_class_name, Inf::IMet
 
     if (cls == m_Classes.end())
     {
-        std::wstring msg = L"Adding a MethodDescription to a Class that hasnt been Registered yet (" + pb_class_name + L"::" + method->GetDescription() + L")";
+        std::wstring msg = L"Adding a MethodDescription to a Class that hasnt been Registered yet (" + pb_class_name +
+                           L"::" + method->GetDescription() + L")";
         MessageBoxW(NULL, msg.c_str(), L"[PBNI Warning]", MB_OK);
     }
     else
@@ -169,4 +176,3 @@ void Inf::PBNI_Framework::RegisterPBMethod(std::wstring pb_class_name, Inf::IMet
         cls->second->AddMethod(method);
     }
 }
-

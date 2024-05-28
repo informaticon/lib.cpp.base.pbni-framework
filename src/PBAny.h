@@ -11,7 +11,8 @@ namespace Inf
     /**
      * This is a Wrapper for IPB_Value.
      */
-    class PBAny {
+    class PBAny
+    {
     public:
         enum AnyType : pbuint
         {
@@ -33,13 +34,13 @@ namespace Inf
             Char = pbvalue_char,
             LongLong = pbvalue_longlong,
             Byte = pbvalue_byte,
-        
+
             Object = 201
         };
 
         /**
          * Creates a PBAny holding Null
-         * 
+         *
          * \param session   Current session
          */
         PBAny(IPB_Session* session)
@@ -48,7 +49,7 @@ namespace Inf
 
         /**
          * Creates a PBAny holding the specified value
-         * 
+         *
          * \param session   Current session
          * \param t         The thing that PBAny will be
          */
@@ -58,11 +59,11 @@ namespace Inf
         {
             Set(t);
         }
-        
+
         /**
          * Creates a Wrapper to an already existing IPB_Value.
          * Will be Null if value is 0.
-         * 
+         *
          * \param session   Current session
          * \param value     A value
          */
@@ -71,7 +72,7 @@ namespace Inf
 
         /**
          * Writes the PBAny to an IPB_Value*
-         * 
+         *
          * \param value     The value to be written to
          */
         PBXRESULT ToValue(IPB_Value* value) const;
@@ -100,7 +101,7 @@ namespace Inf
         {
             return m_Type;
         }
-        
+
         /**
          * Returns whether the PBAny is holding an array
          */
@@ -114,7 +115,7 @@ namespace Inf
          *
          * \return          true if its okay to convert, false otherwise.
          */
-        template <typename T>
+        template<typename T>
         bool Is() const
         {
             if constexpr (Helper::is_pb_array_v<T>)
@@ -123,11 +124,12 @@ namespace Inf
                     return false;
                 if (m_Type == AnyType::Any)
                     return true;
-            
+
                 using ItemType = T::_Item;
 
                 if constexpr (Helper::is_pb_object_v<ItemType>)
-                    return m_Type == AnyType::Object && Helper::IsPBBaseClass(m_Session, ItemType::PBClass(m_Session), m_Class);
+                    return m_Type == AnyType::Object &&
+                           Helper::IsPBBaseClass(m_Session, ItemType::PBClass(m_Session), m_Class);
                 else if constexpr (std::is_same_v<DynPBObject, ItemType>)
                     return m_Type == AnyType::Object;
                 else if constexpr (std::is_same_v<PBAny, ItemType>)
@@ -148,15 +150,15 @@ namespace Inf
          *
          * \return          The returned Type
          */
-        template <typename T>
+        template<typename T>
         inline T Get()
         {
             if (!Is<T>())
-                throw PBNI_Exception(L"Tried to cast a PBAny to the wrong Type", {
-                    { L"From", std::to_wstring(m_Type) },
-                    { L"To", ConvertString<std::wstring>(typeid(T).name()) }
-                });
-            
+                throw PBNI_Exception(
+                    L"Tried to cast a PBAny to the wrong Type",
+                    { { L"From", std::to_wstring(m_Type) }, { L"To", ConvertString<std::wstring>(typeid(T).name()) } }
+                );
+
             if constexpr (Helper::is_pb_array_v<T>)
             {
                 if (IsNull())
@@ -181,7 +183,7 @@ namespace Inf
          *
          * \param t         Type to set Value to
          */
-        template <typename T>
+        template<typename T>
         inline void Set(const T& t)
         {
             m_IsArray = false;
@@ -235,6 +237,7 @@ namespace Inf
 
         IPB_Session* m_Session;
 
+        // clang-format off
         inline PBByte     GetNulled(Type<PBByte    >) { return PBByte(); }
         inline PBBoolean  GetNulled(Type<PBBoolean >) { return PBBoolean(); }
         inline PBChar     GetNulled(Type<PBChar    >) { return PBChar(); }
@@ -251,5 +254,6 @@ namespace Inf
         inline PBDateTime GetNulled(Type<PBDateTime>) { return { m_Session, 0 }; }
         inline PBString   GetNulled(Type<PBString  >) { return { m_Session, (pbstring) 0 }; }
         inline PBBlob     GetNulled(Type<PBBlob    >) { return { m_Session, 0 }; }
+        // clang-format on
     };
-}
+}  // namespace Inf

@@ -8,9 +8,6 @@ Please send a GitHub Pull Request to the main branch with a clear list of what y
 
 Always write a clear log message for your commits.
 
-## Coding convention
+## Code Formatting
+We provide a `.clang-format` file, if you have `clang-format (>= v17)` installed you can run `make format` in the root directory.
 
-Please follow these coding convention:
-
-* We indent using 4 spaces.
-* We always put spaces after list items and method parameters (1, 2, 3, not 1,2,3) and around operators (lu_i += 1, not lu_i+=1).

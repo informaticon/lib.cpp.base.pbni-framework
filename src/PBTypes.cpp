@@ -2,6 +2,7 @@
 
 namespace Inf
 {
+    // clang-format off
 #pragma region Bytelike
 	template<> constexpr wchar_t Type<PBByte>::PBSignature = L'E';
 	template<> constexpr pbvalue_type Type<PBByte>::PBType = pbvalue_byte;
@@ -59,4 +60,5 @@ namespace Inf
 	template<> constexpr wchar_t Type<PBBlob>::PBSignature = L'O';
 	template<> constexpr pbvalue_type Type<PBBlob>::PBType = pbvalue_blob;
 #pragma endregion
-}
+    // clang-format on
+}  // namespace Inf

@@ -132,7 +132,7 @@ Inf::PBString::PBString(IPB_Session* session, IPB_Value* value, bool acquire)
 bool Inf::StringConvertibleToANSI(const wchar_t* wstr, size_t size)
 {
     BOOL conversionFailed = FALSE;
-    WideCharToMultiByte(PBString::ANSI , 0, wstr, size, NULL, 0, 0, &conversionFailed);
+    WideCharToMultiByte(PBString::ANSI, 0, wstr, size, NULL, 0, 0, &conversionFailed);
 
     return !conversionFailed;
 }
@@ -148,7 +148,8 @@ bool Inf::StringConvertibleToANSI(const std::wstring& wstr)
 }
 
 
-template<> std::wstring Inf::ConvertString(const char* const& str, const size_t& size, const PBString::StringEncoding& encoding)
+template<>
+std::wstring Inf::ConvertString(const char* const& str, const size_t& size, const PBString::StringEncoding& encoding)
 {
     if (size == 0)
         return L"";
@@ -161,22 +162,26 @@ template<> std::wstring Inf::ConvertString(const char* const& str, const size_t&
     return wstr;
 }
 
-template<> std::wstring Inf::ConvertString(const char* const& str, const PBString::StringEncoding& encoding)
+template<>
+std::wstring Inf::ConvertString(const char* const& str, const PBString::StringEncoding& encoding)
 {
     return ConvertString<std::wstring>(str, strlen(str), encoding);
 }
 
-template<> std::wstring Inf::ConvertString(const std::string_view& str, const PBString::StringEncoding& encoding)
+template<>
+std::wstring Inf::ConvertString(const std::string_view& str, const PBString::StringEncoding& encoding)
 {
     return ConvertString<std::wstring>(str.data(), str.size(), encoding);
 }
 
-template<> std::wstring Inf::ConvertString(const std::string& str, const PBString::StringEncoding& encoding)
+template<>
+std::wstring Inf::ConvertString(const std::string& str, const PBString::StringEncoding& encoding)
 {
     return ConvertString<std::wstring>(str.data(), str.size(), encoding);
 }
 
-template<> std::string Inf::ConvertString(const wchar_t* const& wstr, const size_t& size, const PBString::StringEncoding& encoding)
+template<>
+std::string Inf::ConvertString(const wchar_t* const& wstr, const size_t& size, const PBString::StringEncoding& encoding)
 {
     if (size == 0)
         return "";
@@ -189,12 +194,14 @@ template<> std::string Inf::ConvertString(const wchar_t* const& wstr, const size
     return str;
 }
 
-template<> std::string Inf::ConvertString(const wchar_t* const& wstr, const PBString::StringEncoding& encoding)
+template<>
+std::string Inf::ConvertString(const wchar_t* const& wstr, const PBString::StringEncoding& encoding)
 {
     return ConvertString<std::string>(wstr, wcslen(wstr), encoding);
 }
 
-template<> std::string Inf::ConvertString(const std::wstring& wstr, const PBString::StringEncoding& encoding)
+template<>
+std::string Inf::ConvertString(const std::wstring& wstr, const PBString::StringEncoding& encoding)
 {
     return ConvertString<std::string>(wstr.data(), wstr.size(), encoding);
 }

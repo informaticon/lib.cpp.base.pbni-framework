@@ -11,13 +11,13 @@ namespace Inf
      * \tparam Item Type of the Array Items
      * \tparam ...dims The Bounds of the Bounded Array, Unbounded Array if empty
      */
-    template <typename Item, pblong... dims>
-        requires (sizeof...(dims) <= 3 && !std::is_reference_v<Item> && !std::is_pointer_v<Item>)
+    template<typename Item, pblong... dims>
+        requires(sizeof...(dims) <= 3 && !std::is_reference_v<Item> && !std::is_pointer_v<Item>)
     class PBArray
     {
     public:
         using _Item = Item;
-        static constexpr std::array<pblong, sizeof...(dims)> _dims = {dims...};
+        static constexpr std::array<pblong, sizeof...(dims)> _dims = { dims... };
 
         struct Iterator
         {
@@ -31,16 +31,46 @@ namespace Inf
                 : m_Array(array), m_Index(index)
             { }
 
-            reference operator*() const { return m_Array.Get(m_Index); }
-            pointer operator->() { return m_Array.Get(m_Index); }
+            reference operator*() const
+            {
+                return m_Array.Get(m_Index);
+            }
+            pointer operator->()
+            {
+                return m_Array.Get(m_Index);
+            }
 
-            Iterator& operator++() { m_Index++; return *this; }  
-            Iterator operator++(int) { Iterator m_Index = *this; ++(*this); return m_Index; }
-            Iterator& operator--() { m_Index--; return *this; }  
-            Iterator operator--(int) { Iterator m_Index = *this; --(*this); return m_Index; }
+            Iterator& operator++()
+            {
+                m_Index++;
+                return *this;
+            }
+            Iterator operator++(int)
+            {
+                Iterator m_Index = *this;
+                ++(*this);
+                return m_Index;
+            }
+            Iterator& operator--()
+            {
+                m_Index--;
+                return *this;
+            }
+            Iterator operator--(int)
+            {
+                Iterator m_Index = *this;
+                --(*this);
+                return m_Index;
+            }
 
-            friend bool operator== (const Iterator& a, const Iterator& b) { return a.m_Index == b.m_Index && (pbarray) a.m_Array == (pbarray) b.m_Array; };
-            friend bool operator!= (const Iterator& a, const Iterator& b) { return a.m_Index != b.m_Index || (pbarray) a.m_Array != (pbarray) b.m_Array; };
+            friend bool operator==(const Iterator& a, const Iterator& b)
+            {
+                return a.m_Index == b.m_Index && (pbarray) a.m_Array == (pbarray) b.m_Array;
+            };
+            friend bool operator!=(const Iterator& a, const Iterator& b)
+            {
+                return a.m_Index != b.m_Index || (pbarray) a.m_Array != (pbarray) b.m_Array;
+            };
 
         private:
             PBArray<value_type, dims...>& m_Array;
@@ -60,7 +90,9 @@ namespace Inf
             if constexpr (sizeof...(dims) != 0)
             {
                 if (!IsNull())
-                    m_ArrayInfo = std::shared_ptr<PBArrayInfo>(m_Session->GetArrayInfo(m_Array), [=](PBArrayInfo* info) { m_Session->ReleaseArrayInfo(info); });
+                    m_ArrayInfo = std::shared_ptr<PBArrayInfo>(
+                        m_Session->GetArrayInfo(m_Array), [=](PBArrayInfo* info) { m_Session->ReleaseArrayInfo(info); }
+                    );
             }
         }
 
@@ -95,20 +127,24 @@ namespace Inf
                     m_Array = m_Session->NewBoundedSimpleArray(Type<Item>::PBType, sizeof...(dims), bounds);
                 }
 
-                m_ArrayInfo = std::shared_ptr<PBArrayInfo>(m_Session->GetArrayInfo(m_Array), [=](PBArrayInfo* info) { m_Session->ReleaseArrayInfo(info); });
+                m_ArrayInfo = std::shared_ptr<PBArrayInfo>(
+                    m_Session->GetArrayInfo(m_Array), [=](PBArrayInfo* info) { m_Session->ReleaseArrayInfo(info); }
+                );
             }
-
         }
-        
+
         /**
          * Copy constructor
          */
-        template <typename o_Item, pblong... o_dims>
+        template<typename o_Item, pblong... o_dims>
         PBArray(const PBArray<o_Item, o_dims...>& other)
-            : m_Session(other.m_Session), m_Array(other.m_Array), m_AcquiredValue(other.m_AcquiredValue), m_ArrayInfo(other.m_ArrayInfo)
+            : m_Session(other.m_Session),
+              m_Array(other.m_Array),
+              m_AcquiredValue(other.m_AcquiredValue),
+              m_ArrayInfo(other.m_ArrayInfo)
         { }
 
-    #pragma region UnboundedArray_Functions
+#pragma region UnboundedArray_Functions
         /**
          * Sets an Item in an Unbounded Array.
          * Copies if Item is string or blob.
@@ -121,7 +157,7 @@ namespace Inf
          * \throw Inf::PBNI_PowerBuilderException       If PowerBuilder function doesnt return PBX_SUCESS
          */
         void Set(pblong pos, const Item& t)
-            requires (sizeof...(dims) == 0)
+            requires(sizeof...(dims) == 0)
         {
             AssertInside(pos, false);
 
@@ -143,7 +179,9 @@ namespace Inf
                     res = SetImpl(&pos, t);
 
                 if (res != PBX_SUCCESS)
-                    throw PBNI_PowerBuilderException(L"IPB_Session::Set<Type>ArrayItem for " + Type<Item>::GetPBName(L""), res);
+                    throw PBNI_PowerBuilderException(
+                        L"IPB_Session::Set<Type>ArrayItem for " + Type<Item>::GetPBName(L""), res
+                    );
             }
         }
 
@@ -158,7 +196,7 @@ namespace Inf
          * \throw Inf::PBNI_IndexOutOfBoundsException   If out of bounds
          */
         Item Get(pblong pos)
-            requires (sizeof...(dims) == 0)
+            requires(sizeof...(dims) == 0)
         {
             AssertInside(pos);
 
@@ -171,7 +209,7 @@ namespace Inf
             else if constexpr (std::is_same_v<Item, PBAny>)
             {
                 IPB_Value* val = m_Session->AcquireArrayItemValue(m_Array, &pos);
-                m_Session->SetArrayItemValue(m_Array, &pos, val); // Copy back, because Acquiring steals the value
+                m_Session->SetArrayItemValue(m_Array, &pos, val);  // Copy back, because Acquiring steals the value
                 return { m_Session, val, true };
             }
             else
@@ -189,7 +227,7 @@ namespace Inf
          * \throw Inf::PBNI_PowerBuilderException       If PowerBuilder function doesnt return PBX_SUCESS
          */
         inline void SetItemToNull(pblong pos)
-            requires (sizeof...(dims) == 0)
+            requires(sizeof...(dims) == 0)
         {
             // No need to check upper bound
             AssertInside(pos, false);
@@ -210,7 +248,7 @@ namespace Inf
          * \throw Inf::PBNI_IndexOutOfBoundsException   If out of bounds
          */
         bool IsItemNull(pblong pos)
-            requires (sizeof...(dims) == 0)
+            requires(sizeof...(dims) == 0)
         {
             // No need to check upper bound
             AssertInside(pos, false);
@@ -226,7 +264,7 @@ namespace Inf
          * \throw Inf::PBNI_NullPointerException        If is Null
          */
         Iterator begin()
-            requires (sizeof...(dims) == 0)
+            requires(sizeof...(dims) == 0)
         {
             if (IsNull())
                 throw PBNI_NullPointerException(L"PBArray");
@@ -241,7 +279,7 @@ namespace Inf
          * \throw Inf::PBNI_NullPointerException        If is Null
          */
         Iterator end()
-            requires (sizeof...(dims) == 0)
+            requires(sizeof...(dims) == 0)
         {
             if (IsNull())
                 throw PBNI_NullPointerException(L"PBArray");
@@ -249,9 +287,9 @@ namespace Inf
             return { *this, Size() + 1 };
         }
 
-    #pragma endregion
+#pragma endregion
 
-    #pragma region BoundedArray_Functions
+#pragma region BoundedArray_Functions
         /**
          * Sets an Item in a Bounded Array.
          * Copies if Item is string or blob.
@@ -264,7 +302,7 @@ namespace Inf
          * \throw Inf::PBNI_PowerBuilderException       If PowerBuilder function doesnt return PBX_SUCESS
          */
         void Set(std::array<pblong, sizeof...(dims)> pos, const Item& t)
-            requires (sizeof...(dims) != 0)
+            requires(sizeof...(dims) != 0)
         {
             AssertInside(pos);
 
@@ -286,7 +324,9 @@ namespace Inf
                     res = SetImpl(pos.data(), t);
 
                 if (res != PBX_SUCCESS)
-                    throw PBNI_PowerBuilderException(L"IPB_Session::Set<Type>ArrayItem for " + Type<Item>::GetPBName(L""), res);
+                    throw PBNI_PowerBuilderException(
+                        L"IPB_Session::Set<Type>ArrayItem for " + Type<Item>::GetPBName(L""), res
+                    );
             }
         }
 
@@ -301,7 +341,7 @@ namespace Inf
          * \throw Inf::PBNI_IndexOutOfBoundsException   If out of bounds
          */
         Item Get(std::array<pblong, sizeof...(dims)> pos)
-            requires (sizeof...(dims) != 0)
+            requires(sizeof...(dims) != 0)
         {
             AssertInside(pos);
 
@@ -314,7 +354,7 @@ namespace Inf
             else if constexpr (std::is_same_v<Item, PBAny>)
             {
                 IPB_Value* val = m_Session->AcquireArrayItemValue(m_Array, pos.data());
-                m_Session->SetArrayItemValue(m_Array, pos.data(), val); // Copy back, because Acquiring steals the value
+                m_Session->SetArrayItemValue(m_Array, pos.data(), val);  // Copy back, because Acquiring steals the value
                 return { m_Session, val, true };
             }
             else
@@ -333,7 +373,7 @@ namespace Inf
          * \throw Inf::PBNI_PowerBuilderException       If PowerBuilder function doesnt return PBX_SUCESS
          */
         void SetItemToNull(std::array<pblong, sizeof...(dims)> pos)
-            requires (sizeof...(dims) != 0)
+            requires(sizeof...(dims) != 0)
         {
             AssertInside(pos);
 
@@ -353,7 +393,7 @@ namespace Inf
          * \throw Inf::PBNI_IndexOutOfBoundsException   If out of bounds
          */
         bool IsItemNull(std::array<pblong, sizeof...(dims)> pos)
-            requires (sizeof...(dims) != 0)
+            requires(sizeof...(dims) != 0)
         {
             AssertInside(pos);
 
@@ -366,7 +406,7 @@ namespace Inf
          * \return  An Array of Bounds
          */
         std::array<std::pair<pblong, pblong>, sizeof...(dims)> Bounds() const
-            requires (sizeof...(dims) != 0)
+            requires(sizeof...(dims) != 0)
         {
             if (IsNull())
                 throw PBNI_NullPointerException(L"PBBoundedArray");
@@ -378,7 +418,7 @@ namespace Inf
 
             return bounds;
         }
-    #pragma endregion
+#pragma endregion
 
         /**
          * Retrieves the Length of the Array from PowerBuilder.
@@ -425,8 +465,8 @@ namespace Inf
 
     private:
         friend Helper::PBValue;
-        template <typename o_Item, pblong... o_dims>
-            requires (sizeof...(o_dims) <= 3 && !std::is_reference_v<o_Item> && !std::is_pointer_v<o_Item>)
+        template<typename o_Item, pblong... o_dims>
+            requires(sizeof...(o_dims) <= 3 && !std::is_reference_v<o_Item> && !std::is_pointer_v<o_Item>)
         friend class PBArray;
 
         IPB_Session* m_Session;
@@ -464,9 +504,10 @@ namespace Inf
 
             if constexpr (sizeof...(dims) != 0)
             {
-                m_ArrayInfo = std::shared_ptr<PBArrayInfo>(m_Session->GetArrayInfo(m_Array), [=](PBArrayInfo* info) { m_Session->ReleaseArrayInfo(info); });
+                m_ArrayInfo = std::shared_ptr<PBArrayInfo>(
+                    m_Session->GetArrayInfo(m_Array), [=](PBArrayInfo* info) { m_Session->ReleaseArrayInfo(info); }
+                );
             }
-
         }
 
         /**
@@ -478,7 +519,7 @@ namespace Inf
          * \throw Inf::PBNI_IndexOutOfBoundsException   If out of bounds
          */
         void AssertInside(std::array<pblong, sizeof...(dims)> pos)
-            requires (sizeof...(dims) != 0)
+            requires(sizeof...(dims) != 0)
         {
             if (IsNull())
                 throw PBNI_NullPointerException(L"PBBoundedArray");
@@ -500,7 +541,7 @@ namespace Inf
          * \throw Inf::PBNI_IndexOutOfBoundsException       If out of bounds
          */
         void AssertInside(pblong pos, bool check_upper_bound = true)
-            requires (sizeof...(dims) == 0)
+            requires(sizeof...(dims) == 0)
         {
             if (IsNull())
                 throw PBNI_NullPointerException(L"PBUnboundedArray");
@@ -509,6 +550,7 @@ namespace Inf
                 throw PBNI_IndexOutOfBoundsException(pos, Size());
         }
 
+        // clang-format off
         inline PBXRESULT SetImpl(pblong* dim, const PBByte&       t) { return m_Session->SetByteArrayItem(m_Array, dim, t); }
         inline PBXRESULT SetImpl(pblong* dim, const PBBoolean&    t) { return m_Session->SetBoolArrayItem(m_Array, dim, t); }
         inline PBXRESULT SetImpl(pblong* dim, const PBChar&       t) { return m_Session->SetCharArrayItem(m_Array, dim, t); }
@@ -542,6 +584,6 @@ namespace Inf
         inline PBDateTime GetImpl(Type<PBDateTime>, pblong* dim) const { pbboolean is_null = false; pbdatetime pb_datetime   = m_Session->GetDateTimeArrayItem(m_Array, dim, is_null);   return { m_Session, is_null ? 0 : pb_datetime }; }
         inline PBString   GetImpl(Type<PBString  >, pblong* dim) const { pbboolean is_null = false; pbstring pb_string       = m_Session->GetStringArrayItem(m_Array, dim, is_null);     return { m_Session, is_null ? 0 : pb_string }; }
         inline PBBlob     GetImpl(Type<PBBlob    >, pblong* dim) const { pbboolean is_null = false; pbblob pb_blob           = m_Session->GetBlobArrayItem(m_Array, dim, is_null);       return { m_Session, is_null ? 0 : pb_blob }; }
+        // clang-format on
     };
-}
-
+}  // namespace Inf

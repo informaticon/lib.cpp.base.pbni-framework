@@ -1,7 +1,7 @@
 #pragma once
 
-#include "PBArray.h"
 #include "PBAny.h"
+#include "PBArray.h"
 
 
 namespace Inf
@@ -55,7 +55,7 @@ namespace Inf
         DynPBObject(IPB_Session* session, pbobject obj, std::wstring className, pbgroup_type groupType)
             : DynPBObject(session, FindClass(session, className, groupType))
         { }
-        
+
         /**
          * Will create a new object of the correct Class.
          *
@@ -109,9 +109,9 @@ namespace Inf
 
         /**
          * Returns the C++ pointer to the Native class of this object.
-         * 
+         *
          * \return Pointer to the Object extending IPBX_UserObject
-         * 
+         *
          * \throw Inf::PBNI_Exception   If the object is not a Native Object
          */
         IPBX_UserObject* GetNativeInterface()
@@ -124,15 +124,18 @@ namespace Inf
 
         /**
          * Simple helper function that calls Invoke in the background, for more info read the Invoke documentation.
-         * 
+         *
          * \throw Inf::PBNI_InvalidFieldException           If no matching functions were found
          * \throw Inf::PBNI_IncorrectArgumentsException     If the argument types dont match up
          * \throw Inf::PBNI_NullPointerException            If pbobject is Null
          * \throw Inf::PBNI_PowerBuilderException           If the function doesnt return PBX_SUCCESS
          * \throw Inf::PBNI_Exception                       If the Group or Class cannot be found
-        */
-        template <typename Ret = void, typename... Args>
-            requires (!std::is_pointer_v<Ret> && !std::is_reference_v<Ret> && !Helper::is_pb_array_v<Ret> && (!std::is_pointer_v<Args> && ...))
+         */
+        template<typename Ret = void, typename... Args>
+            requires(
+                !std::is_pointer_v<Ret> && !std::is_reference_v<Ret> && !Helper::is_pb_array_v<Ret> &&
+                (!std::is_pointer_v<Args> && ...)
+            )
         inline Ret Call(const std::wstring& method_name, Args... args)
         {
             return Invoke<Ret, Args...>(method_name, PBRT_FUNCTION, args...);
@@ -140,32 +143,38 @@ namespace Inf
 
         /**
          * Simple helper function that calls InvokeSig in the background, for more info read the InvokeSig documentation.
-         * 
+         *
          * \throw Inf::PBNI_InvalidFieldException           If no matching functions were found
          * \throw Inf::PBNI_IncorrectArgumentsException     If the argument types dont match up
          * \throw Inf::PBNI_NullPointerException            If pbobject is Null
          * \throw Inf::PBNI_PowerBuilderException           If the function doesnt return PBX_SUCCESS
          * \throw Inf::PBNI_Exception                       If the Group or Class cannot be found
-        */
-        template <typename Ret = void, typename... Args>
-            requires (!std::is_pointer_v<Ret> && !std::is_reference_v<Ret> && !Helper::is_pb_array_v<Ret> && (!std::is_pointer_v<Args> && ...))
+         */
+        template<typename Ret = void, typename... Args>
+            requires(
+                !std::is_pointer_v<Ret> && !std::is_reference_v<Ret> && !Helper::is_pb_array_v<Ret> &&
+                (!std::is_pointer_v<Args> && ...)
+            )
         inline Ret CallSig(const std::wstring& method_name, const std::wstring& pbsig, Args... args)
         {
             return InvokeSig<Ret, Args...>(method_name, PBRT_FUNCTION, pbsig, args...);
         }
 
         /**
-         * Simple helper function that calls InvokeMatching in the background, for more info read the InvokeMatching documentation.
-         * This can't be used to invoke a non-public function.
-         * 
+         * Simple helper function that calls InvokeMatching in the background, for more info read the InvokeMatching
+         * documentation. This can't be used to invoke a non-public function.
+         *
          * \throw Inf::PBNI_InvalidFieldException           If no matching functions were found
          * \throw Inf::PBNI_IncorrectArgumentsException     If the argument types dont match up
          * \throw Inf::PBNI_NullPointerException            If pbobject is Null
          * \throw Inf::PBNI_PowerBuilderException           If the function doesnt return PBX_SUCCESS
          * \throw Inf::PBNI_Exception                       If the Group or Class cannot be found
-        */
-        template <typename Ret = void, typename... Args>
-            requires (!std::is_pointer_v<Ret> && !std::is_reference_v<Ret> && !Helper::is_pb_array_v<Ret> && (!std::is_pointer_v<Args> && ...))
+         */
+        template<typename Ret = void, typename... Args>
+            requires(
+                !std::is_pointer_v<Ret> && !std::is_reference_v<Ret> && !Helper::is_pb_array_v<Ret> &&
+                (!std::is_pointer_v<Args> && ...)
+            )
         inline Ret CallMatching(const std::wstring& method_name, const std::wstring& arg_types, Args... args)
         {
             return InvokeMatching<Ret, Args...>(method_name, PBRT_FUNCTION, arg_types, args...);
@@ -189,23 +198,30 @@ namespace Inf
          * \throw Inf::PBNI_PowerBuilderException           If the function doesnt return PBX_SUCCESS
          * \throw Inf::PBNI_Exception                       If the Group or Class cannot be found
          */
-        template <typename Ret = void, typename... Args>
-            requires (!std::is_pointer_v<Ret> && !std::is_reference_v<Ret> && !Helper::is_pb_array_v<Ret> && (!std::is_pointer_v<Args> && ...))
+        template<typename Ret = void, typename... Args>
+            requires(
+                !std::is_pointer_v<Ret> && !std::is_reference_v<Ret> && !Helper::is_pb_array_v<Ret> &&
+                (!std::is_pointer_v<Args> && ...)
+            )
         inline Ret Invoke(const std::wstring& method_name, PBRoutineType pbrt, Args... args)
         {
             std::wstring pbsig = std::wstring() + Type<Ret>::PBSignature;
             if constexpr (sizeof...(Args) > 0)
             {
-                ([&] {
-                    if constexpr (std::is_reference_v<Args>)
+                (
+                    [&]
                     {
-                        pbsig += std::wstring(L"R") + Type<std::remove_reference_t<Args>>::PBSignature;
-                    }
-                    else
-                    {
-                        pbsig += Type<Args>::PBSignature;
-                    }
-                    }(), ...);
+                        if constexpr (std::is_reference_v<Args>)
+                        {
+                            pbsig += std::wstring(L"R") + Type<std::remove_reference_t<Args>>::PBSignature;
+                        }
+                        else
+                        {
+                            pbsig += Type<Args>::PBSignature;
+                        }
+                    }(),
+                    ...
+                );
             }
 
             return InvokeSig<Ret, Args...>(method_name, pbrt, pbsig, args...);
@@ -229,9 +245,13 @@ namespace Inf
          * \throw Inf::PBNI_PowerBuilderException           If the function doesnt return PBX_SUCCESS
          * \throw Inf::PBNI_Exception                       If the Group or Class cannot be found
          */
-        template <typename Ret = void, typename... Args>
-            requires (!std::is_pointer_v<Ret> && !std::is_reference_v<Ret> && !Helper::is_pb_array_v<Ret> && (!std::is_pointer_v<Args> && ...))
-        inline Ret InvokeMatching(const std::wstring& method_name, PBRoutineType pbrt, const std::wstring& arg_types, Args&&... args)
+        template<typename Ret = void, typename... Args>
+            requires(
+                !std::is_pointer_v<Ret> && !std::is_reference_v<Ret> && !Helper::is_pb_array_v<Ret> &&
+                (!std::is_pointer_v<Args> && ...)
+            )
+        inline Ret
+        InvokeMatching(const std::wstring& method_name, PBRoutineType pbrt, const std::wstring& arg_types, Args&&... args)
         {
             if (IsNull())
                 throw PBNI_NullPointerException(GetClassName());
@@ -261,8 +281,11 @@ namespace Inf
          * \throw Inf::PBNI_PowerBuilderException           If the function doesnt return PBX_SUCCESS
          * \throw Inf::PBNI_Exception                       If the Group or Class cannot be found
          */
-        template <typename Ret = void, typename... Args>
-            requires (!std::is_pointer_v<Ret> && !std::is_reference_v<Ret> && !Helper::is_pb_array_v<Ret> && (!std::is_pointer_v<Args> && ...))
+        template<typename Ret = void, typename... Args>
+            requires(
+                !std::is_pointer_v<Ret> && !std::is_reference_v<Ret> && !Helper::is_pb_array_v<Ret> &&
+                (!std::is_pointer_v<Args> && ...)
+            )
         inline Ret InvokeSig(const std::wstring& method_name, PBRoutineType pbrt, const std::wstring& pbsig, Args... args)
         {
             if (IsNull())
@@ -291,8 +314,11 @@ namespace Inf
          * \throw Inf::PBNI_PowerBuilderException           If the function doesnt return PBX_SUCCESS
          * \throw Inf::PBNI_Exception                       If the Group or Class cannot be found
          */
-        template <typename Ret = void, typename... Args>
-            requires (!std::is_pointer_v<Ret> && !std::is_reference_v<Ret> && !Helper::is_pb_array_v<Ret> && (!std::is_pointer_v<Args> && ...))
+        template<typename Ret = void, typename... Args>
+            requires(
+                !std::is_pointer_v<Ret> && !std::is_reference_v<Ret> && !Helper::is_pb_array_v<Ret> &&
+                (!std::is_pointer_v<Args> && ...)
+            )
         inline Ret InvokeFid(pbmethodID mid, Args... args)
         {
             if (IsNull())
@@ -309,15 +335,19 @@ namespace Inf
             }
 
             pbint i = 0;
-            ([&] {
-                Helper::PBValue value(m_Session, ci.pArgs->GetAt(i));
-                if (!value.Is<std::remove_reference_t<Args>>())
+            (
+                [&]
                 {
-                    m_Session->FreeCallInfo(&ci);
-                    throw PBNI_IncorrectArgumentsException(GetClassName(), std::to_wstring(mid), i);
-                }
-                i++;
-            }(), ...);
+                    Helper::PBValue value(m_Session, ci.pArgs->GetAt(i));
+                    if (!value.Is<std::remove_reference_t<Args>>())
+                    {
+                        m_Session->FreeCallInfo(&ci);
+                        throw PBNI_IncorrectArgumentsException(GetClassName(), std::to_wstring(mid), i);
+                    }
+                    i++;
+                }(),
+                ...
+            );
 
 
             // Argument Gathering
@@ -342,17 +372,21 @@ namespace Inf
 
             // Apply references
             i = 0;
-            ([&] {
-                if constexpr (std::is_reference_v<Args>)
+            (
+                [&]
                 {
-                    if (ci.pArgs->GetAt(i)->IsByRef())
+                    if constexpr (std::is_reference_v<Args>)
                     {
-                        // We need to acquire the value, so it doesnt get freed by FreeCallInfo.
-                        args = Helper::PBValue(m_Session, ci.pArgs->GetAt(i)).Get<std::remove_reference_t<Args>>(true);
+                        if (ci.pArgs->GetAt(i)->IsByRef())
+                        {
+                            // We need to acquire the value, so it doesnt get freed by FreeCallInfo.
+                            args = Helper::PBValue(m_Session, ci.pArgs->GetAt(i)).Get<std::remove_reference_t<Args>>(true);
+                        }
                     }
-                }
-                i++;
-            }(), ...);
+                    i++;
+                }(),
+                ...
+            );
 
             if constexpr (std::is_void_v<Ret>)
             {
@@ -367,7 +401,6 @@ namespace Inf
                 return ret;
             }
         }
-
 
 
         /**
@@ -482,7 +515,7 @@ namespace Inf
          * \throw Inf::PBNI_PowerBuilderException           If SetField doesn't return PBX_SUCCESS
          * \throw Inf::PBNI_Exception                       If the Group or Class cannot be found
          */
-        template <typename Field>
+        template<typename Field>
         inline void SetField(const std::wstring& field_name, const Field value)
         {
             if (IsNull())
@@ -490,7 +523,7 @@ namespace Inf
 
             pbfieldID fid = GetFieldId(field_name);
 
-            PBXRESULT   result = PBX_SUCCESS;
+            PBXRESULT result = PBX_SUCCESS;
 
             if constexpr (Helper::is_pb_array_v<Field>)
             {
@@ -541,7 +574,7 @@ namespace Inf
          * \throw Inf::PBNI_NullPointerException            If pbobject is Null
          * \throw Inf::PBNI_Exception                       If the Group or Class cannot be found
          */
-        template <typename Field>
+        template<typename Field>
         inline Field GetField(const std::wstring& field_name) const
         {
             if (IsNull())
@@ -568,7 +601,7 @@ namespace Inf
 
                 pbobject pb_object = m_Session->GetObjectField(m_Object, fid, is_null);
 
-                if (!is_null && !Helper::IsPBBaseClass(m_Session, Field::PBClass(m_Session), m_Session->GetClass(pb_object))) 
+                if (!is_null && !Helper::IsPBBaseClass(m_Session, Field::PBClass(m_Session), m_Session->GetClass(pb_object)))
                     throw PBNI_IncorrectArgumentsException(GetClassName(), field_name);
 
                 return { m_Session, is_null ? 0 : pb_object };
@@ -668,10 +701,13 @@ namespace Inf
             if (!group)
             {
                 if (groupName != className)
-                    throw PBNI_Exception(L"Unable to find group", {
-                        { L"Group", ExtractGroupName(className) },
-                        { L"ID", className },
-                    });
+                    throw PBNI_Exception(
+                        L"Unable to find group",
+                        {
+                            { L"Group", ExtractGroupName(className) },
+                            { L"ID", className },
+                        }
+                    );
 
                 group = session->GetSystemGroup();
             }
@@ -679,11 +715,14 @@ namespace Inf
             pbclass cls = session->FindClass(group, ExtractClassName(className).c_str());
             if (!cls)
             {
-                throw PBNI_Exception(L"Unable to find class", {
-                    { L"Group", ExtractGroupName(className) },
-                    { L"Class", ExtractClassName(className) },
-                    { L"ID", className },
-                });
+                throw PBNI_Exception(
+                    L"Unable to find class",
+                    {
+                        { L"Group", ExtractGroupName(className) },
+                        { L"Class", ExtractClassName(className) },
+                        { L"ID", className },
+                    }
+                );
             }
 
             return cls;
@@ -698,6 +737,7 @@ namespace Inf
         {
             return m_Object;
         }
+
     private:
         template<Helper::FixedString class_id, pbgroup_type group_type>
         friend class PBObject;
@@ -706,7 +746,7 @@ namespace Inf
         pbobject m_Object = 0;
         pbclass m_Class = 0;
 
-        // Visual studio always messes up the nice formatting here, idk if this does anything, but its my last hope
+        // clang-format off
         inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBByte&     t) { return m_Session->SetByteField(m_Object, fid, t); }
         inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBBoolean&  t) { return m_Session->SetCharField(m_Object, fid, t); }
         inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBChar&     t) { return m_Session->SetCharField(m_Object, fid, t); }
@@ -742,16 +782,18 @@ namespace Inf
         inline PBString     GetFieldImpl(Type<PBString>,   pbfieldID fid) const { pbboolean is_null = false; pbstring pb_string     = m_Session->GetStringField(m_Object, fid, is_null);   return { m_Session, is_null ? 0 : pb_string }; }
         inline PBBlob       GetFieldImpl(Type<PBBlob>,     pbfieldID fid) const { pbboolean is_null = false; pbblob pb_blob         = m_Session->GetBlobField(m_Object, fid, is_null);     return { m_Session, is_null ? 0 : pb_blob }; }
         inline PBAny        GetFieldImpl(Type<PBAny>,      pbfieldID fid) const { pbboolean is_null = false; IPB_Value* pb_any      = m_Session->GetPBAnyField(m_Object, fid, is_null);    return { m_Session, is_null ? 0 : pb_any, false }; }
+        // clang-format on
     };
 
     /**
-     * Wrapper for pbobject type. If the Group and Classnames are the same (most of the times), the ID of the Class is just the Class name.
-     * If the Group and Class names are different, the ID is both combined with a dot (L"group.class"). This is only the case for nested Types.
+     * Wrapper for pbobject type. If the Group and Classnames are the same (most of the times), the ID of the Class is just
+     * the Class name. If the Group and Class names are different, the ID is both combined with a dot (L"group.class"). This
+     * is only the case for nested Types.
      *
      * \tparam class_id     ID of Group and Class
      * \tparam group_type   The Group Type used by PowerBuilder (struct, userobject, ...)
      */
-    template <Helper::FixedString class_id, pbgroup_type group_type = pbgroup_userobject>
+    template<Helper::FixedString class_id, pbgroup_type group_type = pbgroup_userobject>
     class PBObject : public DynPBObject
     {
     public:
@@ -799,25 +841,25 @@ namespace Inf
             // No caching because it kept randomly erroring.
             return FindClass(session, class_id.data, group_type);
 
-            //static pbclass s_Class;
-            //static IPB_Session* s_LastSession = nullptr;
+            // static pbclass s_Class;
+            // static IPB_Session* s_LastSession = nullptr;
 
-            //if (s_LastSession != session)
+            // if (s_LastSession != session)
             //{
-            //  s_Class = FindClass(session);
-            //  s_LastSession = session;
-            //}
+            //   s_Class = FindClass(session);
+            //   s_LastSession = session;
+            // }
 
-            //return s_Class;
+            // return s_Class;
         }
     };
 
-    template <Helper::FixedString class_id>
+    template<Helper::FixedString class_id>
     using PBStruct = PBObject<class_id, pbgroup_structure>;
-    template <Helper::FixedString class_id>
+    template<Helper::FixedString class_id>
     using PBWindow = PBObject<class_id, pbgroup_window>;
-    template <Helper::FixedString class_id>
+    template<Helper::FixedString class_id>
     using PBDataWindow = PBObject<class_id, pbgroup_datawindow>;
-    template <Helper::FixedString class_id>
+    template<Helper::FixedString class_id>
     using PBFunction = PBObject<class_id, pbgroup_function>;
-}
+}  // namespace Inf

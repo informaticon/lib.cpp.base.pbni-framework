@@ -36,6 +36,7 @@ Inf::PBAny::PBAny(IPB_Session* session, IPB_Value* value, bool acquire)
 
     switch (m_Type)
     {
+        // clang-format off
         case Type<PBByte    >::PBType: m_Value = Helper::PBValue(session, value).Get<PBByte    >(acquire); break;
         case Type<PBBoolean >::PBType: m_Value = Helper::PBValue(session, value).Get<PBBoolean >(acquire); break;
         case Type<PBChar    >::PBType: m_Value = Helper::PBValue(session, value).Get<PBChar    >(acquire); break;
@@ -52,6 +53,7 @@ Inf::PBAny::PBAny(IPB_Session* session, IPB_Value* value, bool acquire)
         case Type<PBDateTime>::PBType: m_Value = Helper::PBValue(session, value).Get<PBDateTime>(acquire); break;
         case Type<PBString  >::PBType: m_Value = Helper::PBValue(session, value).Get<PBString  >(acquire); break;
         case Type<PBBlob    >::PBType: m_Value = Helper::PBValue(session, value).Get<PBBlob    >(acquire); break;
+        // clang-format on
     }
 }
 
@@ -78,6 +80,7 @@ PBXRESULT Inf::PBAny::ToValue(IPB_Value* value) const
     {
         switch (m_Type)
         {
+            // clang-format off
             case Type<PBByte    >::PBType: m_Session->AddByteArgument    (&ci, std::any_cast<PBByte    >(m_Value)); break;
             case Type<PBBoolean >::PBType: m_Session->AddBoolArgument    (&ci, std::any_cast<PBBoolean >(m_Value)); break;
             case Type<PBChar    >::PBType: m_Session->AddCharArgument    (&ci, std::any_cast<PBChar    >(m_Value)); break;
@@ -96,6 +99,7 @@ PBXRESULT Inf::PBAny::ToValue(IPB_Value* value) const
             case Type<PBBlob    >::PBType: m_Session->AddBlobArgument    (&ci, std::any_cast<PBBlob    >(m_Value)); break;
 
             case AnyType::Object: m_Session->AddObjectArgument(&ci, std::any_cast<DynPBObject>(m_Value)); break;
+            // clang-format on
         }
     }
 

@@ -13,7 +13,10 @@
  * \param cls   The Class Type to use
  * \param name  A WString containing the Name to be used by PowerBuilder (Must be the same as GetPBName)
  */
-#define INF_REGISTER_CLASS(cls, name)  using Inf_PBNI_Class = cls; static std::wstring s_PBNI_ClassName = name; static Inf::ClassDescription<cls> class_description(name)
+#define INF_REGISTER_CLASS(cls, name)            \
+    using Inf_PBNI_Class = cls;                  \
+    static std::wstring s_PBNI_ClassName = name; \
+    static Inf::ClassDescription<cls> class_description(name)
 
 namespace Inf
 {
@@ -25,7 +28,7 @@ namespace Inf
     public:
         /**
          * This Method creates a new Object of its Type on the Heap and returns a Pointer to it.
-         * 
+         *
          * \param session           Current session
          * \param pbobj             The PowerBuilder object representing this
          * \param pb_class_name     The name of the class used by PowerBuilder
@@ -35,7 +38,7 @@ namespace Inf
 
         /**
          * This Method returns a Method of this Class.
-         * 
+         *
          * \param method_id     The ID of the method
          * \return              The Method
          */
@@ -47,7 +50,7 @@ namespace Inf
         /**
          * This Method builds a Description out of itself and its Methods.
          * It will always be a nonvisualobject.
-         * 
+         *
          * \return  The Description
          */
         std::wstring GetDescription() const
@@ -71,7 +74,7 @@ namespace Inf
 
         /**
          * This gets called by PBNI_Framework when a function registers itself to it with the name of this class.
-         * 
+         *
          * \param method_description    The Description of the registered Method
          */
         void AddMethod(IMethodDescription* method_description)
@@ -81,16 +84,17 @@ namespace Inf
     };
 
     /**
-     * This is the derived class, this only needs to be a Template to store the Type of the Class and be able to create a new Object.
+     * This is the derived class, this only needs to be a Template to store the Type of the Class and be able to create a new
+     * Object.
      */
-    template <typename Cls>
-        requires (std::is_base_of_v<PBNI_Class, Cls>)
+    template<typename Cls>
+        requires(std::is_base_of_v<PBNI_Class, Cls>)
     class ClassDescription : public IClassDescription
     {
     public:
         /**
          * This Constructor automatically registers to PBNI_Framework.
-         * 
+         *
          * \param pb_name
          */
         ClassDescription(std::wstring pb_name)
@@ -115,4 +119,4 @@ namespace Inf
             }
         }
     };
-};
+};  // namespace Inf

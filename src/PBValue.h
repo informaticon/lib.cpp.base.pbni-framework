@@ -31,7 +31,7 @@ namespace Inf
              *
              * \return          true if its okay to convert, false otherwise.
              */
-            template <typename T>
+            template<typename T>
             bool Is() const
             {
                 if constexpr (std::is_same_v<PBAny, T>)
@@ -53,37 +53,34 @@ namespace Inf
                     {
                         if constexpr (T::_dims.size() == 0)
                         {
-                            is_correct =
-                                info->arrayType == info->UnboundedArray &&
-                                info->itemGroup != 0;
-                                // Helper::IsPBBaseClass(m_Session, T::_Item::PBClass(m_Session), (pbclass) info->valueType);
+                            is_correct = info->arrayType == info->UnboundedArray && info->itemGroup != 0;
+                            // Helper::IsPBBaseClass(m_Session, T::_Item::PBClass(m_Session), (pbclass) info->valueType);
                         }
                         else
                         {
-                            is_correct = 
-                                info->arrayType == info->BoundedArray &&
-                                info->itemGroup != 0 &&
-                                info->numDimensions == T::_dims.size();
+                            is_correct = info->arrayType == info->BoundedArray && info->itemGroup != 0 &&
+                                         info->numDimensions == T::_dims.size();
 
                             for (uint8_t i = 0; i < T::_dims.size(); i++)
-                                is_correct = is_correct && info->bounds[i].upperBound - info->bounds[i++].lowerBound == T::_dims[i];
+                                is_correct =
+                                    is_correct && info->bounds[i].upperBound - info->bounds[i++].lowerBound == T::_dims[i];
                         }
                     }
                     else
                     {
                         if constexpr (T::_dims.size() == 0)
                         {
-                            is_correct = info->arrayType == info->UnboundedArray && info->valueType == Type<ItemType>::PBType;
+                            is_correct =
+                                info->arrayType == info->UnboundedArray && info->valueType == Type<ItemType>::PBType;
                         }
                         else
                         {
-                            is_correct = \
-                                info->arrayType == info->BoundedArray && \
-                                info->valueType == Type<ItemType>::PBType && \
-                                info->numDimensions == T::_dims.size();
+                            is_correct = info->arrayType == info->BoundedArray &&
+                                         info->valueType == Type<ItemType>::PBType && info->numDimensions == T::_dims.size();
 
                             for (uint8_t i = 0; i < T::_dims.size(); i++)
-                                is_correct = is_correct && info->bounds[i].upperBound - info->bounds[i++].lowerBound == T::_dims[i];
+                                is_correct =
+                                    is_correct && info->bounds[i].upperBound - info->bounds[i++].lowerBound == T::_dims[i];
                         }
                     }
 
@@ -112,10 +109,10 @@ namespace Inf
             /**
              * This Function Retrieves the specified Type from an IPB_Value.
              *
-             * \param acquire   Whether or not to take ownership of the type, only relevant for complex types. The Type will free itself
-             * \return          The returned Type
+             * \param acquire   Whether or not to take ownership of the type, only relevant for complex types. The Type will
+             * free itself \return          The returned Type
              */
-            template <typename T>
+            template<typename T>
             inline T Get(bool acquire = false) const
             {
                 if constexpr (Helper::is_pb_array_v<T>)
@@ -135,7 +132,7 @@ namespace Inf
              *
              * \param t         Type to set Value to
              */
-            template <typename T>
+            template<typename T>
             inline PBXRESULT Set(const T& t)
             {
                 if (t.IsNull())
@@ -159,6 +156,7 @@ namespace Inf
 
             PBValue(IPB_Session* session, IPB_Value* value, bool acquire);
 
+            // clang-format off
             inline PBByte     GetImpl(Type<PBByte    >, bool acquire) const { return m_Value->IsNull() ? PBByte() : PBByte(m_Value->GetByte()); }
             inline PBBoolean  GetImpl(Type<PBBoolean >, bool acquire) const { return m_Value->IsNull() ? PBBoolean() : PBBoolean(m_Value->GetBool()); }
             inline PBChar     GetImpl(Type<PBChar    >, bool acquire) const { return m_Value->IsNull() ? PBChar() : PBChar(m_Value->GetChar()); }
@@ -192,6 +190,7 @@ namespace Inf
             inline PBXRESULT SetImpl(const PBDateTime& value) { return m_Value->SetDateTime(value); }
             inline PBXRESULT SetImpl(const PBString&   value) { return m_Value->SetPBString(value); }
             inline PBXRESULT SetImpl(const PBBlob&     value) { return m_Value->SetBlob(value); }
+            // clang-format on
         };
-    }
-}
+    }  // namespace Helper
+}  // namespace Inf

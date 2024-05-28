@@ -18,6 +18,7 @@ namespace Inf
             0;
         }
 
+        // clang-format off
         // Simple types
         void SetPBByte    (PBByte        & x, PBByte         y) { x = y; }
         void SetPBBoolean (PBBoolean     & x, PBBoolean      y) { x = y; }
@@ -57,6 +58,7 @@ namespace Inf
         DynPBObject    GetPBObject  (DynPBObject    x) { return x; }
         // Can't return Array
         // PBArray<PBAny> GetPBArray   (PBArray<PBAny> x) { return x; }
+        // clang-format on
 
         // Any
         void SetAny(PBAny& x, PBAny y);
@@ -81,7 +83,7 @@ namespace Inf
         void ObjectCasting(PBObject<L"u_pbni_test_inherited"> x);
 
     private:
-        template <typename T>
+        template<typename T>
         void SetArrayHelper(pbarray any_arr, PBAny any_val)
         {
             PBArray<T> arr(m_Session, any_arr);
@@ -90,7 +92,7 @@ namespace Inf
             arr.Set(1, val);
         }
 
-        template <typename T>
+        template<typename T>
         PBAny GetArrayHelper(PBAny any_arr)
         {
             PBArray<T> arr = any_arr.Get<PBArray<T>>();
@@ -98,4 +100,4 @@ namespace Inf
             return { m_Session, arr.Get(1) };
         }
     };
-}
+}  // namespace Inf

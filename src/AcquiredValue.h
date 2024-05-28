@@ -1,8 +1,8 @@
 #pragma once
 
-#include <memory>
-
 #include <pbni/pbext.h>
+
+#include <memory>
 
 
 namespace Inf::Helper
@@ -31,4 +31,4 @@ namespace Inf::Helper
         IPB_Session* Session;
         IPB_Value* Value = nullptr;
     };
-}
+}  // namespace Inf::Helper

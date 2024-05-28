@@ -25,14 +25,14 @@ namespace Inf
         /**
          * Creates a Wrapper to an already existing pb_string.
          * Will be Null if pbstring is 0.
-         * 
+         *
          * \param session       Current Session
          * \param pb_string     The existing pb_string or 0
          */
         PBString(IPB_Session* session, pbstring pb_string);
         /**
          * Creates a new pbstring, converts the String to unicode and copies it.
-         * 
+         *
          * \param session   Current Session
          * \param str       String to copy
          */
@@ -49,23 +49,23 @@ namespace Inf
 
         /**
          * Reads the String and converts it to an Ansi String.
-         * 
+         *
          * \return  Ansi String
-         * 
+         *
          * \throw PBNI_NullPointerException     If String is Null
          */
         std::string GetString(StringEncoding encoding = UTF8) const;
         /**
          * Gets the String from Poerbuilder.
-         * 
+         *
          * \return  Unicode String
-         * 
+         *
          * \throw PBNI_NullPointerException     If String is Null
          */
         std::wstring GetWString() const;
         /**
          * Converts and copies the String to PowerBuilder.
-         * 
+         *
          * \param str   The String to copy
          */
         void SetString(const std::string& str, StringEncoding encoding = UTF8);
@@ -78,9 +78,9 @@ namespace Inf
 
         /**
          * Gets the Size from PowerBuilder.
-         * 
+         *
          * \return  The size in bytes without Terminator.
-         * 
+         *
          * \throw PBNI_NullPointerException     If String is Null
          */
         pblong Size() const;
@@ -97,9 +97,11 @@ namespace Inf
         /**
          * Retrieve the private PB Reference
          */
-        operator pbstring() const {
+        operator pbstring() const
+        {
             return m_String;
         }
+
     private:
         friend Helper::PBValue;
 
@@ -111,7 +113,6 @@ namespace Inf
     };
 
 
-    
     /**
      * These functions return true if the wide string is losslessly convertible to Ansi.
      */
@@ -126,8 +127,10 @@ namespace Inf
      *
      * \tparam ToStr    The Type to be converted to
      */
-    template <typename ToStr, typename... FromStr> ToStr ConvertString(const FromStr&... str) = delete;
+    template<typename ToStr, typename... FromStr>
+    ToStr ConvertString(const FromStr&... str) = delete;
 
+    // clang-format off
     template<> std::wstring ConvertString<>(const char* const& str, const size_t& size, const PBString::StringEncoding& encoding);
     template<> std::wstring ConvertString<>(const char* const& str, const PBString::StringEncoding& encoding);
     template<> std::wstring ConvertString<>(const std::string_view& str, const PBString::StringEncoding& encoding);
@@ -143,4 +146,5 @@ namespace Inf
     template<> inline std::string  ConvertString<>(const wchar_t* const& wstr, const size_t& size) { return ConvertString<std::string >(wstr, size, PBString::UTF8); }
     template<> inline std::string  ConvertString<>(const wchar_t* const& wstr)                     { return ConvertString<std::string >(wstr, PBString::UTF8); }
     template<> inline std::string  ConvertString<>(const std::wstring& wstr)                       { return ConvertString<std::string >(wstr, PBString::UTF8); }
- }
+    // clang-format on
+}  // namespace Inf

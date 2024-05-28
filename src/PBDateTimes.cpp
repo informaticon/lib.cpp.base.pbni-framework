@@ -6,9 +6,9 @@ static time_t mkgmtime(struct tm* tm)
 {
     // TODO use gmtime or something else?
 #if defined(_WIN32)
-   return _mkgmtime(tm);
+    return _mkgmtime(tm);
 #elif defined(linux)
-   return timegm(tm);
+    return timegm(tm);
 #endif
 }
 
@@ -29,12 +29,12 @@ std::chrono::time_point<std::chrono::system_clock> Inf::PBTime::GetChrono() cons
         .tm_min = min,
         .tm_hour = hour,
         .tm_mday = 1,
-        .tm_year = 1970 - 1900 // because .tm_year is years since 1900, and mkgmtime wants atleast 1970
+        .tm_year = 1970 - 1900  // because .tm_year is years since 1900, and mkgmtime wants atleast 1970
     };
 
     // Doing some weird stuff because we want subsecond precission
     return std::chrono::system_clock::from_time_t(mkgmtime(&tm)) +
-        std::chrono::microseconds(static_cast<std::chrono::microseconds::rep>(sec * std::micro::den));
+           std::chrono::microseconds(static_cast<std::chrono::microseconds::rep>(sec * std::micro::den));
 }
 
 std::tuple<pbint, pbint, pbdouble> Inf::PBTime::GetTime() const
@@ -90,7 +90,6 @@ Inf::PBTime::PBTime(IPB_Session* session, IPB_Value* value, bool acquire)
         {
             m_Time = value->GetTime();
         }
-
     }
 }
 
@@ -99,7 +98,7 @@ Inf::PBDate::PBDate(IPB_Session* session, pbdate date)
     : m_Session(session), m_Date(date)
 { }
 
-Inf::PBDate::PBDate(IPB_Session * session, pbint years, pbint months, pbint days)
+Inf::PBDate::PBDate(IPB_Session* session, pbint years, pbint months, pbint days)
     : m_Session(session), m_Date(0)
 {
     SetDate(years, months, days);
@@ -179,7 +178,15 @@ Inf::PBDateTime::PBDateTime(IPB_Session* session, pbdatetime datetime)
 { }
 
 
-Inf::PBDateTime::PBDateTime(IPB_Session* session, pbint years, pbint months, pbint days, pbint hours, pbint minutes, pbdouble seconds)
+Inf::PBDateTime::PBDateTime(
+    IPB_Session* session,
+    pbint years,
+    pbint months,
+    pbint days,
+    pbint hours,
+    pbint minutes,
+    pbdouble seconds
+)
     : m_Session(session), m_DateTime(0)
 {
     SetDateTime(years, months, days, hours, minutes, seconds);
@@ -199,7 +206,7 @@ std::chrono::time_point<std::chrono::system_clock> Inf::PBDateTime::GetChrono() 
     // Doing some weird stuff because we want subsecond precission
 
     return std::chrono::system_clock::from_time_t(mkgmtime(&tm)) +
-        std::chrono::microseconds(static_cast<std::chrono::microseconds::rep>(sec * std::micro::den));
+           std::chrono::microseconds(static_cast<std::chrono::microseconds::rep>(sec * std::micro::den));
 }
 
 std::tuple<pbint, pbint, pbint, pbint, pbint, pbdouble> Inf::PBDateTime::GetDateTime() const
@@ -222,7 +229,7 @@ void Inf::PBDateTime::SetDateTime(pbint years, pbint months, pbint days, pbint h
     if (IsNull())
         m_DateTime = m_Session->NewDateTime();
 
-    PBXRESULT res =  m_Session->SetDateTime(m_DateTime, years, months, days, hours, minutes, seconds);
+    PBXRESULT res = m_Session->SetDateTime(m_DateTime, years, months, days, hours, minutes, seconds);
     if (res != PBX_SUCCESS)
         throw Inf::PBNI_PowerBuilderException(L"IPB_Session::SetDateTime", res);
 }
@@ -257,4 +264,3 @@ Inf::PBDateTime::PBDateTime(IPB_Session* session, IPB_Value* value, bool acquire
         }
     }
 }
-

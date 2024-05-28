@@ -1,10 +1,10 @@
 #pragma once
 
-#include <tuple>
 #include <chrono>
+#include <tuple>
 
-#include "PBString.h"
 #include "AcquiredValue.h"
+#include "PBString.h"
 
 
 namespace Inf
@@ -12,19 +12,20 @@ namespace Inf
     /**
      * This is a Wrapper for pbtime.
      */
-    class PBTime {
+    class PBTime
+    {
     public:
         /**
          * Creates a Wrapper to an already existing pbtime.
          * Will be Null if time is 0.
-         * 
+         *
          * \param session   Current session
          * \param time      The exsiting pbtime or 0
          */
         PBTime(IPB_Session* session, pbtime time);
         /**
          * Creates a new pbtime.
-         * 
+         *
          * \param session   Current Session
          * \param hours     The hour to set
          * \param minutes   The minute to set
@@ -34,18 +35,18 @@ namespace Inf
 
         /**
          * Gets the Time from PowerBuilder and converts it to unix time.
-         * 
+         *
          * \return  std::chrono time
-         * 
+         *
          * \throw Inf::PBNI_NullPointerException    If Null
          * \throw Inf::PBNI_PowerBuilderException   If PowerBuilder function doesnt return PBX_SUCESS
          */
         std::chrono::time_point<std::chrono::system_clock> GetChrono() const;
         /**
          * Gets the Time from PowerBuilder.
-         * 
+         *
          * \return  hours, minutes, seconds
-         * 
+         *
          * \throw Inf::PBNI_NullPointerException    If Null
          * \throw Inf::PBNI_PowerBuilderException   If PowerBuilder function doesnt return PBX_SUCESS
          */
@@ -73,7 +74,8 @@ namespace Inf
         /**
          * Retrieve the private PB Reference
          */
-        operator pbtime() const {
+        operator pbtime() const
+        {
             return m_Time;
         }
 
@@ -91,7 +93,8 @@ namespace Inf
     /**
      * This is a Wrapper for pbdate.
      */
-    class PBDate {
+    class PBDate
+    {
     public:
         /**
          * Creates a Wrapper to an already existing pbdate.
@@ -113,9 +116,9 @@ namespace Inf
 
         /**
          * Gets the Time from PowerBuilder and converts it to unix time.
-         * 
+         *
          * \return  std::chrono time
-         * 
+         *
          * \throw Inf::PBNI_NullPointerException    If Null
          * \throw Inf::PBNI_PowerBuilderException   If PowerBuilder function doesnt return PBX_SUCESS
          */
@@ -152,9 +155,11 @@ namespace Inf
         /**
          * Retrieve the private PB Reference
          */
-        operator pbdate() const {
+        operator pbdate() const
+        {
             return m_Date;
         }
+
     private:
         friend Helper::PBValue;
 
@@ -169,7 +174,8 @@ namespace Inf
     /**
      * This is a Wrapper for pbdatetime.
      */
-    class PBDateTime {
+    class PBDateTime
+    {
     public:
         /**
          * Creates a Wrapper to an already existing pbdatetime.
@@ -190,13 +196,21 @@ namespace Inf
          * \param minutes   The minute to set
          * \param seconds   The second to set
          */
-        PBDateTime(IPB_Session* session, pbint years, pbint months, pbint days, pbint hours, pbint minutes, pbdouble seconds);
+        PBDateTime(
+            IPB_Session* session,
+            pbint years,
+            pbint months,
+            pbint days,
+            pbint hours,
+            pbint minutes,
+            pbdouble seconds
+        );
 
         /**
          * Gets the Time from PowerBuilder and converts it to unix time.
-         * 
+         *
          * \return  std::chrono time
-         * 
+         *
          * \throw Inf::PBNI_NullPointerException    If Null
          * \throw Inf::PBNI_PowerBuilderException   If PowerBuilder function doesnt return PBX_SUCESS
          */
@@ -236,9 +250,11 @@ namespace Inf
         /**
          * Retrieve the private PB Reference
          */
-        operator pbdatetime() const {
+        operator pbdatetime() const
+        {
             return m_DateTime;
         }
+
     private:
         friend Helper::PBValue;
 
@@ -248,4 +264,4 @@ namespace Inf
 
         PBDateTime(IPB_Session* session, IPB_Value* value, bool acquire);
     };
-}
+}  // namespace Inf

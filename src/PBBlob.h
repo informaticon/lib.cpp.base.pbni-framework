@@ -1,8 +1,9 @@
 #pragma once
 
+#include <stdint.h>
+
 #include <type_traits>
 #include <vector>
-#include <stdint.h>
 
 #include "PBString.h"
 
@@ -49,9 +50,9 @@ namespace Inf
         pbbyte* GetData() const;
         /**
          * Gets the size from PowerBuilder.
-         * 
+         *
          * \return  Size in Bytes
-         * 
+         *
          * \throw Inf::PBNI_NullPointerException if Null
          */
         pblong Size() const;
@@ -73,7 +74,7 @@ namespace Inf
 
         /**
          * Checks whether pbblob is Null.
-         * 
+         *
          * \return Is Null
          */
         bool IsNull() const;
@@ -85,7 +86,8 @@ namespace Inf
         /**
          * Retrieve the private PB Reference
          */
-        operator pbblob() const {
+        operator pbblob() const
+        {
             return m_Blob;
         }
 
@@ -98,4 +100,4 @@ namespace Inf
 
         PBBlob(IPB_Session* session, IPB_Value* value, bool acquire);
     };
-}
+}  // namespace Inf

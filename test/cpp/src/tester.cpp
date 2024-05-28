@@ -5,8 +5,9 @@
 INF_REGISTER_CLASS(Inf::FrameworkTester, L"u_pbni_framework_tester");
 
 // TODO remove?
-INF_REGISTER_FUNC(Test    , L"of_test");
+INF_REGISTER_FUNC(Test, L"of_test");
 
+// clang-format off
 INF_REGISTER_FUNC(SetPBByte    , L"of_set", L"aa_to", L"aa_from");
 INF_REGISTER_FUNC(SetPBBoolean , L"of_set", L"aa_to", L"aa_from");
 INF_REGISTER_FUNC(SetPBChar    , L"of_set", L"aa_to", L"aa_from");
@@ -302,6 +303,7 @@ Inf::PBAny Inf::FrameworkTester::GetArray(PBAny x)
         return GetArrayHelper<DynPBObject>(x);
     }
 }
+// clang-format on
 
 INF_REGISTER_FUNC(GetArrayArray, L"of_get_array_array", L"aa_array");
 Inf::PBAny Inf::FrameworkTester::GetArrayArray(PBArray<PBAny> x)
@@ -313,9 +315,25 @@ INF_REGISTER_FUNC(Throw, L"of_throw", L"as_message", L"as_keys", L"as_values");
 void Inf::FrameworkTester::Throw(PBString message, PBArray<PBString> keys, PBArray<PBString> values)
 {
     std::map<std::wstring, std::wstring> store;
-    for (pblong i = 1; i <= keys.Size(); i++) {
+    for (pblong i = 1; i <= keys.Size(); i++)
+    {
         store[keys.Get(i).GetWString()] = values.Get(i).GetWString();
     }
 
     throw PBNI_Exception(message.GetWString(), store);
+}
+
+INF_REGISTER_FUNC(ObjectCasting, L"of_object_casting", L"au_inherited");
+void Inf::FrameworkTester::ObjectCasting(PBObject<L"u_pbni_test_inherited"> x)
+{
+    PBObject<L"u_pbni_test_base"> base = x;
+    base = x;
+    pbint val = base.Call<PBInt>(L"of_get");
+    if (val != 0)
+        throw PBNI_Exception(L"Expected u_pbni_test_base::of_get to return 0");
+
+    PBObject<L"u_pbni_test_inherited"> upcast = base;
+    val = upcast.Call<PBInt>(L"of_get");
+    if (val != 1)
+        throw PBNI_Exception(L"Expected u_pbni_test_inherited::of_get to return 0");
 }

@@ -29,10 +29,13 @@ namespace Inf
                 if (m_Class)
                 {
                     if (!Helper::IsPBBaseClass(m_Session, m_Class, obj_class))
-                        throw PBNI_Exception(L"Created a PBObject with an object that doesn't inherit from the Class", {
-                            { L"m_Class", m_Session->GetClassName(m_Class) },
-                            { L"obj_class", m_Session->GetClassName(obj_class) },
-                        });
+                        throw PBNI_Exception(
+                            L"Tried to cast an Object to a Class which is not its base",
+                            {
+                                { L"From", m_Session->GetClassName(obj_class) },
+                                { L"To", m_Session->GetClassName(m_Class) },
+                            }
+                        );
                 }
                 else
                     m_Class = obj_class;
@@ -98,7 +101,7 @@ namespace Inf
             return *this;
         }
 
-        ~DynPBObject()
+        virtual ~DynPBObject()
         {
             if (m_Object)
                 m_Session->RemoveGlobalRef(m_Object);
@@ -696,7 +699,8 @@ namespace Inf
             return m_Object;
         }
     private:
-        friend PBObject;
+        template<Helper::FixedString class_id, pbgroup_type group_type>
+        friend class PBObject;
 
         IPB_Session* m_Session;
         pbobject m_Object = 0;
@@ -762,9 +766,8 @@ namespace Inf
          * \param obj       pbobject or 0
          */
         PBObject(IPB_Session* session, pbobject obj)
-            : DynPBObject(session, obj, FindClass(session, class_id.data, group_type))
-        {
-        }
+            : DynPBObject(session, obj, class_id.data, group_type)
+        { }
 
         /**
          * Will create a new object of the correct Class.
@@ -781,14 +784,8 @@ namespace Inf
          * Copy constructor
          */
         PBObject(const DynPBObject& other)
-            : DynPBObject(other.m_Session, other.m_Object, class_id.data, group_type)
-        {
-            if (other.m_Class && Helper::IsPBBaseClass(m_Session, m_Class, other.m_Class))
-                throw PBNI_Exception(L"Tried to cast an Object to a Class which is not its base", {
-                    { L"From", m_Session->GetClassName(other.m_Class) },
-                    { L"To", class_id.data },
-                });
-        }
+            : PBObject(other.m_Session, other.m_Object)
+        { }
 
         /**
          * Get the pbclass extracted from the class_id.

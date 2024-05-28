@@ -78,6 +78,8 @@ namespace Inf
 
         void Throw(PBString message, PBArray<PBString> keys, PBArray<PBString> values);
 
+        void ObjectCasting(PBObject<L"u_pbni_test_inherited"> x);
+
     private:
         template <typename T>
         void SetArrayHelper(pbarray any_arr, PBAny any_val)

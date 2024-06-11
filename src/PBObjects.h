@@ -53,7 +53,7 @@ namespace Inf
          * \throw Inf::PBNI_Exception   If the Group or Class cannot be found
          */
         DynPBObject(IPB_Session* session, pbobject obj, std::wstring className, pbgroup_type groupType)
-            : DynPBObject(session, FindClass(session, className, groupType))
+            : DynPBObject(session, obj, FindClass(session, className, groupType))
         { }
 
         /**

@@ -592,21 +592,7 @@ namespace Inf
                 pbarray pb_array = m_Session->GetArrayField(m_Object, fid, is_null);
                 return { m_Session, is_null ? 0 : pb_array };
             }
-            else if constexpr (Helper::is_pb_object_v<Field>)
-            {
-                if (!m_Session->IsFieldObject(m_Class, fid))
-                    throw PBNI_IncorrectArgumentsException(GetClassName(), field_name);
-
-                pbboolean is_null = false;
-
-                pbobject pb_object = m_Session->GetObjectField(m_Object, fid, is_null);
-
-                if (!is_null && !Helper::IsPBBaseClass(m_Session, Field::PBClass(m_Session), m_Session->GetClass(pb_object)))
-                    throw PBNI_IncorrectArgumentsException(GetClassName(), field_name);
-
-                return { m_Session, is_null ? 0 : pb_object };
-            }
-            else if constexpr (std::is_same_v<DynPBObject, Field>)
+            else if constexpr (std::is_base_of_v<DynPBObject, Field>)
             {
                 if (!m_Session->IsFieldObject(m_Class, fid))
                     throw PBNI_IncorrectArgumentsException(GetClassName(), field_name);

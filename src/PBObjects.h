@@ -533,7 +533,7 @@ namespace Inf
                 if (value.IsNull())
                     m_Session->SetFieldToNull(m_Object, fid);
                 else
-                    result = m_Session->SetArrayField(m_Object, fid, value.m_Array);
+                    result = m_Session->SetArrayField(m_Object, fid, (pbarray) value);
             }
             else if constexpr (std::is_base_of_v<DynPBObject, Field>)
             {

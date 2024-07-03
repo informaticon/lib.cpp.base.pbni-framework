@@ -5,8 +5,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.18)
 #                    Options                     #
 ##################################################
 
-option(PBNI_USE_STATIC_RUNTIME  "Whether to set the MTD option when building" OFF)
-set(CMAKE_INSTALL_DIR "${CMAKE_INSTALL_LIBDIR}/cmake/pbni-framework" CACHE STRING "Where the CMake scripts should be installed" )
+option(PBNI_USE_STATIC_RUNTIME "Whether to set the MTD option when building" OFF)
 
 ##################################################
 #                 PBNI Framework                 #
@@ -14,11 +13,14 @@ set(CMAKE_INSTALL_DIR "${CMAKE_INSTALL_LIBDIR}/cmake/pbni-framework" CACHE STRIN
 
 project(lib.cpp.base.pbni-framework LANGUAGES CXX)
 
+include(GNUInstallDirs)
+
+set(INSTALL_CMAKEDIR "${CMAKE_INSTALL_LIBDIR}/cmake/pbni-framework")
+
 # Check for 32 bit
 # if(NOT CMAKE_SIZEOF_VOID_P EQUAL 4)
-# 	message(FATAL_ERROR "Powerbuilder runs on 32 bits, choose a 32 bit plattform using '-A Win32'")
+#   message(FATAL_ERROR "Powerbuilder runs on 32 bits, choose a 32 bit plattform using '-A Win32'")
 # endif()
-
 
 set(src
     src/Framework.cpp
@@ -88,14 +90,15 @@ if(NOT MINGW)
     # To be able to use __VA_OPT__
     target_compile_options(pbni-framework PUBLIC /Zc:preprocessor)
 
-    if(PBNI_USE_STATIC_RUNTIME) 
+    if(PBNI_USE_STATIC_RUNTIME)
         cmake_policy(GET CMP0091 CMP0091_Value)
+
         if(NOT ${CMP0091_Value} STREQUAL "NEW")
             message(FATAL_ERROR "To be able to Statically link the Runtime, you need to set the CMP0091 option to NEW!")
         endif()
 
         set_target_properties(pbni-framework
-        PROPERTIES 
+        PROPERTIES
             MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>"
         )
     endif()
@@ -110,26 +113,19 @@ PUBLIC
 )
 
 if(MINGW)
-    find_package(Boost
-    REQUIRED
-        stacktrace_backtrace
-    )
-
-    target_link_libraries(pbni-framework
-    PUBLIC
-        Boost::stacktrace_backtrace
-    )
+    set(STACKTRACE_LIBRARY "stacktrace_backtrace")
 else()
-    find_package(Boost
-    REQUIRED
-        stacktrace_windbg
-    )
-
-    target_link_libraries(pbni-framework
-    PUBLIC
-        Boost::stacktrace_windbg
-    )
+    set(STACKTRACE_LIBRARY "stacktrace_windbg")
 endif()
+
+find_package(Boost
+REQUIRED
+    "${STACKTRACE_LIBRARY}"
+)
+target_link_libraries(pbni-framework
+PUBLIC
+    "Boost::${STACKTRACE_LIBRARY}"
+)
 
 target_include_directories(pbni-framework
 PUBLIC
@@ -138,31 +134,31 @@ PUBLIC
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
-include(GNUInstallDirs)
+
+install(DIRECTORY "extern/pbni/include/pbni" DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+install(FILES ${headers} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/PBNIFramework")
+
 
 install(TARGETS pbni-framework
-EXPORT pbni-framework-exports
-    DESTINATION "${CMAKE_INSTALL_DIR}"
+    EXPORT pbni-framework-exports
+    DESTINATION "${INSTALL_CMAKEDIR}"
 )
 
 install(EXPORT pbni-framework-exports
     FILE pbni-framework-targets.cmake
     NAMESPACE inf::
-    DESTINATION "${CMAKE_INSTALL_DIR}"
+    DESTINATION "${INSTALL_CMAKEDIR}"
 )
-# TODO it was share/pbni-framework before, why is it different now?
-
-install(DIRECTORY extern/pbni/include/pbni DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
-install(FILES ${headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/PBNIFramework)
 
 set(PBNI_FRAMEWORK_HEADERS ${headers})
 list(TRANSFORM PBNI_FRAMEWORK_HEADERS REPLACE "^src/(.+)$" "<PBNIFramework/\\1>")
 
 include(CMakePackageConfigHelpers)
 configure_package_config_file(
-  cmake/pbni-framework-config.cmake.in
-  pbni-framework-config.cmake
-  INSTALL_DESTINATION ${CMAKE_INSTALL_DIR}
-  PATH_VARS
-    CMAKE_INSTALL_DIR
+    "cmake/pbni-framework-config.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/pbni-framework-config.cmake"
+    INSTALL_DESTINATION "${INSTALL_CMAKEDIR}"
+PATH_VARS
+    INSTALL_CMAKEDIR
 )
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/pbni-framework-config.cmake" DESTINATION "${INSTALL_CMAKEDIR}")

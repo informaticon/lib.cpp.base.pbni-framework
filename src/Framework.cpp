@@ -37,11 +37,7 @@ Inf::PBObject<L"u_exf_ex_pbni"> Inf::ConvertException(IPB_Session* session, cons
     }
     else
     {
-        const char* err_msg = ex.what();
-        pbException.Call<PBObject<L"u_exf_error_data">>(L"of_init", PBString(session, err_msg))
-            .InvokeSig(
-                L"of_push", PBRT_FUNCTION, L"Cu_exf_error_data.SA", PBString(session, L"Error"), PBString(session, err_msg)
-            );
+        pbException.Call<PBObject<L"u_exf_error_data">>(L"of_init", PBString(session, ex.what()));
     }
 
     return { session, pbException };

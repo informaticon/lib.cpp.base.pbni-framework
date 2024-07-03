@@ -141,7 +141,7 @@ install(FILES ${headers} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/PBNIFramework"
 
 install(TARGETS pbni-framework
     EXPORT pbni-framework-exports
-    DESTINATION "${INSTALL_CMAKEDIR}"
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}"
 )
 
 install(EXPORT pbni-framework-exports

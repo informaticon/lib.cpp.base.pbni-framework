@@ -7,15 +7,16 @@ CMAKE_MINIMUM_REQUIRED(VERSION 3.18)
 
 option(PBNI_USE_STATIC_RUNTIME "Whether to set the MTD option when building" OFF)
 
+set(INSTALL_INCLUDEDIR "include" CACHE PATH "Location of installed Headers")
+set(INSTALL_LIBDIR "lib" CACHE PATH "Location of installed Object Files")
+set(INSTALL_CMAKEDIR "${INSTALL_LIBDIR}/cmake/pbni-framework" CACHE PATH "Location of installed CMake Files")
+
 ##################################################
 #                 PBNI Framework                 #
 ##################################################
 
 project(lib.cpp.base.pbni-framework LANGUAGES CXX)
 
-include(GNUInstallDirs)
-
-set(INSTALL_CMAKEDIR "${CMAKE_INSTALL_LIBDIR}/cmake/pbni-framework")
 
 # Check for 32 bit
 # if(NOT CMAKE_SIZEOF_VOID_P EQUAL 4)
@@ -86,7 +87,7 @@ endif()
 
 target_compile_features(pbni-framework PUBLIC cxx_std_20)
 
-if(NOT MINGW)
+if(MSVC)
     # To be able to use __VA_OPT__
     target_compile_options(pbni-framework PUBLIC /Zc:preprocessor)
 
@@ -131,17 +132,17 @@ target_include_directories(pbni-framework
 PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/extern/pbni/include>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+    $<INSTALL_INTERFACE:${INSTALL_INCLUDEDIR}>
 )
 
 
-install(DIRECTORY "extern/pbni/include/pbni" DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
-install(FILES ${headers} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/PBNIFramework")
+install(DIRECTORY "extern/pbni/include/pbni" DESTINATION "${INSTALL_INCLUDEDIR}")
+install(FILES ${headers} DESTINATION "${INSTALL_INCLUDEDIR}/PBNIFramework")
 
 
 install(TARGETS pbni-framework
     EXPORT pbni-framework-exports
-    DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+    DESTINATION "${INSTALL_LIBDIR}"
 )
 
 install(EXPORT pbni-framework-exports

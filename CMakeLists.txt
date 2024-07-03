@@ -159,6 +159,6 @@ configure_package_config_file(
     "cmake/pbni-framework-config.cmake.in"
     "${CMAKE_CURRENT_BINARY_DIR}/pbni-framework-config.cmake"
     INSTALL_DESTINATION "${INSTALL_CMAKEDIR}"
-    NO_SET_AND_CHECK_MACR
+    NO_SET_AND_CHECK_MACRO
 )
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/pbni-framework-config.cmake" DESTINATION "${INSTALL_CMAKEDIR}")

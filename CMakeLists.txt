@@ -121,11 +121,11 @@ endif()
 
 find_package(Boost
 REQUIRED
-    "${STACKTRACE_LIBRARY}"
+    ${STACKTRACE_LIBRARY}
 )
 target_link_libraries(pbni-framework
 PUBLIC
-    "Boost::${STACKTRACE_LIBRARY}"
+    Boost::${STACKTRACE_LIBRARY}
 )
 
 target_include_directories(pbni-framework

@@ -111,6 +111,11 @@ Inf::PBAny Inf::FrameworkTester::GetAny(PBAny x)
 INF_REGISTER_FUNC(SetField, L"of_set_field", L"au_x", L"aa_x");
 void Inf::FrameworkTester::SetField(PBObject<L"u_pbni_test_object">& x, PBAny y)
 {
+    if (y.IsArray()) {
+        x.SetField(L"ia_test", y.Get<PBArray<PBAny>>()); // TODO add this to pb test cases
+        return;
+    }
+
     switch (y.GetType())
     {
     case Type<PBByte    >::PBType: x.SetField(L"iby_test", y.Get<PBByte    >()); break;
@@ -140,23 +145,24 @@ Inf::PBAny Inf::FrameworkTester::GetField(PBObject<L"u_pbni_test_object"> x, PBI
 {
     switch (y)
     {
-    case  1: return PBAny(m_Session, x.GetField<PBByte     >(L"iby_test"));
-    case  2: return PBAny(m_Session, x.GetField<PBBoolean  >(L"ibo_test"));
-    case  3: return PBAny(m_Session, x.GetField<PBChar     >(L"ic_test" ));
-    case  4: return PBAny(m_Session, x.GetField<PBInt      >(L"ii_test" ));
-    case  5: return PBAny(m_Session, x.GetField<PBUint     >(L"iui_test"));
-    case  6: return PBAny(m_Session, x.GetField<PBLong     >(L"il_test" ));
-    case  7: return PBAny(m_Session, x.GetField<PBUlong    >(L"iul_test"));
-    case  8: return PBAny(m_Session, x.GetField<PBLongLong >(L"ill_test"));
-    case  9: return PBAny(m_Session, x.GetField<PBReal     >(L"ir_test" ));
-    case 10: return PBAny(m_Session, x.GetField<PBDouble   >(L"ido_test"));
-    case 11: return PBAny(m_Session, x.GetField<PBDecimal  >(L"ide_test"));
-    case 12: return PBAny(m_Session, x.GetField<PBTime     >(L"it_test" ));
-    case 13: return PBAny(m_Session, x.GetField<PBDate     >(L"ida_test"));
-    case 14: return PBAny(m_Session, x.GetField<PBDateTime >(L"idt_test"));
-    case 15: return PBAny(m_Session, x.GetField<PBString   >(L"is_test" ));
-    case 16: return PBAny(m_Session, x.GetField<PBBlob     >(L"ibl_test"));
-    case 17: return PBAny(m_Session, x.GetField<DynPBObject>(L"iu_test" ));
+    case  1: return PBAny(m_Session, x.GetField<PBByte        >(L"iby_test"));
+    case  2: return PBAny(m_Session, x.GetField<PBBoolean     >(L"ibo_test"));
+    case  3: return PBAny(m_Session, x.GetField<PBChar        >(L"ic_test" ));
+    case  4: return PBAny(m_Session, x.GetField<PBInt         >(L"ii_test" ));
+    case  5: return PBAny(m_Session, x.GetField<PBUint        >(L"iui_test"));
+    case  6: return PBAny(m_Session, x.GetField<PBLong        >(L"il_test" ));
+    case  7: return PBAny(m_Session, x.GetField<PBUlong       >(L"iul_test"));
+    case  8: return PBAny(m_Session, x.GetField<PBLongLong    >(L"ill_test"));
+    case  9: return PBAny(m_Session, x.GetField<PBReal        >(L"ir_test" ));
+    case 10: return PBAny(m_Session, x.GetField<PBDouble      >(L"ido_test"));
+    case 11: return PBAny(m_Session, x.GetField<PBDecimal     >(L"ide_test"));
+    case 12: return PBAny(m_Session, x.GetField<PBTime        >(L"it_test" ));
+    case 13: return PBAny(m_Session, x.GetField<PBDate        >(L"ida_test"));
+    case 14: return PBAny(m_Session, x.GetField<PBDateTime    >(L"idt_test"));
+    case 15: return PBAny(m_Session, x.GetField<PBString      >(L"is_test" ));
+    case 16: return PBAny(m_Session, x.GetField<PBBlob        >(L"ibl_test"));
+    case 17: return PBAny(m_Session, x.GetField<DynPBObject   >(L"iu_test" ));
+    case 18: return PBAny(m_Session, x.GetField<PBArray<PBAny>>(L"ia_test" )); // TODO add this to pb test cases
     default: throw PBNI_Exception(L"Not implemented");
     }
 }
@@ -164,6 +170,11 @@ Inf::PBAny Inf::FrameworkTester::GetField(PBObject<L"u_pbni_test_object"> x, PBI
 INF_REGISTER_FUNC(SetterField, L"of_setter_field", L"au_x", L"aa_x");
 void Inf::FrameworkTester::SetterField(PBObject<L"u_pbni_test_object">& x, PBAny y)
 {
+    if (y.IsArray()) {
+        x.Call(L"of_set_ia", y.Get<PBArray<PBAny>>()); // TODO add this to pb test cases
+        return;
+    }
+
     switch (y.GetType())
     {
     case Type<PBByte    >::PBType: x.Call(L"of_set_iby", y.Get<PBByte    >()); break;
@@ -183,7 +194,7 @@ void Inf::FrameworkTester::SetterField(PBObject<L"u_pbni_test_object">& x, PBAny
     case Type<PBString  >::PBType: x.Call(L"of_set_is",  y.Get<PBString  >()); break;
     case Type<PBBlob    >::PBType: x.Call(L"of_set_ibl", y.Get<PBBlob    >()); break;
 
-    case PBAny::Object: x.SetField(L"iu_test", y.Get<DynPBObject>()); break;
+    case PBAny::Object: x.Call(L"of_set_iu", y.Get<DynPBObject>()); break;
     default: throw PBNI_Exception(L"Not implemented");
     }
 }
@@ -236,6 +247,7 @@ void Inf::FrameworkTester::GetterRefField(PBObject<L"u_pbni_test_object"> x, PBI
     case 15: x.Call<void, PBAny&>(L"of_get_is" , z); break;
     case 16: x.Call<void, PBAny&>(L"of_get_ibl", z); break;
     case 17: x.Call<void, PBAny&>(L"of_get_iu" , z); break;
+    case 18: x.Call<void, PBAny&>(L"of_get_ia" , z); break; // TODO add to pb side
     default: throw PBNI_Exception(L"Not implemented");
     }
 }
@@ -329,11 +341,11 @@ void Inf::FrameworkTester::ObjectCasting(PBObject<L"u_pbni_test_inherited"> x)
     PBObject<L"u_pbni_test_base"> base = x;
     base = x;
     pbint val = base.Call<PBInt>(L"of_get");
-    if (val != 0)
-        throw PBNI_Exception(L"Expected u_pbni_test_base::of_get to return 0");
+    if (val != 1)
+        throw PBNI_Exception(L"Expected u_pbni_test_base::of_get to return 1");
 
     PBObject<L"u_pbni_test_inherited"> upcast = base;
     val = upcast.Call<PBInt>(L"of_get");
     if (val != 1)
-        throw PBNI_Exception(L"Expected u_pbni_test_inherited::of_get to return 0");
+        throw PBNI_Exception(L"Expected u_pbni_test_inherited::of_get to return 1");
 }

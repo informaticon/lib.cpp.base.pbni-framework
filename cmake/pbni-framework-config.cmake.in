@@ -1,0 +1,9 @@
+@PACKAGE_INIT@
+
+set_and_check(CMAKE_INSTALL_DIR "@PACKAGE_CMAKE_INSTALL_DIR@")
+
+include(CMakeFindDependencyMacro)
+find_dependency(Boost)
+
+set(PBNI_FRAMEWORK_HEADERS "@PBNI_FRAMEWORK_HEADERS@" CACHE INTERNAL "All headers of PBNI-Framework")
+include("${CMAKE_INSTALL_DIR}/pbni-framework-targets.cmake")

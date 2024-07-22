@@ -32,6 +32,7 @@ namespace Inf
             Time = pbvalue_time,
             DateTime = pbvalue_datetime,
             Char = pbvalue_char,
+            LongPtr = pbvalue_dummy4,
             LongLong = pbvalue_longlong,
             Byte = pbvalue_byte,
 
@@ -239,6 +240,7 @@ namespace Inf
         inline PBLong     GetNulled(Type<PBLong    >) { return PBLong(); }
         inline PBUlong    GetNulled(Type<PBUlong   >) { return PBUlong(); }
         inline PBLongLong GetNulled(Type<PBLongLong>) { return PBLongLong(); }
+        inline PBLongPtr  GetNulled(Type<PBLongPtr >) { return PBLongPtr(); }
         inline PBReal     GetNulled(Type<PBReal    >) { return PBReal(); }
         inline PBDouble   GetNulled(Type<PBDouble  >) { return PBDouble(); }
         inline PBDecimal  GetNulled(Type<PBDecimal >) { return { m_Session, 0 }; }

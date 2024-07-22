@@ -165,6 +165,7 @@ namespace Inf
             inline PBLong     GetImpl(Type<PBLong    >, bool acquire) const { return m_Value->IsNull() ? PBLong() : PBLong(m_Value->GetLong()); }
             inline PBUlong    GetImpl(Type<PBUlong   >, bool acquire) const { return m_Value->IsNull() ? PBUlong() : PBUlong(m_Value->GetUlong()); }
             inline PBLongLong GetImpl(Type<PBLongLong>, bool acquire) const { return m_Value->IsNull() ? PBLongLong() : PBLongLong(m_Value->GetLongLong()); }
+            inline PBLongPtr  GetImpl(Type<PBLongPtr >, bool acquire) const { return m_Value->IsNull() ? PBLongPtr() : PBLongPtr(m_Value->GetObject()); }
             inline PBReal     GetImpl(Type<PBReal    >, bool acquire) const { return m_Value->IsNull() ? PBReal() : PBReal(m_Value->GetReal()); }
             inline PBDouble   GetImpl(Type<PBDouble  >, bool acquire) const { return m_Value->IsNull() ? PBDouble() : PBDouble(m_Value->GetDouble()); }
             inline PBDecimal  GetImpl(Type<PBDecimal >, bool acquire) const { return { m_Session, m_Value, acquire }; }
@@ -182,6 +183,7 @@ namespace Inf
             inline PBXRESULT SetImpl(const PBLong&     value) { return m_Value->SetLong(value); }
             inline PBXRESULT SetImpl(const PBUlong&    value) { return m_Value->SetUlong(value); }
             inline PBXRESULT SetImpl(const PBLongLong& value) { return m_Value->SetLongLong(value); }
+            inline PBXRESULT SetImpl(const PBLongPtr&  value) { return m_Value->SetObject((pbobject) (void*) value); }
             inline PBXRESULT SetImpl(const PBReal&     value) { return m_Value->SetReal(value); }
             inline PBXRESULT SetImpl(const PBDouble&   value) { return m_Value->SetDouble(value); }
             inline PBXRESULT SetImpl(const PBDecimal&  value) { return m_Value->SetDecimal(value); }

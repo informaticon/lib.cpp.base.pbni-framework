@@ -45,6 +45,7 @@ Inf::PBAny::PBAny(IPB_Session* session, IPB_Value* value, bool acquire)
         case Type<PBLong    >::PBType: m_Value = Helper::PBValue(session, value).Get<PBLong    >(acquire); break;
         case Type<PBUlong   >::PBType: m_Value = Helper::PBValue(session, value).Get<PBUlong   >(acquire); break;
         case Type<PBLongLong>::PBType: m_Value = Helper::PBValue(session, value).Get<PBLongLong>(acquire); break;
+        case Type<PBLongPtr >::PBType: m_Value = Helper::PBValue(session, value).Get<PBLongPtr >(acquire); break;
         case Type<PBReal    >::PBType: m_Value = Helper::PBValue(session, value).Get<PBReal    >(acquire); break;
         case Type<PBDouble  >::PBType: m_Value = Helper::PBValue(session, value).Get<PBDouble  >(acquire); break;
         case Type<PBDecimal >::PBType: m_Value = Helper::PBValue(session, value).Get<PBDecimal >(acquire); break;
@@ -98,6 +99,7 @@ PBXRESULT Inf::PBAny::ToValue(IPB_Value* value) const
             case Type<PBString  >::PBType: m_Session->AddPBStringArgument(&ci, std::any_cast<PBString  >(m_Value)); break;
             case Type<PBBlob    >::PBType: m_Session->AddBlobArgument    (&ci, std::any_cast<PBBlob    >(m_Value)); break;
 
+            case Type<PBLongPtr >::PBType: m_Session->AddObjectArgument(&ci, (pbobject)(void*) std::any_cast<PBLongPtr>(m_Value)); break;
             case AnyType::Object: m_Session->AddObjectArgument(&ci, std::any_cast<DynPBObject>(m_Value)); break;
             // clang-format on
         }

@@ -747,6 +747,7 @@ namespace Inf
         inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBLong&     t) { return m_Session->SetLongField(m_Object, fid, t); }
         inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBUlong&    t) { return m_Session->SetUlongField(m_Object, fid, t); }
         inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBLongLong& t) { return m_Session->SetLongLongField(m_Object, fid, t); }
+        inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBLongPtr&  t) { return m_Session->SetObjectField(m_Object, fid, (pbobject)(void*) t); }
         inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBReal&     t) { return m_Session->SetRealField(m_Object, fid, t); }
         inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBDouble&   t) { return m_Session->SetDoubleField(m_Object, fid, t); }
         inline PBXRESULT SetFieldImpl(pbfieldID fid, const PBDecimal&  t) { return m_Session->SetDecField(m_Object, fid, t); }
@@ -765,6 +766,7 @@ namespace Inf
         inline PBLong       GetFieldImpl(Type<PBLong>,     pbfieldID fid) const { pbboolean is_null = false; pblong pb_long         = m_Session->GetLongField(m_Object, fid, is_null);     return is_null ? PBLong()       : PBLong(pb_long); }
         inline PBUlong      GetFieldImpl(Type<PBUlong>,    pbfieldID fid) const { pbboolean is_null = false; pbulong pb_ulong       = m_Session->GetUlongField(m_Object, fid, is_null);    return is_null ? PBUlong()      : PBUlong(pb_ulong); }
         inline PBLongLong   GetFieldImpl(Type<PBLongLong>, pbfieldID fid) const { pbboolean is_null = false; pblonglong pb_longlong = m_Session->GetLongLongField(m_Object, fid, is_null); return is_null ? PBLongLong()   : PBLongLong(pb_longlong); }
+        inline PBLongPtr    GetFieldImpl(Type<PBLongPtr> , pbfieldID fid) const { pbboolean is_null = false; pbobject pb_longptr    = m_Session->GetObjectField(m_Object, fid, is_null);   return is_null ? PBLongPtr()    : PBLongPtr((pbobject) pb_longptr); }
         inline PBReal       GetFieldImpl(Type<PBReal>,     pbfieldID fid) const { pbboolean is_null = false; pbreal pb_real         = m_Session->GetRealField(m_Object, fid, is_null);     return is_null ? PBReal()       : PBReal(pb_real); }
         inline PBDouble     GetFieldImpl(Type<PBDouble>,   pbfieldID fid) const { pbboolean is_null = false; pbdouble pb_double     = m_Session->GetDoubleField(m_Object, fid, is_null);   return is_null ? PBDouble()     : PBDouble(pb_double); }
         inline PBDecimal    GetFieldImpl(Type<PBDecimal>,  pbfieldID fid) const { pbboolean is_null = false; pbdec pb_dec           = m_Session->GetDecField(m_Object, fid, is_null);      return { m_Session, is_null ? 0 : pb_dec }; }

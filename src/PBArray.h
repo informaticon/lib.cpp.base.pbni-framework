@@ -559,6 +559,7 @@ namespace Inf
         inline PBXRESULT SetImpl(pblong* dim, const PBLong&       t) { return m_Session->SetLongArrayItem(m_Array, dim, t); }
         inline PBXRESULT SetImpl(pblong* dim, const PBUlong&      t) { return m_Session->SetUlongArrayItem(m_Array, dim, t); }
         inline PBXRESULT SetImpl(pblong* dim, const PBLongLong&   t) { return m_Session->SetLongLongArrayItem(m_Array, dim, t); }
+        inline PBXRESULT SetImpl(pblong* dim, const PBLongPtr&    t) { return m_Session->SetObjectArrayItem(m_Array, dim, (pbobject)(void*) t); }
         inline PBXRESULT SetImpl(pblong* dim, const PBReal&       t) { return m_Session->SetRealArrayItem(m_Array, dim, t); }
         inline PBXRESULT SetImpl(pblong* dim, const PBDouble&     t) { return m_Session->SetDoubleArrayItem(m_Array, dim, t); }
         inline PBXRESULT SetImpl(pblong* dim, const PBDecimal&    t) { return m_Session->SetDecArrayItem(m_Array, dim, t); }
@@ -576,6 +577,7 @@ namespace Inf
         inline PBLong     GetImpl(Type<PBLong    >, pblong* dim) const { pbboolean is_null = false; pblong pb_long           = m_Session->GetLongArrayItem(m_Array, dim, is_null);       return is_null ? PBLong()       : PBLong(pb_long); }
         inline PBUlong    GetImpl(Type<PBUlong   >, pblong* dim) const { pbboolean is_null = false; pbulong pb_ulong         = m_Session->GetUlongArrayItem(m_Array, dim, is_null);      return is_null ? PBUlong()      : PBUlong(pb_ulong); }
         inline PBLongLong GetImpl(Type<PBLongLong>, pblong* dim) const { pbboolean is_null = false; pblonglong pb_longlong   = m_Session->GetLongLongArrayItem(m_Array, dim, is_null);   return is_null ? PBLongLong()   : PBLongLong(pb_longlong); }
+        inline PBLongPtr  GetImpl(Type<PBLongPtr >, pblong* dim) const { pbboolean is_null = false; pbobject pb_longptr      = m_Session->GetObjectArrayItem(m_Array, dim, is_null);     return is_null ? PBLongPtr()    : PBLongPtr(pb_longptr); }
         inline PBReal     GetImpl(Type<PBReal    >, pblong* dim) const { pbboolean is_null = false; pbreal pb_real           = m_Session->GetRealArrayItem(m_Array, dim, is_null);       return is_null ? PBReal()       : PBReal(pb_real); }
         inline PBDouble   GetImpl(Type<PBDouble  >, pblong* dim) const { pbboolean is_null = false; pbdouble pb_double       = m_Session->GetDoubleArrayItem(m_Array, dim, is_null);     return is_null ? PBDouble()     : PBDouble(pb_double); }
         inline PBDecimal  GetImpl(Type<PBDecimal >, pblong* dim) const { pbboolean is_null = false; pbdec pb_dec             = m_Session->GetDecArrayItem(m_Array, dim, is_null);        return { m_Session, is_null ? 0 : pb_dec }; }

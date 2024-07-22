@@ -76,6 +76,7 @@ namespace Inf
     INF_STRONG_TYPEDEF(pblong, PBLong);
     INF_STRONG_TYPEDEF(pbulong, PBUlong);
     INF_STRONG_TYPEDEF(pblonglong, PBLongLong);
+    INF_STRONG_TYPEDEF(void*, PBLongPtr);
 
     #if _WIN64
         using FakePBLongPtr = PBLongLong;
@@ -85,6 +86,7 @@ namespace Inf
 
     INF_STRONG_TYPEDEF(pbreal, PBReal);
     INF_STRONG_TYPEDEF(pbdouble, PBDouble);
+
     using PBFloat = PBReal;
 
     namespace Helper

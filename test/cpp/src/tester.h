@@ -28,6 +28,7 @@ namespace Inf
         void SetPBLong    (PBLong        & x, PBLong         y) { x = y; }
         void SetPBUlong   (PBUlong       & x, PBUlong        y) { x = y; }
         void SetPBLongLong(PBLongLong    & x, PBLongLong     y) { x = y; }
+        void SetPBLongPtr (PBLongPtr     & x, PBLongPtr      y) { x = y; }
         void SetPBReal    (PBReal        & x, PBReal         y) { x = y; }
         void SetPBDouble  (PBDouble      & x, PBDouble       y) { x = y; }
         void SetPBDecimal (PBDecimal     & x, PBDecimal      y) { x = y; }
@@ -47,6 +48,7 @@ namespace Inf
         PBLong         GetPBLong    (PBLong         x) { return x; }
         PBUlong        GetPBUlong   (PBUlong        x) { return x; }
         PBLongLong     GetPBLongLong(PBLongLong     x) { return x; }
+        PBLongPtr      GetPBLongPtr (PBLongPtr      x) { return x; }
         PBReal         GetPBReal    (PBReal         x) { return x; }
         PBDouble       GetPBDouble  (PBDouble       x) { return x; }
         PBDecimal      GetPBDecimal (PBDecimal      x) { return x; }

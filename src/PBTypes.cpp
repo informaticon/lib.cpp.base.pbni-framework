@@ -29,6 +29,9 @@ namespace Inf
 
 	template<> constexpr wchar_t Type<PBLongLong>::PBSignature = L'K';
 	template<> constexpr pbvalue_type Type<PBLongLong>::PBType = pbvalue_longlong;
+
+	template<> constexpr wchar_t Type<PBLongPtr>::PBSignature = L'Z';
+	template<> constexpr pbvalue_type Type<PBLongPtr>::PBType = pbvalue_dummy4;
 #pragma endregion
 
 #pragma region Floating_Point_Numbers

@@ -150,6 +150,17 @@ namespace Inf
             return L"longlong" + argument_name;
         }
     };
+
+    template<>
+    struct Type<PBLongPtr>
+    {
+        static constexpr wchar_t PBSignature = L'Z';
+        static constexpr pbvalue_type PBType = pbvalue_dummy4;
+        static inline std::wstring GetPBName(const std::wstring& argument_name)
+        {
+            return L"longptr" + argument_name;
+        }
+    };
 #pragma endregion
 
 #pragma region Floating_Point_Numbers

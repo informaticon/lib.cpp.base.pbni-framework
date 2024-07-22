@@ -17,77 +17,45 @@
  * \param T     Base Type
  * \param D     Derived Type
  */
-#define INF_STRONG_TYPEDEF(T, D)                                                          \
-    struct D : boost::totally_ordered1<D, boost::totally_ordered2<D, T>>                  \
-    {                                                                                     \
-        T t;                                                                              \
-        D(const T& t_)                                                                    \
-        BOOST_NOEXCEPT_IF(boost::has_nothrow_copy_constructor<T>::value)                  \
-            : t(t_), m_IsNull(false)                                                      \
-        { }                                                                               \
-        D()                                                                               \
-        BOOST_NOEXCEPT_IF(boost::has_nothrow_copy_constructor<T>::value)                  \
-            : t(0), m_IsNull(true)                                                        \
-        { }                                                                               \
-        D(const D& t_)                                                                    \
-        BOOST_NOEXCEPT_IF(boost::has_nothrow_copy_constructor<T>::value)                  \
-            : t(t_.t), m_IsNull(t_.m_IsNull)                                              \
-        { }                                                                               \
-        D& operator=(const D& rhs) BOOST_NOEXCEPT_IF(boost::has_nothrow_assign<T>::value) \
-        {                                                                                 \
-            t = rhs.t;                                                                    \
-            m_IsNull = rhs.m_IsNull;                                                      \
-            return *this;                                                                 \
-        }                                                                                 \
-        D& operator=(const T& rhs) BOOST_NOEXCEPT_IF(boost::has_nothrow_assign<T>::value) \
-        {                                                                                 \
-            t = rhs;                                                                      \
-            m_IsNull = false;                                                             \
-            return *this;                                                                 \
-        }                                                                                 \
-        operator const T&() const                                                         \
-        {                                                                                 \
-            if (m_IsNull)                                                                 \
-            {                                                                             \
-                throw Inf::PBNI_NullPointerException(L"" #D);                             \
-            }                                                                             \
-            return t;                                                                     \
-        }                                                                                 \
-        operator T&()                                                                     \
-        {                                                                                 \
-            if (m_IsNull)                                                                 \
-            {                                                                             \
-                throw Inf::PBNI_NullPointerException(L"" #D);                             \
-            }                                                                             \
-            return t;                                                                     \
-        }                                                                                 \
-        bool operator==(const D& rhs) const                                               \
-        {                                                                                 \
-            if (m_IsNull)                                                                 \
-            {                                                                             \
-                throw Inf::PBNI_NullPointerException(L"" #D);                             \
-            }                                                                             \
-            return t == rhs.t;                                                            \
-        }                                                                                 \
-        bool operator<(const D& rhs) const                                                \
-        {                                                                                 \
-            if (m_IsNull)                                                                 \
-            {                                                                             \
-                throw Inf::PBNI_NullPointerException(L"" #D);                             \
-            }                                                                             \
-            return t < rhs.t;                                                             \
-        }                                                                                 \
-        bool IsNull() const                                                               \
-        {                                                                                 \
-            return m_IsNull;                                                              \
-        }                                                                                 \
-        bool SetToNull()                                                                  \
-        {                                                                                 \
-            m_IsNull = true;                                                              \
-        }                                                                                 \
-                                                                                          \
-    private:                                                                              \
-        bool m_IsNull;                                                                    \
+#define INF_STRONG_TYPEDEF(T, D)                              \
+    struct D                                                  \
+    {                                                         \
+        D() noexcept                                          \
+            : t(0), m_IsNull(true)                            \
+        { }                                                   \
+        D(T const& t_) noexcept                               \
+            : t(t_), m_IsNull(false)                          \
+        { }                                                   \
+        D& operator=(T const& rhs) noexcept                   \
+        {                                                     \
+            t = rhs;                                          \
+            m_IsNull = false;                                 \
+            return *this;                                     \
+        }                                                     \
+        operator T const&() const                             \
+        {                                                     \
+            if (m_IsNull)                                     \
+                throw Inf::PBNI_NullPointerException(L"" #D); \
+            return t;                                         \
+        }                                                     \
+        operator T&()                                         \
+        {                                                     \
+            if (m_IsNull)                                     \
+                throw Inf::PBNI_NullPointerException(L"" #D); \
+            return t;                                         \
+        }                                                     \
+        bool IsNull() const noexcept                          \
+        {                                                     \
+            return m_IsNull;                                  \
+        }                                                     \
+        bool SetToNull() noexcept                             \
+        {                                                     \
+            m_IsNull = true;                                  \
+        }                                                     \
+                                                              \
+    private:                                                  \
+        T t;                                                  \
+        bool m_IsNull;                                        \
     }
 
 namespace Inf

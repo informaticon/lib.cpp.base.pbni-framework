@@ -127,22 +127,15 @@ namespace Inf
 
                 using ItemType = T::_Item;
 
-                if constexpr (Helper::is_pb_object_v<ItemType>)
-                    return m_Type == AnyType::Object &&
-                           Helper::IsPBBaseClass(m_Session, ItemType::PBClass(m_Session), m_Class);
-                else if constexpr (std::is_same_v<DynPBObject, ItemType>)
-                    return m_Type == AnyType::Object;
-                else if constexpr (std::is_same_v<PBAny, ItemType>)
+                if constexpr (std::is_same_v<PBAny, ItemType>)
                     return true;
-                else
-                    return m_Type == (AnyType) Type<ItemType>::PBType;
+
+                return InnerIs<ItemType>();
             }
-            else if constexpr (Helper::is_pb_object_v<T>)
-                return m_Type == AnyType::Object && Helper::IsPBBaseClass(m_Session, T::PBClass(m_Session), m_Class);
-            else if constexpr (std::is_same_v<DynPBObject, T>)
-                return m_Type == AnyType::Object;
             else
-                return m_Type == (AnyType) Type<T>::PBType;
+            {
+                return InnerIs<T>();
+            }
         }
 
         /**
@@ -255,5 +248,19 @@ namespace Inf
         inline PBString   GetNulled(Type<PBString  >) { return { m_Session, (pbstring) 0 }; }
         inline PBBlob     GetNulled(Type<PBBlob    >) { return { m_Session, 0 }; }
         // clang-format on
+
+        template<typename T>
+        bool InnerIs() const
+        {
+            if (m_Type == AnyType::Any)
+                return true;
+
+            if constexpr (Helper::is_pb_object_v<T>)
+                return m_Type == AnyType::Object && Helper::IsPBBaseClass(m_Session, T::PBClass(m_Session), m_Class);
+            else if constexpr (std::is_same_v<DynPBObject, T>)
+                return m_Type == AnyType::Object;
+            else
+                return m_Type == (AnyType) Type<T>::PBType;
+        }
     };
 }  // namespace Inf

@@ -109,6 +109,12 @@ namespace Inf
     INF_STRONG_TYPEDEF(pbulong, PBUlong);
     INF_STRONG_TYPEDEF(pblonglong, PBLongLong);
 
+    #if _WIN64
+        using FakePBLongPtr = PBLongLong;
+    #else
+        using FakePBLongPtr = PBLong;
+    #endif
+
     INF_STRONG_TYPEDEF(pbreal, PBReal);
     INF_STRONG_TYPEDEF(pbdouble, PBDouble);
     using PBFloat = PBReal;

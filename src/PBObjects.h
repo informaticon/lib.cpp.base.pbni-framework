@@ -251,7 +251,7 @@ namespace Inf
                 (!std::is_pointer_v<Args> && ...)
             )
         inline Ret
-        InvokeMatching(const std::wstring& method_name, PBRoutineType pbrt, const std::wstring& arg_types, Args&&... args)
+        InvokeMatching(const std::wstring& method_name, PBRoutineType pbrt, const std::wstring& arg_types, Args... args)
         {
             if (IsNull())
                 throw PBNI_NullPointerException(GetClassName());
@@ -394,8 +394,14 @@ namespace Inf
             }
             else
             {
+                Helper::PBValue value(m_Session, ci.pArgs->GetAt(i));
+                if (!value.Is<Ret>())
+                {
+                    m_Session->FreeCallInfo(&ci);
+                    throw PBNI_IncorrectArgumentsException(GetClassName(), std::to_wstring(mid), -1);
+                }
                 // We need to acquire the value, so it doesnt get freed by FreeCallInfo.
-                Ret ret = Helper::PBValue(m_Session, ci.returnValue).Get<Ret>(true);
+                Ret ret = value.Get<Ret>(true);
 
                 m_Session->FreeCallInfo(&ci);
                 return ret;
@@ -558,7 +564,7 @@ namespace Inf
             }
 
             if (result != PBX_SUCCESS)
-                throw PBNI_PowerBuilderException(L"IPB_Session::SetArrayField", result);
+                throw PBNI_PowerBuilderException(L"IPB_Session::SetField", result);
         }
 
 

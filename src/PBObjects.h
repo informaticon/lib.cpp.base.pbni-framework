@@ -442,10 +442,7 @@ namespace Inf
          */
         pbboolean IsFieldNull(const std::wstring& field_name) const
         {
-            if (IsNull())
-                throw PBNI_NullPointerException(GetClassName());
-
-            pbfieldID fid = m_Session->GetFieldID(m_Class, field_name.c_str());
+            pbfieldID fid = GetFieldId(field_name);
 
             return m_Session->IsFieldNull(m_Object, fid);
         }
@@ -461,10 +458,7 @@ namespace Inf
          */
         pbboolean IsFieldObject(const std::wstring& field_name) const
         {
-            if (!m_Class)
-                throw PBNI_NullPointerException(GetClassName());
-
-            pbfieldID fid = m_Session->GetFieldID(m_Class, field_name.c_str());
+            pbfieldID fid = GetFieldId(field_name);
 
             return m_Session->IsFieldObject(m_Class, fid);
         }
@@ -480,10 +474,7 @@ namespace Inf
          */
         pbboolean IsFieldArray(const std::wstring& field_name) const
         {
-            if (!m_Class)
-                throw PBNI_NullPointerException(GetClassName());
-
-            pbfieldID fid = m_Session->GetFieldID(m_Class, field_name.c_str());
+            pbfieldID fid = GetFieldId(field_name);
 
             return m_Session->IsFieldArray(m_Class, fid);
         }
@@ -499,10 +490,7 @@ namespace Inf
          */
         pbuint GetFieldType(const std::wstring& field_name) const
         {
-            if (!m_Class)
-                throw PBNI_NullPointerException(GetClassName());
-
-            pbfieldID fid = m_Session->GetFieldID(m_Class, field_name.c_str());
+            pbfieldID fid = GetFieldId(field_name);
 
             return m_Session->GetFieldType(m_Class, fid);
         }
@@ -524,9 +512,6 @@ namespace Inf
         template<typename Field>
         inline void SetField(const std::wstring& field_name, const Field value)
         {
-            if (IsNull())
-                throw PBNI_NullPointerException(GetClassName());
-
             pbfieldID fid = GetFieldId(field_name);
 
             PBXRESULT result = PBX_SUCCESS;

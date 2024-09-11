@@ -32,8 +32,8 @@ namespace Inf
                         throw PBNI_Exception(
                             L"Tried to cast an Object to a Class which is not its base",
                             {
-                                { L"From", m_Session->GetClassName(obj_class) },
-                                { L"To", m_Session->GetClassName(m_Class) },
+                                { L"From", DynPBObject(m_Session, 0, obj_class).GetClassName() },
+                                { L"To", GetClassName() },
                             }
                         );
                 }

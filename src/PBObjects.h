@@ -394,7 +394,7 @@ namespace Inf
             }
             else
             {
-                Helper::PBValue value(m_Session, ci.pArgs->GetAt(i));
+                Helper::PBValue value(m_Session, ci.returnValue);
                 if (!value.Is<Ret>())
                 {
                     m_Session->FreeCallInfo(&ci);

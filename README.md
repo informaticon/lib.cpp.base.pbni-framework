@@ -1,9 +1,6 @@
 # Informaticon PBNI Framework
 Libraries for creating PowerBuilder Extensions using PowerBuilder Native Interface (PBNI).
 
-> [!IMPORTANT]
-> Only tested for PowerBuilder x86 builds.
-
 ## Runtime dependencies
  - [Informaticon Exception Framework](https://github.com/informaticon/lib.pb.base.exception-framework)
  - Microsoft Visual C++
@@ -20,6 +17,11 @@ To check how to create classes and export functions, you can also check out one 
  - [lib.pbni.base.libcurl](https://github.com/informaticon/lib.pbni.base.libcurl)
  - [lib.pbni.base.serializer](https://github.com/informaticon/lib.pbni.base.serializer)
  - [lib.pbni.base.graphics-utils](https://github.com/informaticon/lib.pbni.base.graphics-utils)
+
+## x64
+Now works for x64 Builds. Things to consider:
+ - `longptr` isn't natively supported by PBNI. But the PBNI Framework offers a `FakePBLongPtr`, which is just a `PBLong` in Win32 Builds and `PBLonglong` in x64 Builds.
+ - The Editor doesn't yet support x64. So during development you need to use the Win32 Version of the PBNI Dll's, then you only use the x64 Builds when you ship your 64-bit Application.
 
 ## Documentation
 This repository uses Doxygen and MKDocs for documentation.
@@ -50,15 +52,6 @@ This is a cpp library, you only have to build it for testing purposes, otherwise
   - boost-stacktrace
   - boost-utility
   - boost-multiprecision
-  - boost-algorithm
-
-```ps1
-vcpkg install --triplet=x86-windows-static `
-	boost-stacktrace `
-	boost-utility `
-	boost-multiprecision `
-	boost-algorithm
-```
 
 ### Tests
 Build the test dll by running

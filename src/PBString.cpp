@@ -26,8 +26,13 @@ Inf::PBString::PBString(IPB_Session* session, const std::string_view& str, Strin
 Inf::PBString::PBString(IPB_Session* session, const char* str, StringEncoding encoding)
     : m_Session(session)
 {
-    std::wstring wstr = Inf::ConvertString<std::wstring>(str, encoding);
-    m_String = m_Session->NewString(wstr.c_str());
+    if (str == nullptr)
+        m_String = 0;
+    else
+    {
+        std::wstring wstr = Inf::ConvertString<std::wstring>(str, encoding);
+        m_String = m_Session->NewString(wstr.c_str());
+    }
 }
 
 Inf::PBString::PBString(IPB_Session* session, const std::wstring& str)

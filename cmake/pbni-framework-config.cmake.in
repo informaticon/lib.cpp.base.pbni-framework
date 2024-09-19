@@ -3,5 +3,8 @@
 include(CMakeFindDependencyMacro)
 find_dependency(Boost REQUIRED @STACKTRACE_LIBRARY@)
 
+set(PBNI_SDK_DIRECTORY "@PBNI_SDK_DIRECTORY@" CACHE PATH "Location of the required PBNI Sources")
 set(PBNI_FRAMEWORK_HEADERS "@PBNI_FRAMEWORK_HEADERS@" CACHE INTERNAL "All headers of PBNI-Framework")
 include("${CMAKE_CURRENT_LIST_DIR}/pbni-framework-targets.cmake")
+
+target_include_directories(inf::pbni-framework PUBLIC ${PBNI_SDK_DIRECTORY}/include)

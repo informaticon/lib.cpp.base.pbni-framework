@@ -10,6 +10,7 @@ option(PBNI_USE_STATIC_RUNTIME "Whether to set the MTD option when building" OFF
 
 include(GNUInstallDirs)
 set(INSTALL_CMAKEDIR "${CMAKE_INSTALL_LIBDIR}/cmake/pbni-framework" CACHE PATH "Location of installed CMake Files")
+set(PBNI_SDK_DIRECTORY "C:/Program Files (x86)/Appeon/PowerBuilder 22.0/SDK/PBNI" CACHE PATH "Location of the required PBNI Sources")
 
 ##################################################
 #                 PBNI Framework                 #
@@ -52,9 +53,9 @@ set(types
 )
 
 set(pbni-helpers
-    extern/pbni/src/pbarray.cpp
-    extern/pbni/src/pbfuninv.cpp
-    extern/pbni/src/pbobject.cpp
+    ${PBNI_SDK_DIRECTORY}/src/pbarray.cpp
+    ${PBNI_SDK_DIRECTORY}/src/pbfuninv.cpp
+    ${PBNI_SDK_DIRECTORY}/src/pbobject.cpp
 )
 
 set(headers ${src})
@@ -128,12 +129,11 @@ PUBLIC
 target_include_directories(pbni-framework
 PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/extern/pbni/include>
+    $<BUILD_INTERFACE:${PBNI_SDK_DIRECTORY}/include>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
 
-install(DIRECTORY "extern/pbni/include/pbni" DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
 install(FILES ${headers} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/PBNIFramework")
 
 

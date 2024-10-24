@@ -637,12 +637,12 @@ namespace Inf
          */
         static std::wstring ExtractGroupName(const std::wstring& className)
         {
-            size_t i = className.find_first_of(L'.');
+            size_t i = className.find_first_of(L".`");
 
             if (i == 0 || i == std::wstring::npos)
                 return className;
 
-            if (className.find_last_of(L'.') != i)
+            if (className.find_last_of(L".`") != i)
                 return L"";
 
             return className.substr(0, i);
@@ -653,12 +653,12 @@ namespace Inf
          */
         static std::wstring ExtractClassName(const std::wstring& className)
         {
-            size_t i = className.find_first_of(L'.');
+            size_t i = className.find_first_of(L".`");
 
             if (i == std::wstring::npos)
                 return className;
 
-            if (className.find_last_of(L'.') != i)
+            if (className.find_last_of(L".`") != i)
                 return L"";
 
             return className.substr(i + 1);
